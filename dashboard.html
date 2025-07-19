@@ -1,650 +1,1402 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard – SEOTIZE</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    :root {
-      --bg: #f5f7fa;
-      --sidebar-bg: #ffffff;
-      --card-bg: #ffffff;
-      --text: #1f2937;
-      --text-light: #4b5563;
-      --border: #e5e7eb;
-      --primary: #3b82f6;
-      --primary-light: rgba(59, 130, 246, 0.1);
-      --secondary: #10b981;
-      --shadow: 0 4px 6px rgba(0,0,0,0.05);
-      --radius: 0.5rem;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SEOTIZE | AI SEO Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --bg:#ffffff;--bg-light:#f8fafc;--bg-dark:#0f172a;
+            --text:#1e293b;--text-light:#64748b;--text-muted:#94a3b8;
+            --border:#e2e8f0;--primary:#2563eb;--secondary:#059669;
+            --card-bg:#ffffff;--nav-bg:rgba(255,255,255,0.95);
+            --success:#059669;--warning:#f59e0b;--error:#dc2626;
+        }
+        body.dark{
+            --bg:#0f172a;--bg-light:#1e293b;
+            --text:#f1f5f9;--text-light:#cbd5e1;--text-muted:#94a3b8;
+            --border:#334155;--card-bg:#1e293b;--nav-bg:rgba(15,23,42,0.95);
+        }
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;transition:all .3s}
 
-    body.dark {
-      --bg: #0f172a;
-      --sidebar-bg: #1f2937;
-      --card-bg: #1f2937;
-      --text: #f9fafb;
-      --text-light: #9ca3af;
-      --border: #334155;
-      --primary: #3b82f6;
-      --primary-light: rgba(59, 130, 246, 0.15);
-    }
+        /* Layout */
+        .dashboard{display:flex;min-height:100vh}
+        .sidebar{width:280px;background:var(--card-bg);border-right:1px solid var(--border);position:fixed;height:100vh;overflow-y:auto;transition:all .3s;z-index:100}
+        .sidebar.collapsed{width:80px}
+        .main{flex:1;margin-left:280px;transition:margin .3s}
+        .sidebar.collapsed~.main{margin-left:80px}
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-      transition: background 0.3s, color 0.3s;
-    }
+        /* Sidebar */
+        .sidebar-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .logo{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+        .sidebar-toggle{background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;padding:.5rem;border-radius:6px;transition:all .2s}
+        .sidebar-toggle:hover{background:var(--bg-light)}
 
-    /* Sidebar */
-    .sidebar {
-      width: 260px;
-      background: var(--sidebar-bg);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      padding: 2rem 1.5rem;
-      transform: translateX(-100%);
-    }
-    .logo {
-      font-size: 1.75rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 2rem;
-      text-decoration: none;
-      display: block;
-    }
-    .nav-links {
-      list-style: none;
-    }
-    .nav-links a {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem 1rem;
-      border-radius: var(--radius);
-      text-decoration: none;
-      color: var(--text-light);
-      font-weight: 500;
-      transition: background 0.2s, transform 0.2s;
-    }
-    .nav-links a:hover {
-      background: var(--primary-light);
-      color: var(--primary);
-      transform: translateX(4px);
-    }
-    .nav-links a.active {
-      background: var(--primary);
-      color: white;
-      box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
-    }
-    .sidebar-footer {
-      margin-top: auto;
-      border-top: 1px solid var(--border);
-      padding-top: 1.5rem;
-    }
-    .user-profile {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    .user-email {
-      font-size: 0.875rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .btn {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: transparent;
-      font-weight: 500;
-      color: var(--text-light);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .btn:hover {
-      border-color: var(--primary);
-      color: var(--primary);
-    }
+        .nav-menu{padding:1rem 0}
+        .nav-item{margin:.25rem 1rem}
+        .nav-link{display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;color:var(--text-light);text-decoration:none;border-radius:8px;transition:all .2s;font-weight:500}
+        .nav-link:hover,.nav-link.active{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff}
+        .nav-icon{font-size:1.2rem;width:24px;text-align:center}
+        .nav-text{transition:opacity .3s}
+        .sidebar.collapsed .nav-text{opacity:0;width:0;overflow:hidden}
 
-    /* Main Content */
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 2rem;
-      overflow: hidden;
-    }
-    .main-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-    .main-header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-    }
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: var(--radius);
-      padding: 0.75rem 1.5rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
-    }
+        /* Header */
+        .header{background:var(--card-bg);border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
+        .page-title{font-size:1.5rem;font-weight:700}
+        .header-actions{display:flex;align-items:center;gap:1rem}
 
-    /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-    .stat-card {
-      background: var(--card-bg);
-      padding: 1.5rem;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-    .stat-card:hover {
-      transform: translateY(-5px) scale(1.03);
-      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-    }
-    .stat-header {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: var(--text-light);
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-    }
-    .stat-value {
-      font-size: 2rem;
-      font-weight: 800;
-    }
-    .stat-desc {
-      font-size: 0.875rem;
-      color: var(--text-light);
-    }
+        .user-menu{position:relative}
+        .user-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;cursor:pointer;transition:all .2s}
+        .user-avatar:hover{transform:scale(1.05)}
+        .user-dropdown{position:absolute;right:0;top:100%;margin-top:.5rem;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:.5rem;min-width:200px;box-shadow:0 10px 25px rgba(0,0,0,.1);opacity:0;visibility:hidden;transform:translateY(-10px);transition:all .2s}
+        .user-dropdown.active{opacity:1;visibility:visible;transform:translateY(0)}
+        .user-info{padding:.75rem;border-bottom:1px solid var(--border)}
+        .user-email{font-size:.875rem;color:var(--text-light)}
+        .dropdown-item{display:block;padding:.75rem;color:var(--text);text-decoration:none;border-radius:6px;transition:all .2s}
+        .dropdown-item:hover{background:var(--bg-light)}
 
-    /* Tasks Section */
-    .tasks {
-      flex: 1;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      margin-bottom: 2rem;
-    }
-    .tasks-header {
-      padding: 1rem 1.5rem;
-      border-bottom: 1px solid var(--border);
-      font-size: 1.125rem;
-      font-weight: 600;
-    }
-    .tasks-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0.5rem;
-    }
-    .task-item {
-      display: grid;
-      grid-template-columns: 3fr 1fr 1fr 1fr;
-      align-items: center;
-      padding: 1rem 1.5rem;
-      border-radius: var(--radius);
-      margin-bottom: 0.5rem;
-      transition: background 0.2s;
-    }
-    .task-item:hover {
-      background: var(--primary-light);
-    }
-    .task-url {
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .task-stat {
-      text-align: center;
-      color: var(--text-light);
-    }
-    .progress-bar {
-      width: 100%;
-      height: 6px;
-      background: var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--secondary), var(--primary));
-      width: 0%;
-      transition: width 1s ease-in-out;
-    }
+        /* Content */
+        .content{padding:2rem}
 
-    /* Hosting & Billing Cards */
-    .card-group {
-      display: flex;
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-    .sub-card {
-      flex: 1;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: var(--shadow);
-    }
-    .sub-card h3 {
-      margin-bottom: 0.5rem;
-      font-size: 1rem;
-      color: var(--text-light);
-    }
-    .sub-card p,
-    .sub-card small {
-      font-weight: 600;
-      margin: 0.25rem 0;
-    }
+        /* Stats Grid */
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;margin-bottom:2rem}
+        .stat-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:1.5rem;position:relative;overflow:hidden;transition:all .3s}
+        .stat-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(135deg,var(--primary),var(--secondary))}
+        .stat-card:hover{transform:translateY(-4px);box-shadow:0 20px 25px rgba(0,0,0,.1)}
+        .stat-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1rem}
+        .stat-value{font-size:2rem;font-weight:800;margin-bottom:.5rem}
+        .stat-label{color:var(--text-light);font-size:.875rem}
+        .stat-change{font-size:.875rem;color:var(--success);margin-top:.5rem}
+        .stat-change.negative{color:var(--error)}
 
-    /* Usage Trends Charts */
-    #usageTrends {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
-      gap: 1.5rem;
-    }
-    canvas {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1rem;
-    }
+        /* Cards */
+        .card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;margin-bottom:1.5rem;overflow:hidden}
+        .card-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .card-title{font-size:1.25rem;font-weight:700}
+        .card-body{padding:1.5rem}
 
-    /* Loading Overlay */
-    .loading-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .spinner {
-      width: 60px;
-      height: 60px;
-      border: 4px solid var(--border);
-      border-top: 4px solid var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+        /* Charts */
+        .chart-container{position:relative;height:300px}
+        .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:1.5rem}
 
-    /* Responsive */
-    @media (max-width: 768px) {
-      .sidebar {
-        transform: translateY(-100%);
-        width: 100%;
-        flex-direction: row;
-        justify-content: space-between;
-        padding: 1rem;
-      }
-      .nav-links, .sidebar-footer { display: none; }
-      .main { padding: 1rem; }
-      .stats-grid { grid-template-columns: 1fr 1fr; }
-      .card-group { flex-direction: column; }
-      .tasks { margin-bottom: 1.5rem; }
-      .task-item { grid-template-columns: 1fr; text-align: center; gap: 0.5rem; }
-      #usageTrends { grid-template-columns: 1fr; }
-    }
-  </style>
+        /* Tables */
+        .table{width:100%;border-collapse:collapse}
+        .table th,.table td{padding:1rem;text-align:left;border-bottom:1px solid var(--border)}
+        .table th{background:var(--bg-light);font-weight:600;font-size:.875rem;text-transform:uppercase;letter-spacing:.05em}
+        .table tr:hover{background:var(--bg-light)}
+
+        /* Buttons */
+        .btn{padding:.75rem 1.5rem;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;text-decoration:none}
+        .btn-primary{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(37,99,235,.3)}
+        .btn-secondary{background:var(--bg-light);color:var(--text);border:1px solid var(--border)}
+        .btn-secondary:hover{background:var(--border)}
+        .btn-sm{padding:.5rem 1rem;font-size:.875rem}
+
+        /* Status Badge */
+        .badge{padding:.25rem .75rem;border-radius:12px;font-size:.75rem;font-weight:500}
+        .badge-success{background:rgba(5,150,105,.1);color:var(--success)}
+        .badge-warning{background:rgba(245,158,11,.1);color:var(--warning)}
+        .badge-error{background:rgba(220,38,38,.1);color:var(--error)}
+
+        /* Progress Bar */
+        .progress{width:100%;height:8px;background:var(--bg-light);border-radius:4px;overflow:hidden}
+        .progress-bar{height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));transition:width .3s}
+
+        /* Modal */
+        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:all .3s}
+        .modal.active{opacity:1;visibility:visible}
+        .modal-content{background:var(--card-bg);border-radius:12px;max-width:90%;max-height:90vh;overflow:auto;transform:scale(.9);transition:transform .3s}
+        .modal.active .modal-content{transform:scale(1)}
+        .modal-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .modal-close{background:none;border:none;font-size:1.5rem;color:var(--text);cursor:pointer;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s}
+        .modal-close:hover{background:var(--bg-light);transform:rotate(90deg)}
+        .modal-body{padding:1.5rem}
+
+        /* Forms */
+        .form-group{margin-bottom:1.5rem}
+        .form-label{display:block;margin-bottom:.5rem;font-weight:600;font-size:.875rem}
+        .form-input,.form-select,.form-textarea{width:100%;padding:.75rem;background:var(--bg-light);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;transition:all .2s}
+        .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary)}
+
+        /* Editor */
+        .editor-container{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+        #editor{min-height:300px;background:var(--bg-light)}
+        .ql-toolbar{background:var(--card-bg)!important;border:none!important;border-bottom:1px solid var(--border)!important}
+        .ql-container{border:none!important}
+
+        /* Image Grid */
+        .image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem}
+        .image-card{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .3s}
+        .image-card:hover{transform:translateY(-4px);box-shadow:0 10px 20px rgba(0,0,0,.1)}
+        .image-card img{width:100%;height:150px;object-fit:cover}
+        .image-info{padding:1rem}
+
+        /* Domain Card */
+        .domain-card{background:var(--bg-light);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center}
+
+        /* Loading */
+        .loading{display:flex;align-items:center;justify-content:center;padding:3rem;color:var(--text-light)}
+        .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin-right:1rem}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* Theme Toggle */
+        .theme-toggle{background:var(--bg-light);border:1px solid var(--border);padding:.5rem;border-radius:6px;cursor:pointer;font-size:1.2rem;transition:all .2s}
+        .theme-toggle:hover{transform:scale(1.05)}
+
+        /* Notification */
+        .notification{position:fixed;top:20px;right:20px;padding:1rem 1.5rem;background:var(--success);color:#fff;border-radius:8px;font-weight:500;z-index:2000;transform:translateX(400px);transition:transform .3s}
+        .notification.show{transform:translateX(0)}
+        .notification.error{background:var(--error)}
+
+        /* Responsive */
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%)}
+            .sidebar.open{transform:translateX(0)}
+            .main{margin-left:0!important}
+            .stats-grid,.chart-grid{grid-template-columns:1fr}
+            .header{padding:1rem}
+            .content{padding:1rem}
+        }
+    </style>
 </head>
 <body>
-  <!-- Loading Overlay -->
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner"></div>
-  </div>
+    <div class="dashboard">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="logo">SEOTIZE</a>
+                <button class="sidebar-toggle" onclick="toggleSidebar()">‹</button>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item">
+                    <a href="#" class="nav-link active" data-page="dashboard">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-page="tasks">
+                        <span class="nav-icon">🎯</span>
+                        <span class="nav-text">SEO Tasks</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-page="articles">
+                        <span class="nav-icon">📝</span>
+                        <span class="nav-text">Articles</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-page="images">
+                        <span class="nav-icon">🖼️</span>
+                        <span class="nav-text">Images</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-page="billing">
+                        <span class="nav-icon">💳</span>
+                        <span class="nav-text">Billing</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
 
-  <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar">
-    <a href="#" class="logo">SEOTIZE</a>
-    <nav class="nav-links">
-      <a href="#" class="active"><span>🏠</span> Dashboard</a>
-      <a href="#"><span>💳</span> Billing</a>
-      <a href="#"><span>🌐</span> Domains</a>
-      <a href="#"><span>📝</span> Articles</a>
-      <a href="#"><span>⚙️</span> Settings</a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-profile">
-        <div class="user-avatar" id="userAvatar">A</div>
-        <div class="user-email" id="userEmail">user@seotize.net</div>
-      </div>
-      <button class="btn" id="themeToggle"><span>🌙</span> Switch Theme</button>
-      <button class="btn" id="logoutBtn"><span>🚪</span> Log Out</button>
-    </div>
-  </aside>
+        <main class="main">
+            <header class="header">
+                <h1 class="page-title">Dashboard</h1>
+                <div class="header-actions">
+                    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+                    <div class="user-menu">
+                        <div class="user-avatar" onclick="toggleUserMenu()" id="userAvatar">U</div>
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="user-info">
+                                <div id="userName" style="font-weight:600">User</div>
+                                <div class="user-email" id="userEmail">user@example.com</div>
+                            </div>
+                            <a href="#" class="dropdown-item" onclick="logout()">🚪 Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-  <!-- Main Content -->
-  <main class="main">
-    <!-- Header -->
-    <div class="main-header">
-      <h1 id="welcomeMessage">Welcome, User!</h1>
-      <button class="btn-primary" id="addTaskBtn"><span>➕</span> Add New Task</button>
-    </div>
-
-    <!-- Stats Cards -->
-    <section class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-header"><span>👀</span>Total Views</div>
-        <div class="stat-value" id="statTotalViews">0</div>
-        <div class="stat-desc">Across all tasks</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-header"><span>🔑</span>Total Keywords</div>
-        <div class="stat-value" id="statTotalKeywords">0</div>
-        <div class="stat-desc">Driving your traffic</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-header"><span>⚡️</span>Total Charge</div>
-        <div class="stat-value" id="statTotalCharge">0</div>
-        <div class="stat-desc">Total task value</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-header"><span>🔋</span>Available Charge</div>
-        <div class="stat-value" id="statAvailableCharge">0</div>
-        <div class="stat-desc">Remaining credits</div>
-      </div>
-    </section>
-
-    <!-- Active Tasks -->
-    <section class="tasks">
-      <div class="tasks-header">Your Active Tasks</div>
-      <div class="tasks-list" id="tasksList">
-        <p style="text-align:center; color:var(--text-light); padding:2rem;">
-          No active tasks. Click “Add New Task” to get started!
-        </p>
-      </div>
-    </section>
-
-    <!-- Hosting Usage -->
-    <div class="card-group" id="hostingUsage">
-      <div class="sub-card">
-        <h3>Articles Uploaded</h3>
-        <p id="hostArticles">—</p>
-      </div>
-      <div class="sub-card">
-        <h3>Images Uploaded</h3>
-        <p id="hostImages">—</p>
-      </div>
-      <div class="sub-card">
-        <h3>Plan</h3>
-        <p id="hostPlan">—</p>
-        <small>Expires <span id="hostExpiry">—</span></small>
-      </div>
+            <div class="content" id="content">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading...
+                </div>
+            </div>
+        </main>
     </div>
 
-    <!-- Billing Summary -->
-    <div class="card-group" id="billingSummary">
-      <div class="sub-card">
-        <h3>Current Plan</h3>
-        <p id="billPlan">—</p>
-      </div>
-      <div class="sub-card">
-        <h3>Next Invoice</h3>
-        <p id="billNextDate">—</p>
-        <p id="billNextAmount">—</p>
-      </div>
-      <div class="sub-card">
-        <h3>Past Invoices</h3>
-        <ul id="billHistory"><li>—</li></ul>
-      </div>
-    </div>
+    <div id="modalContainer"></div>
+    <div id="notificationContainer"></div>
 
-    <!-- Usage Trends Charts -->
-    <section id="usageTrends">
-      <div>
-        <h3>Views Over Time</h3>
-        <canvas id="viewsChart"></canvas>
-      </div>
-      <div>
-        <h3>Tasks Created Over Time</h3>
-        <canvas id="tasksChart"></canvas>
-      </div>
-    </section>
-  </main>
+    <script>
+        const API_BASE = 'https://api.seotize.net';
+        let sessionToken = getCookie('session_token');
+        let userData = null;
+        let currentPage = 'dashboard';
+        let charts = {};
 
-  <script>
-    const baseUrl = 'https://api.seotize.net';
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const token = getCookie('session_token');
-      if (!token) return window.location.href = 'login.html';
-
-      loadTheme();
-      setupListeners();
-
-      // Fetch dashboard then animate
-      fetchDashboard(token)
-        .then(u => {
-          populateDashboard(u);
-          populateHosting(u.hosting);
-        })
-        .catch(e => console.error('Dashboard error', e))
-        .finally(() => runAnimations());
-
-      // Fetch billing summary
-      fetchBilling(token)
-        .then(b => populateBilling(b))
-        .catch(e => console.error('Billing error', e));
-
-      // Initialize empty charts
-      initCharts([], []);
-    });
-
-    // Fetch /users/dashboard?page=1&page_size=10
-    async function fetchDashboard(token) {
-      const res = await fetch(`${baseUrl}/users/dashboard?page=1&page_size=10`, {
-        headers: { 'Session-Token': token }
-      });
-      if (!res.ok) throw new Error(res.statusText);
-      const { data } = await res.json();
-      return data.user;
-    }
-
-    function populateDashboard(u) {
-      const email = u.email;
-      document.getElementById('userEmail').textContent = email;
-      document.getElementById('userAvatar').textContent = email[0].toUpperCase();
-      document.getElementById('welcomeMessage').textContent =
-        `Welcome, ${email.split('@')[0]}!`;
-
-      animateStat('statTotalViews', u.task_statistics.total_views);
-      animateStat('statTotalKeywords', u.task_statistics.total_keywords);
-      animateStat('statTotalCharge', u.task_statistics.total_charge);
-      animateStat('statAvailableCharge', u.task_statistics.available_charge);
-
-      const list = document.getElementById('tasksList');
-      list.innerHTML = '';
-      if (u.tasks.length) {
-        u.tasks.forEach(t => {
-          const div = document.createElement('div');
-          div.className = 'task-item';
-          div.innerHTML = `
-            <div class="task-url">${t.url}</div>
-            <div class="task-stat"><strong>${t.views_count}</strong> views</div>
-            <div class="task-stat"><strong>${t.keywords_count}</strong> kw</div>
-            <div class="task-stat">
-              <div class="progress-bar">
-                <div class="progress-fill" style="width:${t.remaining_percentage}%"></div>
-              </div>
-            </div>`;
-          list.appendChild(div);
-        });
-      } else {
-        list.innerHTML = `
-          <p style="text-align:center; color:var(--text-light); padding:2rem;">
-            No active tasks. Click “Add New Task” to get started!
-          </p>`;
-      }
-    }
-
-    function populateHosting(h) {
-      document.getElementById('hostArticles').textContent = h.article_uploads;
-      document.getElementById('hostImages').textContent   = h.images_uploads;
-      document.getElementById('hostPlan').textContent     = h.type;
-      document.getElementById('hostExpiry').textContent   =
-        new Date(h.expiry_date).toLocaleDateString();
-    }
-
-    // Fetch /dashboard/billings
-    async function fetchBilling(token) {
-      const res = await fetch(`${baseUrl}/dashboard/billings`, {
-        headers: { 'Session-Token': token }
-      });
-      if (!res.ok) throw new Error(res.statusText);
-      const { data } = await res.json();
-      return data;
-    }
-
-    function populateBilling(b) {
-      document.getElementById('billPlan').textContent       = b.current_plan;
-      document.getElementById('billNextDate').textContent   =
-        new Date(b.next_invoice.date).toLocaleDateString();
-      document.getElementById('billNextAmount').textContent =
-        `${b.next_invoice.amount} ${b.next_invoice.currency}`;
-      document.getElementById('billHistory').innerHTML =
-        b.history.map(inv =>
-          `<li>${new Date(inv.date).toLocaleDateString()}: ${inv.amount} ${inv.currency}</li>`
-        ).join('');
-    }
-
-    function initCharts(viewsData, tasksData) {
-      new Chart(
-        document.getElementById('viewsChart').getContext('2d'),
-        {
-          type: 'line',
-          data: { labels: [], datasets: [{ label: 'Views', data: viewsData }] },
-          options: { responsive: true }
+        // Utils
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            return parts.length === 2 ? parts.pop().split(';').shift() : null;
         }
-      );
-      new Chart(
-        document.getElementById('tasksChart').getContext('2d'),
-        {
-          type: 'bar',
-          data: { labels: [], datasets: [{ label: 'Tasks', data: tasksData }] },
-          options: { responsive: true }
+
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
         }
-      );
-    }
 
-    function runAnimations() {
-      const overlay = document.getElementById('loadingOverlay');
-      gsap.timeline({ defaults: { ease: 'power3.out' } })
-        .to('.sidebar', { x: '0%', duration: 0.8, delay: 0.2 })
-        .from(
-          '.main-header, .stat-card, .tasks-header',
-          { opacity: 0, y: 30, duration: 0.6, stagger: 0.1 },
-          '-=0.5'
-        )
-        .to(overlay, {
-          opacity: 0,
-          duration: 0.5,
-          onComplete: () => (overlay.style.display = 'none')
-        });
-    }
+        async function api(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    ...options,
+                    headers: {
+                        'Session-Token': sessionToken,
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+                if (response.status === 401) {
+                    window.location.href = 'login.html';
+                    return null;
+                }
+                return await response.json();
+            } catch (error) {
+                notify('Network error', 'error');
+                return null;
+            }
+        }
 
-    function animateStat(id, value) {
-      gsap.to(`#${id}`, {
-        duration: 1.5,
-        textContent: value,
-        roundProps: 'textContent',
-        ease: 'power2.inOut'
-      });
-    }
+        function notify(message, type = 'success') {
+            const notif = document.createElement('div');
+            notif.className = `notification ${type} show`;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            setTimeout(() => {
+                notif.classList.remove('show');
+                setTimeout(() => notif.remove(), 300);
+            }, 3000);
+        }
 
-    function setupListeners() {
-      document.getElementById('themeToggle').onclick = toggleTheme;
-      document.getElementById('logoutBtn').onclick   = logout;
-      document.getElementById('addTaskBtn').onclick  = () =>
-        alert('Open Add Task modal');
-    }
+        function modal(content) {
+            const container = document.getElementById('modalContainer');
+            container.innerHTML = `
+                <div class="modal active" onclick="if(event.target===this)closeModal()">
+                    <div class="modal-content">${content}</div>
+                </div>
+            `;
+        }
 
-    function toggleTheme() {
-      document.body.classList.toggle('dark');
-      localStorage.setItem(
-        'theme',
-        document.body.classList.contains('dark') ? 'dark' : 'light'
-      );
-    }
+        function closeModal() {
+            document.getElementById('modalContainer').innerHTML = '';
+        }
 
-    function loadTheme() {
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark');
-      }
-    }
+        // Navigation
+        function navigate(page) {
+            currentPage = page;
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.toggle('active', link.dataset.page === page);
+            });
+            document.querySelector('.page-title').textContent = page.charAt(0).toUpperCase() + page.slice(1);
+            loadPage();
+        }
 
-    function getCookie(name) {
-      const v = `; ${document.cookie}`.split(`; ${name}=`);
-      return v.length === 2 ? v.pop().split(';').shift() : '';
-    }
+        async function loadPage() {
+            const content = document.getElementById('content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
 
-    function logout() {
-      const t = getCookie('session_token');
-      if (t) fetch(`${baseUrl}/logout`, { headers: { 'Session-Token': t } });
-      document.cookie =
-        'session_token=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      window.location.href = 'login.html';
-    }
-  </script>
+            switch (currentPage) {
+                case 'dashboard': await loadDashboard(); break;
+                case 'tasks': await loadTasks(); break;
+                case 'articles': await loadArticles(); break;
+                case 'images': await loadImages(); break;
+                case 'billing': await loadBilling(); break;
+            }
+        }
+
+        // Dashboard
+        async function loadDashboard() {
+            const data = await api('/users/dashboard?page=1&page_size=10');
+            if (!data?.data?.user) return;
+
+            userData = data.data.user;
+            updateUserInfo();
+
+            const stats = userData.task_statistics || {};
+            const usage = userData.usage_summary || {};
+            const tasks = userData.tasks || [];
+
+            document.getElementById('content').innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👁️</div>
+                        <div class="stat-value">${(stats.total_views || 0).toLocaleString()}</div>
+                        <div class="stat-label">Total Views</div>
+                        <div class="stat-change">↗ +12% from last month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-value">${usage.active_tasks || 0}</div>
+                        <div class="stat-label">Active Tasks</div>
+                        <div class="stat-change">↗ ${usage.total_tasks || 0} total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔑</div>
+                        <div class="stat-value">${stats.total_keywords || 0}</div>
+                        <div class="stat-label">Total Keywords</div>
+                        <div class="stat-change">Optimizing rankings</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-value">$${(stats.available_charge || 0).toFixed(1)}</div>
+                        <div class="stat-label">Available Credit</div>
+                        <div class="stat-change negative">↘ $${((stats.total_charge || 0) - (stats.available_charge || 0)).toFixed(1)} spent</div>
+                    </div>
+                </div>
+
+                <div class="chart-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Task Performance</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="taskChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Tasks</h3>
+                            <a href="#" class="btn btn-primary btn-sm" onclick="showAddTask()">+ Add Task</a>
+                        </div>
+                        <div class="card-body" style="padding:0">
+                            ${tasks.length ? `
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Website</th>
+                                            <th>Views</th>
+                                            <th>Progress</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${tasks.slice(0,5).map(task => `
+                                            <tr>
+                                                <td>
+                                                    <a href="${task.url}" target="_blank" style="color:var(--primary)">${task.url}</a>
+                                                    <div style="font-size:.75rem;color:var(--text-light)">${task.keywords_count} keywords</div>
+                                                </td>
+                                                <td>${task.views_count.toLocaleString()}</td>
+                                                <td>
+                                                    <div class="progress">
+                                                        <div class="progress-bar" style="width:${100-task.remaining_percentage}%"></div>
+                                                    </div>
+                                                    <small>${100-task.remaining_percentage}%</small>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm" onclick="viewTask('${task._id}')">View</button>
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            ` : '<div style="text-align:center;padding:3rem;color:var(--text-light)">No tasks yet</div>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Create chart
+            const ctx = document.getElementById('taskChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Views',
+                        data: tasks.slice(0,7).map(t => t.views_count || 0),
+                        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary'),
+                        backgroundColor: 'rgba(37,99,235,0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.1)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Tasks
+        async function loadTasks() {
+            const data = await api('/users/dashboard?page=1&page_size=50');
+            const tasks = data?.data?.user?.tasks || [];
+
+            document.getElementById('content').innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
+                    <h2>SEO Tasks Management</h2>
+                    <button class="btn btn-primary" onclick="showAddTask()">+ Create New Task</button>
+                </div>
+                ${tasks.length ? `
+                    <div class="card">
+                        <div class="card-body" style="padding:0">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Website</th>
+                                        <th>Keywords</th>
+                                        <th>Views</th>
+                                        <th>Progress</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tasks.map(task => `
+                                        <tr>
+                                            <td><a href="${task.url}" target="_blank" style="color:var(--primary)">${task.url}</a></td>
+                                            <td>${task.keywords_count}</td>
+                                            <td>${task.views_count.toLocaleString()}</td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar" style="width:${100-task.remaining_percentage}%"></div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge ${task.remaining_percentage > 0 ? 'badge-success' : 'badge-warning'}">
+                                                    ${task.remaining_percentage > 0 ? 'Active' : 'Completed'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm" onclick="viewTask('${task._id}')">Details</button>
+                                                <button class="btn btn-sm" onclick="rechargeTask('${task._id}')">Recharge</button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="card">
+                        <div class="card-body" style="text-align:center;padding:4rem">
+                            <h3>No SEO Tasks Yet</h3>
+                            <p style="color:var(--text-light);margin:1rem 0">Start optimizing your website with our powerful SEO tools</p>
+                            <button class="btn btn-primary" onclick="showAddTask()">Create Your First Task</button>
+                        </div>
+                    </div>
+                `}
+            `;
+        }
+
+        async function showAddTask() {
+            modal(`
+                <div class="modal-header">
+                    <h2>Create New SEO Task</h2>
+                    <button class="modal-close" onclick="closeModal()">✕</button>
+                </div>
+                <div class="modal-body" style="max-width:600px">
+                    <form id="addTaskForm">
+                        <div class="form-group">
+                            <label class="form-label">Website URL</label>
+                            <input type="url" id="taskUrl" class="form-input" placeholder="https://example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Keywords (comma separated)</label>
+                            <textarea id="taskKeywords" class="form-textarea" rows="3" placeholder="SEO, optimization, ranking" required></textarea>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                            <div class="form-group">
+                                <label class="form-label">Priority</label>
+                                <select id="taskPriority" class="form-select">
+                                    <option value="standard">Standard</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Budget ($)</label>
+                                <input type="number" id="taskBudget" class="form-input" placeholder="100" min="10" required>
+                            </div>
+                        </div>
+<div style="display:flex;gap:1rem;justify-content:flex-end">
+                           <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                           <button type="submit" class="btn btn-primary">Create Task</button>
+                       </div>
+                   </form>
+               </div>
+           `);
+
+           document.getElementById('addTaskForm').addEventListener('submit', async (e) => {
+               e.preventDefault();
+               const data = await api('/add-task', {
+                   method: 'POST',
+                   body: JSON.stringify({
+                       task_details: {
+                           url: document.getElementById('taskUrl').value,
+                           keywords: document.getElementById('taskKeywords').value.split(',').map(k => k.trim()),
+                           html_locations: []
+                       },
+                       task_priority: document.getElementById('taskPriority').value,
+                       total_charge: parseFloat(document.getElementById('taskBudget').value),
+                       payment_method: 'stripe',
+                       is_subscription: false,
+                       cancel_previous: false
+                   })
+               });
+
+               if (data?.status === 'success') {
+                   notify('Task created successfully!');
+                   closeModal();
+                   if (data.data.payment_url) window.open(data.data.payment_url, '_blank');
+                   loadTasks();
+               } else {
+                   notify(data?.error?.message || 'Failed to create task', 'error');
+               }
+           });
+       }
+
+       async function viewTask(taskId) {
+           const data = await api('/get-task-details', {
+               method: 'POST',
+               body: JSON.stringify({ task_id: taskId })
+           });
+
+           if (data?.status === 'success') {
+               const task = data.data;
+               modal(`
+                   <div class="modal-header">
+                       <h2>Task Details</h2>
+                       <button class="modal-close" onclick="closeModal()">✕</button>
+                   </div>
+                   <div class="modal-body" style="max-width:800px">
+                       <div class="stats-grid" style="margin-bottom:2rem">
+                           <div class="stat-card">
+                               <div class="stat-label">Total Views</div>
+                               <div class="stat-value">${(task.views_count || 0).toLocaleString()}</div>
+                           </div>
+                           <div class="stat-card">
+                               <div class="stat-label">Available Credit</div>
+                               <div class="stat-value">$${task.available_charge}</div>
+                           </div>
+                       </div>
+
+                       <div class="card">
+                           <div class="card-header">
+                               <h3 class="card-title">Task Information</h3>
+                           </div>
+                           <div class="card-body">
+                               <p><strong>URL:</strong> <a href="${task.url}" target="_blank" style="color:var(--primary)">${task.url}</a></p>
+                               <p><strong>Created:</strong> ${task.date_created}</p>
+                               <p><strong>Priority:</strong> ${task.task_priority}</p>
+                               <div style="margin-top:1rem">
+                                   <strong>Keywords:</strong>
+                                   <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem">
+                                       ${task.keywords.map(kw => `<span class="badge badge-success">${kw}</span>`).join('')}
+                                   </div>
+                               </div>
+                           </div>
+                       </div>
+
+                       <div class="card" style="margin-top:1rem">
+                           <div class="card-header">
+                               <h3 class="card-title">Daily Views</h3>
+                           </div>
+                           <div class="card-body">
+                               <div class="chart-container" style="height:200px">
+                                   <canvas id="taskViewsChart"></canvas>
+                               </div>
+                           </div>
+                       </div>
+
+                       <div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:2rem">
+                           <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                           <button class="btn btn-primary" onclick="rechargeTask('${task._id}')">Recharge Task</button>
+                       </div>
+                   </div>
+               `);
+
+               // Create views chart
+               setTimeout(() => {
+                   const ctx = document.getElementById('taskViewsChart').getContext('2d');
+                   const dates = Object.keys(task.views_by_date || {}).slice(-7);
+                   new Chart(ctx, {
+                       type: 'bar',
+                       data: {
+                           labels: dates,
+                           datasets: [{
+                               label: 'Views',
+                               data: dates.map(d => task.views_by_date[d] || 0),
+                               backgroundColor: 'rgba(37,99,235,0.6)',
+                               borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary'),
+                               borderWidth: 1
+                           }]
+                       },
+                       options: {
+                           responsive: true,
+                           maintainAspectRatio: false,
+                           plugins: { legend: { display: false } }
+                       }
+                   });
+               }, 100);
+           }
+       }
+
+       async function rechargeTask(taskId) {
+           const result = await api('/recharge', {
+               method: 'POST',
+               body: JSON.stringify({
+                   task_ids: [taskId],
+                   payment_method: 'stripe',
+                   cancel_previous: false
+               })
+           });
+
+           if (result?.status === 'success') {
+               notify('Recharge initiated!');
+               if (result.data.payment_url) window.open(result.data.payment_url, '_blank');
+           } else {
+               notify(result?.error?.message || 'Recharge failed', 'error');
+           }
+       }
+
+       // Articles
+       async function loadArticles() {
+           const [articlesData, userData] = await Promise.all([
+               api('/dashboard/articles'),
+               api('/users/dashboard?page=1&page_size=1')
+           ]);
+
+           const articles = articlesData?.data?.articles || [];
+           const domains = userData?.data?.user?.domains || [];
+           const stats = articlesData?.data?.user || {};
+
+           document.getElementById('content').innerHTML = `
+               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
+                   <div>
+                       <h2>Article Management</h2>
+                       <p style="color:var(--text-light)">${stats.uploaded || 0} articles • ${stats.remaining || 0} remaining</p>
+                   </div>
+                   <button class="btn btn-primary" onclick="showArticleEditor()">+ Write Article</button>
+               </div>
+
+               <div class="card" style="margin-bottom:2rem">
+                   <div class="card-header">
+                       <h3 class="card-title">Domain Management</h3>
+                   </div>
+                   <div class="card-body">
+                       <form id="addDomainForm" style="display:flex;gap:1rem;margin-bottom:1rem">
+                           <input type="url" id="domainUrl" class="form-input" placeholder="https://yourdomain.com/blog" required style="flex:1">
+                           <button type="submit" class="btn btn-primary">Add Domain</button>
+                       </form>
+                       ${domains.map(d => `
+                           <div class="domain-card">
+                               <div>
+                                   <div style="font-weight:600">${d.domain}</div>
+                                   <div style="color:var(--text-light);font-size:.875rem">TXT: seotize_verification=${userData.data.user._id || userData.data.user.email}</div>
+                               </div>
+                               <div style="display:flex;align-items:center;gap:1rem">
+                                   <span class="badge ${d.verified ? 'badge-success' : 'badge-warning'}">
+                                       ${d.verified ? '✓ Verified' : '⏳ Pending'}
+                                   </span>
+                                   ${!d.verified ? `<button class="btn btn-sm" onclick="verifyDomain('${d.domain}')">Verify</button>` : ''}
+                               </div>
+                           </div>
+                       `).join('')}
+                   </div>
+               </div>
+
+               ${articles.length ? `
+                   <div class="image-grid">
+                       ${articles.map(article => `
+                           <div class="image-card" onclick="viewArticle('${article.article_id}')">
+                               ${article.images?.[0] ? `<img src="${article.images[0]}" alt="${article.subject}">` : ''}
+                               <div class="image-info">
+                                   <h4 style="margin-bottom:.5rem">${article.subject}</h4>
+                                   <p style="color:var(--text-light);font-size:.875rem">${article.url}</p>
+                                   <div style="display:flex;justify-content:space-between;margin-top:.5rem">
+                                       <small>${new Date(article.creation_date).toLocaleDateString()}</small>
+                                       <small style="color:var(--primary)">${article.total_views || 0} views</small>
+                                   </div>
+                               </div>
+                           </div>
+                       `).join('')}
+                   </div>
+               ` : `
+                   <div class="card">
+                       <div class="card-body" style="text-align:center;padding:4rem">
+                           <h3>No Articles Yet</h3>
+                           <p style="color:var(--text-light);margin:1rem 0">Create SEO-optimized articles to boost your rankings</p>
+                           <button class="btn btn-primary" onclick="showArticleEditor()">Write Your First Article</button>
+                       </div>
+                   </div>
+               `}
+           `;
+
+           document.getElementById('addDomainForm')?.addEventListener('submit', async (e) => {
+               e.preventDefault();
+               const result = await api('/add-domain', {
+                   method: 'POST',
+                   body: JSON.stringify({ url: document.getElementById('domainUrl').value })
+               });
+
+               if (result?.status === 'success') {
+                   notify(result.data.message);
+                   loadArticles();
+               } else {
+                   notify(result?.data?.message || 'Failed to add domain', 'error');
+               }
+           });
+       }
+
+       async function verifyDomain(domain) {
+           const result = await api('/verify-domain', {
+               method: 'POST',
+               body: JSON.stringify({ url: domain })
+           });
+
+           if (result?.status === 'success') {
+               notify('Domain verified!');
+               loadArticles();
+           } else {
+               notify(result?.data?.message || 'Verification failed', 'error');
+           }
+       }
+
+       function showArticleEditor() {
+           modal(`
+               <div class="modal-header">
+                   <h2>Create Article</h2>
+                   <button class="modal-close" onclick="closeModal()">✕</button>
+               </div>
+               <div class="modal-body" style="max-width:900px">
+                   <form id="articleForm">
+                       <div class="form-group">
+                           <label class="form-label">Domain</label>
+                           <select id="articleUrl" class="form-select" required>
+                               <option value="">Select domain...</option>
+                           </select>
+                       </div>
+                       <div class="form-group">
+                           <label class="form-label">Title</label>
+                           <input type="text" id="articleTitle" class="form-input" placeholder="Article title" required>
+                       </div>
+                       <div class="form-group">
+                           <label class="form-label">Content</label>
+                           <div class="editor-container">
+                               <div id="editor"></div>
+                           </div>
+                       </div>
+                       <div class="form-group">
+                           <label class="form-label">Images</label>
+                           <input type="file" id="articleImages" class="form-input" multiple accept="image/*" required>
+                       </div>
+                       <div style="display:flex;gap:1rem;justify-content:flex-end">
+                           <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                           <button type="submit" class="btn btn-primary">Publish</button>
+                       </div>
+                   </form>
+               </div>
+           `);
+
+           const quill = new Quill('#editor', {
+               theme: 'snow',
+               modules: {
+                   toolbar: [
+                       [{ 'header': [1, 2, 3, false] }],
+                       ['bold', 'italic', 'underline'],
+                       ['link', 'image'],
+                       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                       ['clean']
+                   ]
+               }
+           });
+
+           api('/users/dashboard?page=1&page_size=1').then(data => {
+               const domains = data?.data?.user?.domains?.filter(d => d.verified) || [];
+               document.getElementById('articleUrl').innerHTML = `
+                   <option value="">Select domain...</option>
+                   ${domains.map(d => `<option value="${d.domain}">${d.domain}</option>`).join('')}
+               `;
+           });
+
+           document.getElementById('articleForm').addEventListener('submit', async (e) => {
+               e.preventDefault();
+
+               const formData = new FormData();
+               formData.append('url', document.getElementById('articleUrl').value);
+               formData.append('subject', document.getElementById('articleTitle').value);
+               formData.append('body', quill.root.innerHTML);
+
+               const files = document.getElementById('articleImages').files;
+               for (let file of files) {
+                   formData.append('image_data', file);
+               }
+
+               const result = await api('/add-article', {
+                   method: 'POST',
+                   headers: { 'Session-Token': sessionToken },
+                   body: formData
+               });
+
+               if (result?.status === 'success') {
+                   notify('Article published!');
+                   closeModal();
+                   loadArticles();
+               } else {
+                   notify(result?.error?.message || 'Failed to publish', 'error');
+               }
+           });
+       }
+
+       // Images
+       async function loadImages() {
+           const data = await api('/images/dashboard');
+           const images = data?.data?.images || [];
+           const stats = data?.data?.user || {};
+
+           document.getElementById('content').innerHTML = `
+               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
+                   <div>
+                       <h2>Image CDN</h2>
+                       <p style="color:var(--text-light)">${stats.uploaded || 0} images • ${stats.remaining || 0} remaining</p>
+                   </div>
+                   <button class="btn btn-primary" onclick="showImageUpload()">+ Upload Images</button>
+               </div>
+
+               ${images.length ? `
+                   <div class="chart-grid" style="margin-bottom:2rem">
+                       <div class="card">
+                           <div class="card-header">
+                               <h3 class="card-title">Image Analytics</h3>
+                           </div>
+                           <div class="card-body">
+                               <div class="chart-container">
+                                   <canvas id="imageChart"></canvas>
+                               </div>
+                           </div>
+                       </div>
+                       <div class="card">
+                           <div class="card-header">
+                               <h3 class="card-title">Geographic Distribution</h3>
+                           </div>
+                           <div class="card-body">
+                               <div class="chart-container">
+                                   <canvas id="geoChart"></canvas>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+
+                   <div class="image-grid">
+                       ${images.map(img => `
+                           <div class="image-card" onclick='showImageDetails(${JSON.stringify(img).replace(/'/g, "&apos;")})'>
+                               <img src="${img.cdn_url}" alt="${img.original_filename}">
+                               <div class="image-info">
+                                   <div style="font-weight:600">${img.original_filename}</div>
+                                   <div style="display:flex;justify-content:space-between;margin-top:.5rem">
+                                       <small>${img.total_views || 0} views</small>
+                                       <small style="color:var(--primary);cursor:pointer" onclick="event.stopPropagation();navigator.clipboard.writeText('${img.cdn_url}');notify('URL copied!')">📋 Copy</small>
+                                   </div>
+                               </div>
+                           </div>
+                       `).join('')}
+                   </div>
+               ` : `
+                   <div class="card">
+                       <div class="card-body" style="text-align:center;padding:4rem">
+                           <h3>No Images Yet</h3>
+                           <p style="color:var(--text-light);margin:1rem 0">Upload images to our global CDN</p>
+                           <button class="btn btn-primary" onclick="showImageUpload()">Upload First Image</button>
+                       </div>
+                   </div>
+               `}
+           `;
+
+           if (images.length) {
+               setTimeout(() => {
+                   // Total views chart
+                   const viewsCtx = document.getElementById('imageChart').getContext('2d');
+                   new Chart(viewsCtx, {
+                       type: 'doughnut',
+                       data: {
+                           labels: images.slice(0,5).map(img => img.original_filename),
+                           datasets: [{
+                               data: images.slice(0,5).map(img => img.total_views || 0),
+                               backgroundColor: ['#2563eb', '#059669', '#f59e0b', '#dc2626', '#8b5cf6']
+                           }]
+                       },
+                       options: {
+                           responsive: true,
+                           maintainAspectRatio: false,
+                           plugins: { legend: { position: 'bottom' } }
+                       }
+                   });
+
+                   // Geographic chart
+                   const geoCtx = document.getElementById('geoChart').getContext('2d');
+                   const countries = {};
+                   images.forEach(img => {
+                       Object.entries(img.monthly_stats || {}).forEach(([month, data]) => {
+                           Object.entries(data.country || {}).forEach(([country, count]) => {
+                               countries[country] = (countries[country] || 0) + count;
+                           });
+                       });
+                   });
+
+                   new Chart(geoCtx, {
+                       type: 'bar',
+                       data: {
+                           labels: Object.keys(countries).slice(0,10),
+                           datasets: [{
+                               label: 'Views by Country',
+                               data: Object.values(countries).slice(0,10),
+                               backgroundColor: 'rgba(37,99,235,0.6)'
+                           }]
+                       },
+                       options: {
+                           responsive: true,
+                           maintainAspectRatio: false,
+                           plugins: { legend: { display: false } }
+                       }
+                   });
+               }, 100);
+           }
+       }
+
+       function showImageUpload() {
+           modal(`
+               <div class="modal-header">
+                   <h2>Upload Images</h2>
+                   <button class="modal-close" onclick="closeModal()">✕</button>
+               </div>
+               <div class="modal-body" style="max-width:600px">
+                   <form id="uploadForm">
+                       <div class="form-group">
+                           <label class="form-label">Select Images</label>
+                           <input type="file" id="imageFiles" class="form-input" multiple accept="image/*" required>
+                           <small style="color:var(--text-light)">Max 10 images, 5MB each</small>
+                       </div>
+                       <div style="display:flex;gap:1rem;justify-content:flex-end">
+                           <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                           <button type="submit" class="btn btn-primary">Upload</button>
+                       </div>
+                   </form>
+               </div>
+           `);
+
+           document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+               e.preventDefault();
+
+               const formData = new FormData();
+               const files = document.getElementById('imageFiles').files;
+               for (let file of files) {
+                   formData.append('file', file);
+               }
+
+               const result = await api('/images/upload', {
+                   method: 'POST',
+                   headers: { 'Session-Token': sessionToken },
+                   body: formData
+               });
+
+               if (result?.status === 'success') {
+                   notify('Images uploaded!');
+                   closeModal();
+                   loadImages();
+               } else {
+                   notify(result?.error?.message || 'Upload failed', 'error');
+               }
+           });
+       }
+
+       function showImageDetails(img) {
+           modal(`
+               <div class="modal-header">
+                   <h2>Image Details</h2>
+                   <button class="modal-close" onclick="closeModal()">✕</button>
+               </div>
+               <div class="modal-body" style="max-width:800px">
+                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
+                       <img src="${img.cdn_url}" alt="${img.original_filename}" style="width:100%;border-radius:8px">
+                       <div>
+                           <h3>${img.original_filename}</h3>
+                           <div class="card" style="margin:1rem 0">
+                               <div class="card-body">
+                                   <div style="margin-bottom:1rem">
+                                       <strong>Total Views:</strong> ${img.total_views || 0}
+                                   </div>
+                                   <div style="margin-bottom:1rem">
+                                       <strong>Upload Date:</strong> ${new Date(img.upload_date).toLocaleDateString()}
+                                   </div>
+                                   <div>
+                                       <strong>Formats Used:</strong>
+                                       <div style="display:flex;gap:.5rem;margin-top:.5rem">
+                                           ${Object.keys(img.formats || {}).map(f => `<span class="badge badge-success">${f}</span>`).join('')}
+                                       </div>
+                                   </div>
+                               </div>
+                           </div>
+                           <input type="text" value="${img.cdn_url}" class="form-input" readonly>
+                           <button class="btn btn-primary" onclick="navigator.clipboard.writeText('${img.cdn_url}');notify('URL copied!')" style="width:100%;margin-top:1rem">📋 Copy URL</button>
+                           <button class="btn btn-secondary" onclick="if(confirm('Delete this image?')){deleteImage('${img.image_id}')}" style="width:100%;margin-top:.5rem">🗑️ Delete</button>
+                       </div>
+                   </div>
+               </div>
+           `);
+       }
+
+       async function deleteImage(imageId) {
+           const result = await api('/images', {
+               method: 'DELETE',
+               body: JSON.stringify({ image_ids: [imageId] })
+           });
+
+           if (result?.status === 'success') {
+               notify('Image deleted');
+               closeModal();
+               loadImages();
+           } else {
+               notify('Delete failed', 'error');
+           }
+       }
+
+       // Billing
+       async function loadBilling() {
+           const [billingData, subData] = await Promise.all([
+               api('/dashboard/billings'),
+               api('/hosting/subscription-status')
+           ]);
+
+           const billings = [...(billingData?.data?.hosting || []), ...(billingData?.data?.tasks || [])];
+           const sub = subData?.data || {};
+
+           document.getElementById('content').innerHTML = `
+               <h2 style="margin-bottom:2rem">Billing & Subscription</h2>
+
+               <div class="stats-grid" style="margin-bottom:2rem">
+                   <div class="stat-card">
+                       <div class="stat-icon">📦</div>
+                       <div class="stat-value">${sub.current_plan || 'Free'}</div>
+                       <div class="stat-label">Current Plan</div>
+                       ${sub.expiry_date ? `<div class="stat-change">Expires: ${new Date(sub.expiry_date).toLocaleDateString()}</div>` : ''}
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-icon">🖼️</div>
+                       <div class="stat-value">${sub.images_uploads || 0}/${sub.images_limit || '∞'}</div>
+                       <div class="stat-label">Images Used</div>
+                       <div class="progress" style="margin-top:.5rem">
+                           <div class="progress-bar" style="width:${sub.images_limit ? (sub.images_uploads/sub.images_limit*100) : 0}%"></div>
+                       </div>
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-icon">📝</div>
+                       <div class="stat-value">${sub.article_uploads || 0}/${sub.articles_limit || '∞'}</div>
+                       <div class="stat-label">Articles Used</div>
+                       <div class="progress" style="margin-top:.5rem">
+                           <div class="progress-bar" style="width:${sub.articles_limit ? (sub.article_uploads/sub.articles_limit*100) : 0}%"></div>
+                       </div>
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-icon">💳</div>
+                       <div class="stat-value">${sub.is_subscription ? 'Active' : 'Inactive'}</div>
+                       <div class="stat-label">Subscription</div>
+                       ${sub.is_subscription ? `<button class="btn btn-sm" onclick="cancelSub()" style="margin-top:.5rem">Cancel</button>` : `<button class="btn btn-primary btn-sm" onclick="showUpgrade()" style="margin-top:.5rem">Upgrade</button>`}
+                   </div>
+               </div>
+
+               <div class="card">
+                   <div class="card-header">
+                       <h3 class="card-title">Billing History</h3>
+                   </div>
+                   <div class="card-body" style="padding:0">
+                       ${billings.length ? `
+                           <table class="table">
+                               <thead>
+                                   <tr>
+                                       <th>Date</th>
+                                       <th>Description</th>
+                                       <th>Amount</th>
+                                       <th>Status</th>
+                                   </tr>
+                               </thead>
+                               <tbody>
+                                   ${billings.map(b => `
+                                       <tr>
+                                           <td>${new Date(b.dates?.created).toLocaleDateString()}</td>
+                                           <td>${b.method === 'create_task' ? 'SEO Task' : b.method === 'recharge' ? 'Recharge' : 'Hosting'}</td>
+                                           <td>$${(b.total_payment || 0).toFixed(2)}</td>
+                                           <td><span class="badge ${b.status === 'Paid' ? 'badge-success' : 'badge-warning'}">${b.status}</span></td>
+                                       </tr>
+                                   `).join('')}
+                               </tbody>
+                           </table>
+                       ` : '<div style="text-align:center;padding:3rem;color:var(--text-light)">No billing history</div>'}
+                   </div>
+               </div>
+           `;
+       }
+
+       function showUpgrade() {
+           modal(`
+               <div class="modal-header">
+                   <h2>Upgrade Plan</h2>
+                   <button class="modal-close" onclick="closeModal()">✕</button>
+               </div>
+               <div class="modal-body" style="max-width:800px">
+                   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem">
+                       ${['basic', 'premium', 'enterprise'].map(plan => `
+                           <div class="card" style="text-align:center">
+                               <div class="card-body">
+                                   <h3 style="text-transform:capitalize">${plan}</h3>
+                                   <div style="font-size:2rem;font-weight:800;margin:1rem 0">
+                                       $${plan === 'basic' ? '19' : plan === 'premium' ? '49' : '99'}/mo
+                                   </div>
+                                   <button class="btn btn-primary" onclick="purchasePlan('${plan}')">Choose</button>
+                               </div>
+                           </div>
+                       `).join('')}
+                   </div>
+               </div>
+           `);
+       }
+
+       async function purchasePlan(plan) {
+           const result = await api('/hosting/buy-package', {
+               method: 'POST',
+               body: JSON.stringify({
+                   package: plan,
+                   provider: 'stripe',
+                   duration: '3month',
+                   subscription: false,
+                   cancel_previous: false,
+                   cancel_current_plan: false
+               })
+           });
+
+           if (result?.status === 'success') {
+               notify('Redirecting to payment...');
+               if (result.data.payment_url) window.open(result.data.payment_url, '_blank');
+               closeModal();
+           }
+       }
+
+       async function cancelSub() {
+           if (!confirm('Cancel subscription?')) return;
+           const result = await api('/hosting/cancel-subscription');
+           if (result?.status === 'success') {
+               notify('Subscription cancelled');
+               loadBilling();
+           }
+       }
+
+       // User functions
+       function updateUserInfo() {
+           if (!userData) return;
+           const email = userData.email || 'user@example.com';
+           document.getElementById('userAvatar').textContent = email.substring(0,2).toUpperCase();
+           document.getElementById('userName').textContent = email.split('@')[0];
+           document.getElementById('userEmail').textContent = email;
+       }
+
+       function toggleUserMenu() {
+           document.getElementById('userDropdown').classList.toggle('active');
+       }
+
+       function toggleSidebar() {
+           const sidebar = document.getElementById('sidebar');
+           sidebar.classList.toggle('collapsed');
+           const icon = sidebar.querySelector('.sidebar-toggle');
+           icon.textContent = sidebar.classList.contains('collapsed') ? '›' : '‹';
+       }
+
+       function toggleTheme() {
+           document.body.classList.toggle('dark');
+           const isDark = document.body.classList.contains('dark');
+           document.querySelector('.theme-toggle').textContent = isDark ? '☀️' : '🌙';
+localStorage.setItem('theme', isDark ? 'dark' : 'light');
+       }
+
+       async function logout() {
+           if (confirm('Are you sure you want to logout?')) {
+               setCookie('session_token', '', -1);
+               window.location.href = 'login.html';
+           }
+       }
+
+       // Initialize
+       document.addEventListener('DOMContentLoaded', async () => {
+           if (!sessionToken) {
+               window.location.href = 'login.html';
+               return;
+           }
+
+           // Load theme
+           const savedTheme = localStorage.getItem('theme');
+           if (savedTheme === 'dark') {
+               document.body.classList.add('dark');
+               document.querySelector('.theme-toggle').textContent = '☀️';
+           }
+
+           // Navigation
+           document.querySelectorAll('.nav-link').forEach(link => {
+               link.addEventListener('click', (e) => {
+                   e.preventDefault();
+                   navigate(link.dataset.page);
+               });
+           });
+
+           // Close dropdowns on outside click
+           document.addEventListener('click', (e) => {
+               if (!e.target.closest('.user-menu')) {
+                   document.getElementById('userDropdown').classList.remove('active');
+               }
+           });
+
+           // Load dashboard
+           await loadPage();
+
+           // Animations
+           gsap.from('.sidebar', { x: -280, duration: 0.6, ease: 'power3.out' });
+           gsap.from('.header', { y: -60, duration: 0.6, ease: 'power3.out', delay: 0.2 });
+           gsap.from('.content > *', {
+               opacity: 0,
+               y: 20,
+               duration: 0.6,
+               stagger: 0.1,
+               ease: 'power3.out',
+               delay: 0.4
+           });
+       });
+
+       // Responsive sidebar
+       let touchStartX = 0;
+       document.addEventListener('touchstart', (e) => {
+           touchStartX = e.touches[0].clientX;
+       });
+
+       document.addEventListener('touchmove', (e) => {
+           if (touchStartX < 50 && e.touches[0].clientX > touchStartX + 100) {
+               document.getElementById('sidebar').classList.add('open');
+           }
+       });
+
+       // Auto-refresh session
+       setInterval(async () => {
+           const result = await api('/users/dashboard?page=1&page_size=1');
+           if (!result) {
+               window.location.href = 'login.html';
+           }
+       }, 300000); // Every 5 minutes
+
+       // Keyboard shortcuts
+       document.addEventListener('keydown', (e) => {
+           if (e.ctrlKey || e.metaKey) {
+               switch(e.key) {
+                   case 'k':
+                       e.preventDefault();
+                       // Quick search - could implement later
+                       break;
+                   case 'n':
+                       e.preventDefault();
+                       if (currentPage === 'tasks') showAddTask();
+                       else if (currentPage === 'articles') showArticleEditor();
+                       else if (currentPage === 'images') showImageUpload();
+                       break;
+               }
+           }
+       });
+
+       // Dark mode CSS adjustments
+       const style = document.createElement('style');
+       style.textContent = `
+           /* Scrollbar */
+           ::-webkit-scrollbar { width: 8px; height: 8px; }
+           ::-webkit-scrollbar-track { background: var(--bg-light); }
+           ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+           ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+           /* Quill Editor Dark Mode */
+           body.dark .ql-toolbar { background: var(--card-bg) !important; }
+           body.dark .ql-toolbar .ql-stroke { stroke: var(--text-light) !important; }
+           body.dark .ql-toolbar .ql-fill { fill: var(--text-light) !important; }
+           body.dark .ql-toolbar button:hover .ql-stroke { stroke: var(--primary) !important; }
+           body.dark .ql-toolbar button:hover .ql-fill { fill: var(--primary) !important; }
+           body.dark .ql-editor { color: var(--text) !important; }
+           body.dark .ql-editor.ql-blank::before { color: var(--text-light) !important; }
+
+           /* Chart.js Dark Mode */
+           body.dark .chart-container { filter: invert(1) hue-rotate(180deg); }
+
+           /* Animations */
+           @keyframes slideIn {
+               from { transform: translateX(100%); opacity: 0; }
+               to { transform: translateX(0); opacity: 1; }
+           }
+
+           /* Mobile Menu */
+           @media (max-width: 768px) {
+               .mobile-toggle {
+                   position: fixed;
+                   bottom: 20px;
+                   right: 20px;
+                   width: 60px;
+                   height: 60px;
+                   background: linear-gradient(135deg, var(--primary), var(--secondary));
+                   border-radius: 50%;
+                   display: flex;
+                   align-items: center;
+                   justify-content: center;
+                   color: white;
+                   font-size: 1.5rem;
+                   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                   z-index: 90;
+                   cursor: pointer;
+               }
+           }
+
+           /* Performance optimizations */
+           .card, .stat-card, .image-card {
+               will-change: transform;
+               transform: translateZ(0);
+           }
+
+           /* Smooth transitions */
+           * {
+               -webkit-font-smoothing: antialiased;
+               -moz-osx-font-smoothing: grayscale;
+           }
+       `;
+       document.head.appendChild(style);
+
+       // Error boundary
+       window.addEventListener('error', (e) => {
+           console.error('Error:', e);
+           notify('An error occurred', 'error');
+       });
+
+       // Service worker for offline support (optional)
+       if ('serviceWorker' in navigator) {
+           navigator.serviceWorker.register('/sw.js').catch(() => {});
+       }
+   </script>
 </body>
 </html>

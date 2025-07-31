@@ -3,1400 +3,1343 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - SEOTIZE | AI SEO Platform</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <title>SEOTIZE Dashboard - Manage Your SEO Tasks & Earnings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        :root{
-            --bg:#ffffff;--bg-light:#f8fafc;--bg-dark:#0f172a;
-            --text:#1e293b;--text-light:#64748b;--text-muted:#94a3b8;
-            --border:#e2e8f0;--primary:#2563eb;--secondary:#059669;
-            --card-bg:#ffffff;--nav-bg:rgba(255,255,255,0.95);
-            --success:#059669;--warning:#f59e0b;--error:#dc2626;
-        }
-        body.dark{
-            --bg:#0f172a;--bg-light:#1e293b;
-            --text:#f1f5f9;--text-light:#cbd5e1;--text-muted:#94a3b8;
-            --border:#334155;--card-bg:#1e293b;--nav-bg:rgba(15,23,42,0.95);
-        }
-        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;transition:all .3s}
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+    --bg:#ffffff;--bg-light:#f8fafc;--bg-dark:#0f172a;--text:#1e293b;--text-light:#64748b;--text-muted:#94a3b8;
+    --border:#e2e8f0;--primary:#2563eb;--success:#10b981;--warning:#f59e0b;--error:#ef4444;--card-bg:#ffffff;
+    --nav-bg:rgba(255,255,255,0.95);--sidebar-bg:#f8fafc
+}
+body.dark{
+    --bg:#0f172a;--bg-light:#1e293b;--text:#f1f5f9;--text-light:#cbd5e1;--text-muted:#94a3b8;
+    --border:#334155;--card-bg:#1e293b;--nav-bg:rgba(15,23,42,0.95);--sidebar-bg:#1e293b
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;transition:all .3s ease}
 
-        /* Layout */
-        .dashboard{display:flex;min-height:100vh}
-        .sidebar{width:280px;background:var(--card-bg);border-right:1px solid var(--border);position:fixed;height:100vh;overflow-y:auto;transition:all .3s;z-index:100}
-        .sidebar.collapsed{width:80px}
-        .main{flex:1;margin-left:280px;transition:margin .3s}
-        .sidebar.collapsed~.main{margin-left:80px}
+/* Layout */
+.app{display:flex;min-height:100vh}
+.sidebar{width:280px;background:var(--sidebar-bg);border-right:1px solid var(--border);transition:all .3s ease;position:fixed;height:100vh;z-index:100;overflow-y:auto}
+.sidebar.collapsed{width:60px}
+.main-content{flex:1;margin-left:280px;transition:all .3s ease}
+.sidebar.collapsed + .main-content{margin-left:60px}
 
-        /* Sidebar */
-        .sidebar-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-        .logo{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
-        .sidebar-toggle{background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;padding:.5rem;border-radius:6px;transition:all .2s}
-        .sidebar-toggle:hover{background:var(--bg-light)}
+/* Sidebar */
+.sidebar-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem}
+.logo{font-size:1.25rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--success));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-toggle{background:none;border:none;font-size:1.2rem;color:var(--text);cursor:pointer;padding:.5rem;border-radius:6px;transition:background .2s}
+.sidebar-toggle:hover{background:var(--bg-light)}
+.sidebar-nav{padding:1rem 0}
+.nav-item{display:flex;align-items:center;gap:1rem;padding:.875rem 1.5rem;color:var(--text-light);text-decoration:none;transition:all .2s;border:none;background:none;width:100%;cursor:pointer;font-size:.875rem}
+.nav-item:hover,.nav-item.active{background:var(--bg-light);color:var(--primary)}
+.nav-icon{font-size:1.25rem;min-width:20px}
+.sidebar.collapsed .nav-text{display:none}
+.sidebar.collapsed .nav-item{justify-content:center;padding:.875rem}
 
-        .nav-menu{padding:1rem 0}
-        .nav-item{margin:.25rem 1rem}
-        .nav-link{display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;color:var(--text-light);text-decoration:none;border-radius:8px;transition:all .2s;font-weight:500}
-        .nav-link:hover,.nav-link.active{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff}
-        .nav-icon{font-size:1.2rem;width:24px;text-align:center}
-        .nav-text{transition:opacity .3s}
-        .sidebar.collapsed .nav-text{opacity:0;width:0;overflow:hidden}
+/* Top Bar */
+.topbar{background:var(--nav-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
+.topbar-left{display:flex;align-items:center;gap:1rem}
+.breadcrumb{color:var(--text-muted);font-size:.875rem}
+.topbar-right{display:flex;align-items:center;gap:1rem}
+.user-menu{display:flex;align-items:center;gap:.75rem;padding:.5rem 1rem;border-radius:8px;background:var(--card-bg);border:1px solid var(--border);cursor:pointer;transition:all .2s}
+.user-menu:hover{background:var(--bg-light)}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--success));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:.875rem}
+.theme-toggle{background:var(--card-bg);border:1px solid var(--border);padding:.5rem;border-radius:6px;cursor:pointer;transition:all .2s;font-size:1.1rem}
+.theme-toggle:hover{background:var(--bg-light)}
 
-        /* Header */
-        .header{background:var(--card-bg);border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
-        .page-title{font-size:1.5rem;font-weight:700}
-        .header-actions{display:flex;align-items:center;gap:1rem}
+/* Content */
+.content{padding:2rem;max-width:100%;overflow-x:hidden}
+.page-header{margin-bottom:2rem}
+.page-title{font-size:1.875rem;font-weight:800;margin-bottom:.5rem}
+.page-subtitle{color:var(--text-light);font-size:1rem}
 
-        .user-menu{position:relative}
-        .user-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;cursor:pointer;transition:all .2s}
-        .user-avatar:hover{transform:scale(1.05)}
-        .user-dropdown{position:absolute;right:0;top:100%;margin-top:.5rem;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:.5rem;min-width:200px;box-shadow:0 10px 25px rgba(0,0,0,.1);opacity:0;visibility:hidden;transform:translateY(-10px);transition:all .2s}
-        .user-dropdown.active{opacity:1;visibility:visible;transform:translateY(0)}
-        .user-info{padding:.75rem;border-bottom:1px solid var(--border)}
-        .user-email{font-size:.875rem;color:var(--text-light)}
-        .dropdown-item{display:block;padding:.75rem;color:var(--text);text-decoration:none;border-radius:6px;transition:all .2s}
-        .dropdown-item:hover{background:var(--bg-light)}
+/* Stats Grid */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;margin-bottom:2rem}
+.stat-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:1.5rem;transition:all .3s ease}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(0,0,0,.1)}
+.stat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.stat-title{font-size:.875rem;color:var(--text-muted);font-weight:500}
+.stat-icon{font-size:1.5rem}
+.stat-value{font-size:2rem;font-weight:800;color:var(--text)}
+.stat-change{font-size:.875rem;margin-top:.5rem}
+.stat-change.positive{color:var(--success)}
+.stat-change.negative{color:var(--error)}
 
-        /* Content */
-        .content{padding:2rem}
+/* Cards */
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .3s ease}
+.card:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(0,0,0,.1)}
+.card-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.card-title{font-size:1.125rem;font-weight:700}
+.card-body{padding:1.5rem}
 
-        /* Stats Grid */
-        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;margin-bottom:2rem}
-        .stat-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:1.5rem;position:relative;overflow:hidden;transition:all .3s}
-        .stat-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(135deg,var(--primary),var(--secondary))}
-        .stat-card:hover{transform:translateY(-4px);box-shadow:0 20px 25px rgba(0,0,0,.1)}
-        .stat-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1rem}
-        .stat-value{font-size:2rem;font-weight:800;margin-bottom:.5rem}
-        .stat-label{color:var(--text-light);font-size:.875rem}
-        .stat-change{font-size:.875rem;color:var(--success);margin-top:.5rem}
-        .stat-change.negative{color:var(--error)}
+/* Tables */
+.table-container{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+.table{width:100%;border-collapse:collapse;background:var(--card-bg)}
+.table th,.table td{padding:.875rem 1rem;text-align:left;border-bottom:1px solid var(--border)}
+.table th{background:var(--bg-light);font-weight:600;font-size:.875rem;color:var(--text-muted)}
+.table tbody tr:hover{background:var(--bg-light)}
 
-        /* Cards */
-        .card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;margin-bottom:1.5rem;overflow:hidden}
-        .card-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-        .card-title{font-size:1.25rem;font-weight:700}
-        .card-body{padding:1.5rem}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.625rem 1.25rem;border-radius:6px;font-weight:500;font-size:.875rem;cursor:pointer;border:none;text-decoration:none;transition:all .2s;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{background:#059669}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{background:var(--bg-light)}
+.btn-sm{padding:.5rem .875rem;font-size:.8125rem}
 
-        /* Charts */
-        .chart-container{position:relative;height:300px}
-        .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:1.5rem}
+/* Forms */
+.form-group{margin-bottom:1.5rem}
+.form-label{display:block;margin-bottom:.5rem;font-weight:500;color:var(--text)}
+.form-input{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);transition:border-color .2s}
+.form-input:focus{outline:none;border-color:var(--primary)}
+.form-select{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text)}
 
-        /* Tables */
-        .table{width:100%;border-collapse:collapse}
-        .table th,.table td{padding:1rem;text-align:left;border-bottom:1px solid var(--border)}
-        .table th{background:var(--bg-light);font-weight:600;font-size:.875rem;text-transform:uppercase;letter-spacing:.05em}
-        .table tr:hover{background:var(--bg-light)}
+/* Status Badges */
+.badge{display:inline-flex;align-items:center;gap:.25rem;padding:.25rem .75rem;border-radius:20px;font-size:.75rem;font-weight:600}
+.badge-success{background:rgba(16,185,129,.1);color:var(--success)}
+.badge-warning{background:rgba(245,158,11,.1);color:var(--warning)}
+.badge-error{background:rgba(239,68,68,.1);color:var(--error)}
+.badge-primary{background:rgba(37,99,235,.1);color:var(--primary)}
 
-        /* Buttons */
-        .btn{padding:.75rem 1.5rem;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;text-decoration:none}
-        .btn-primary{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff}
-        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(37,99,235,.3)}
-        .btn-secondary{background:var(--bg-light);color:var(--text);border:1px solid var(--border)}
-        .btn-secondary:hover{background:var(--border)}
-        .btn-sm{padding:.5rem 1rem;font-size:.875rem}
+/* Modal */
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal.active{display:flex}
+.modal-content{background:var(--card-bg);border-radius:12px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto}
+.modal-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-size:1.25rem;font-weight:700}
+.modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted)}
+.modal-body{padding:1.5rem}
 
-        /* Status Badge */
-        .badge{padding:.25rem .75rem;border-radius:12px;font-size:.75rem;font-weight:500}
-        .badge-success{background:rgba(5,150,105,.1);color:var(--success)}
-        .badge-warning{background:rgba(245,158,11,.1);color:var(--warning)}
-        .badge-error{background:rgba(220,38,38,.1);color:var(--error)}
+/* Progress */
+.progress{width:100%;height:8px;background:var(--bg-light);border-radius:4px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(135deg,var(--primary),var(--success));transition:width .3s ease}
 
-        /* Progress Bar */
-        .progress{width:100%;height:8px;background:var(--bg-light);border-radius:4px;overflow:hidden}
-        .progress-bar{height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));transition:width .3s}
+/* Responsive */
+@media(max-width:768px){
+    .sidebar{transform:translateX(-100%)}
+    .sidebar.mobile-open{transform:translateX(0)}
+    .main-content{margin-left:0}
+    .stats-grid{grid-template-columns:1fr}
+    .content{padding:1rem}
+    .topbar{padding:.875rem 1rem}
+}
 
-        /* Modal */
-        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:all .3s}
-        .modal.active{opacity:1;visibility:visible}
-        .modal-content{background:var(--card-bg);border-radius:12px;max-width:90%;max-height:90vh;overflow:auto;transform:scale(.9);transition:transform .3s}
-        .modal.active .modal-content{transform:scale(1)}
-        .modal-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-        .modal-close{background:none;border:none;font-size:1.5rem;color:var(--text);cursor:pointer;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s}
-        .modal-close:hover{background:var(--bg-light);transform:rotate(90deg)}
-        .modal-body{padding:1.5rem}
+/* Loading */
+.loading{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top:3px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 
-        /* Forms */
-        .form-group{margin-bottom:1.5rem}
-        .form-label{display:block;margin-bottom:.5rem;font-weight:600;font-size:.875rem}
-        .form-input,.form-select,.form-textarea{width:100%;padding:.75rem;background:var(--bg-light);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;transition:all .2s}
-        .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary)}
+/* Hide sections by default */
+.section{display:none}
+.section.active{display:block}
 
-        /* Editor */
-        .editor-container{border:1px solid var(--border);border-radius:8px;overflow:hidden}
-        #editor{min-height:300px;background:var(--bg-light)}
-        .ql-toolbar{background:var(--card-bg)!important;border:none!important;border-bottom:1px solid var(--border)!important}
-        .ql-container{border:none!important}
+/* Quick Actions */
+.quick-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
+.quick-action{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center;cursor:pointer;transition:all .2s;text-decoration:none;color:var(--text)}
+.quick-action:hover{background:var(--bg-light);transform:translateY(-2px)}
+.quick-action-icon{font-size:2rem;margin-bottom:.5rem;display:block}
+.quick-action-title{font-weight:600;font-size:.875rem}
 
-        /* Image Grid */
-        .image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem}
-        .image-card{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .3s}
-        .image-card:hover{transform:translateY(-4px);box-shadow:0 10px 20px rgba(0,0,0,.1)}
-        .image-card img{width:100%;height:150px;object-fit:cover}
-        .image-info{padding:1rem}
-
-        /* Domain Card */
-        .domain-card{background:var(--bg-light);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center}
-
-        /* Loading */
-        .loading{display:flex;align-items:center;justify-content:center;padding:3rem;color:var(--text-light)}
-        .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin-right:1rem}
-        @keyframes spin{to{transform:rotate(360deg)}}
-
-        /* Theme Toggle */
-        .theme-toggle{background:var(--bg-light);border:1px solid var(--border);padding:.5rem;border-radius:6px;cursor:pointer;font-size:1.2rem;transition:all .2s}
-        .theme-toggle:hover{transform:scale(1.05)}
-
-        /* Notification */
-        .notification{position:fixed;top:20px;right:20px;padding:1rem 1.5rem;background:var(--success);color:#fff;border-radius:8px;font-weight:500;z-index:2000;transform:translateX(400px);transition:transform .3s}
-        .notification.show{transform:translateX(0)}
-        .notification.error{background:var(--error)}
-
-        /* Responsive */
-        @media(max-width:768px){
-            .sidebar{transform:translateX(-100%)}
-            .sidebar.open{transform:translateX(0)}
-            .main{margin-left:0!important}
-            .stats-grid,.chart-grid{grid-template-columns:1fr}
-            .header{padding:1rem}
-            .content{padding:1rem}
-        }
-    </style>
+/* Charts placeholder */
+.chart-container{height:300px;background:var(--bg-light);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text-muted)}
+</style>
 </head>
 <body>
-    <div class="dashboard">
-        <aside class="sidebar" id="sidebar">
+    <div class="app">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <a href="index.html" class="logo">SEOTIZE</a>
-                <button class="sidebar-toggle" onclick="toggleSidebar()">‹</button>
+                <div class="logo">SEOTIZE</div>
+                <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
             </div>
-            <nav class="nav-menu">
-                <div class="nav-item">
-                    <a href="#" class="nav-link active" data-page="dashboard">
-                        <span class="nav-icon">📊</span>
-                        <span class="nav-text">Dashboard</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" data-page="tasks">
-                        <span class="nav-icon">🎯</span>
-                        <span class="nav-text">SEO Tasks</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" data-page="articles">
-                        <span class="nav-icon">📝</span>
-                        <span class="nav-text">Articles</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" data-page="images">
-                        <span class="nav-icon">🖼️</span>
-                        <span class="nav-text">Images</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" data-page="billing">
-                        <span class="nav-icon">💳</span>
-                        <span class="nav-text">Billing</span>
-                    </a>
-                </div>
-            </nav>
-        </aside>
+            <div class="sidebar-nav">
+                <button class="nav-item active" onclick="showSection('dashboard')">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Dashboard</span>
+                </button>
+                <button class="nav-item" onclick="showSection('tasks')">
+                    <span class="nav-icon">🎯</span>
+                    <span class="nav-text">SEO Tasks</span>
+                </button>
+                <button class="nav-item" onclick="showSection('partner')">
+                    <span class="nav-icon">💰</span>
+                    <span class="nav-text">Partner Earnings</span>
+                </button>
+                <button class="nav-item" onclick="showSection('articles')">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-text">Articles</span>
+                </button>
+                <button class="nav-item" onclick="showSection('images')">
+                    <span class="nav-icon">🖼️</span>
+                    <span class="nav-text">Images</span>
+                </button>
+                <button class="nav-item" onclick="showSection('hosting')">
+                    <span class="nav-icon">🌐</span>
+                    <span class="nav-text">Hosting</span>
+                </button>
+                <button class="nav-item" onclick="showSection('billing')">
+                    <span class="nav-icon">💳</span>
+                    <span class="nav-text">Billing</span>
+                </button>
+                <button class="nav-item" onclick="showSection('domains')">
+                    <span class="nav-icon">🔗</span>
+                    <span class="nav-text">Domains</span>
+                </button>
+            </div>
+        </nav>
 
-        <main class="main">
-            <header class="header">
-                <h1 class="page-title">Dashboard</h1>
-                <div class="header-actions">
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle mobile-toggle" onclick="toggleMobileSidebar()">☰</button>
+                    <div class="breadcrumb" id="breadcrumb">Dashboard</div>
+                </div>
+                <div class="topbar-right">
                     <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
-                    <div class="user-menu">
-                        <div class="user-avatar" onclick="toggleUserMenu()" id="userAvatar">U</div>
-                        <div class="user-dropdown" id="userDropdown">
-                            <div class="user-info">
-                                <div id="userName" style="font-weight:600">User</div>
-                                <div class="user-email" id="userEmail">user@example.com</div>
+                    <div class="user-menu" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="userAvatar">U</div>
+                        <span id="userEmail">Loading...</span>
+                        <span>▼</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div class="section active" id="dashboard">
+                <div class="content">
+                    <div class="page-header">
+                        <h1 class="page-title">Dashboard Overview</h1>
+                        <p class="page-subtitle">Welcome back! Here's what's happening with your SEO campaigns.</p>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">Total Tasks</span>
+                                <span class="stat-icon">🎯</span>
                             </div>
-                            <a href="#" class="dropdown-item" onclick="logout()">🚪 Logout</a>
+                            <div class="stat-value" id="totalTasks">-</div>
+                            <div class="stat-change positive">+12% from last month</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">Total Views</span>
+                                <span class="stat-icon">👁️</span>
+                            </div>
+                            <div class="stat-value" id="totalViews">-</div>
+                            <div class="stat-change positive">+8.2% this week</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">Partner Balance</span>
+                                <span class="stat-icon">💰</span>
+                            </div>
+                            <div class="stat-value" id="partnerBalance">$0.00</div>
+                            <div class="stat-change positive">Available for withdrawal</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">Total Charge</span>
+                                <span class="stat-icon">📊</span>
+                            </div>
+                            <div class="stat-value" id="totalCharge">$0.00</div>
+                            <div class="stat-change">Campaign spending</div>
                         </div>
                     </div>
-                </div>
-            </header>
 
-            <div class="content" id="content">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    Loading...
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <div id="modalContainer"></div>
-    <div id="notificationContainer"></div>
-
-    <script>
-        const API_BASE = 'https://api.seotize.net';
-        let sessionToken = getCookie('session_token');
-        let userData = null;
-        let currentPage = 'dashboard';
-        let charts = {};
-
-        // Utils
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            return parts.length === 2 ? parts.pop().split(';').shift() : null;
-        }
-
-        function setCookie(name, value, days) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
-        }
-
-        async function api(endpoint, options = {}) {
-            try {
-                const response = await fetch(`${API_BASE}${endpoint}`, {
-                    ...options,
-                    headers: {
-                        'Session-Token': sessionToken,
-                        'Content-Type': 'application/json',
-                        ...options.headers
-                    }
-                });
-                if (response.status === 401) {
-                    window.location.href = 'login.html';
-                    return null;
-                }
-                return await response.json();
-            } catch (error) {
-                notify('Network error', 'error');
-                return null;
-            }
-        }
-
-        function notify(message, type = 'success') {
-            const notif = document.createElement('div');
-            notif.className = `notification ${type} show`;
-            notif.textContent = message;
-            document.body.appendChild(notif);
-            setTimeout(() => {
-                notif.classList.remove('show');
-                setTimeout(() => notif.remove(), 300);
-            }, 3000);
-        }
-
-        function modal(content) {
-            const container = document.getElementById('modalContainer');
-            container.innerHTML = `
-                <div class="modal active" onclick="if(event.target===this)closeModal()">
-                    <div class="modal-content">${content}</div>
-                </div>
-            `;
-        }
-
-        function closeModal() {
-            document.getElementById('modalContainer').innerHTML = '';
-        }
-
-        // Navigation
-        function navigate(page) {
-            currentPage = page;
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.toggle('active', link.dataset.page === page);
-            });
-            document.querySelector('.page-title').textContent = page.charAt(0).toUpperCase() + page.slice(1);
-            loadPage();
-        }
-
-        async function loadPage() {
-            const content = document.getElementById('content');
-            content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
-
-            switch (currentPage) {
-                case 'dashboard': await loadDashboard(); break;
-                case 'tasks': await loadTasks(); break;
-                case 'articles': await loadArticles(); break;
-                case 'images': await loadImages(); break;
-                case 'billing': await loadBilling(); break;
-            }
-        }
-
-        // Dashboard
-        async function loadDashboard() {
-            const data = await api('/users/dashboard?page=1&page_size=10');
-            if (!data?.data?.user) return;
-
-            userData = data.data.user;
-            updateUserInfo();
-
-            const stats = userData.task_statistics || {};
-            const usage = userData.usage_summary || {};
-            const tasks = userData.tasks || [];
-
-            document.getElementById('content').innerHTML = `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">👁️</div>
-                        <div class="stat-value">${(stats.total_views || 0).toLocaleString()}</div>
-                        <div class="stat-label">Total Views</div>
-                        <div class="stat-change">↗ +12% from last month</div>
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <div class="quick-action" onclick="showSection('tasks')">
+                            <span class="quick-action-icon">➕</span>
+                            <div class="quick-action-title">Create Task</div>
+                        </div>
+                        <div class="quick-action" onclick="showSection('partner')">
+                            <span class="quick-action-icon">🔍</span>
+                            <div class="quick-action-title">Find Partner Jobs</div>
+                        </div>
+                        <div class="quick-action" onclick="showSection('articles')">
+                            <span class="quick-action-icon">📝</span>
+                            <div class="quick-action-title">Write Article</div>
+                        </div>
+                        <div class="quick-action" onclick="showSection('images')">
+                            <span class="quick-action-icon">🖼️</span>
+                            <div class="quick-action-title">Upload Images</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🎯</div>
-                        <div class="stat-value">${usage.active_tasks || 0}</div>
-                        <div class="stat-label">Active Tasks</div>
-                        <div class="stat-change">↗ ${usage.total_tasks || 0} total</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🔑</div>
-                        <div class="stat-value">${stats.total_keywords || 0}</div>
-                        <div class="stat-label">Total Keywords</div>
-                        <div class="stat-change">Optimizing rankings</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">💰</div>
-                        <div class="stat-value">$${(stats.available_charge || 0).toFixed(1)}</div>
-                        <div class="stat-label">Available Credit</div>
-                        <div class="stat-change negative">↘ $${((stats.total_charge || 0) - (stats.available_charge || 0)).toFixed(1)} spent</div>
-                    </div>
-                </div>
 
-                <div class="chart-grid">
+                    <!-- Recent Activity -->
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Task Performance</h3>
+                            <h3 class="card-title">Recent Activity</h3>
+                            <button class="btn btn-outline btn-sm">View All</button>
                         </div>
                         <div class="card-body">
-                            <div class="chart-container">
-                                <canvas id="taskChart"></canvas>
-                            </div>
+                            <div id="recentActivity">Loading recent activity...</div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Tasks Section -->
+            <div class="section" id="tasks">
+                <div class="content">
+                    <div class="page-header">
+                        <h1 class="page-title">SEO Tasks</h1>
+                        <p class="page-subtitle">Manage your SEO campaigns and track performance</p>
+                    </div>
+
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Recent Tasks</h3>
-                            <a href="#" class="btn btn-primary btn-sm" onclick="showAddTask()">+ Add Task</a>
+                            <h3 class="card-title">Create New Task</h3>
                         </div>
-                        <div class="card-body" style="padding:0">
-                            ${tasks.length ? `
+                        <div class="card-body">
+                            <form id="taskForm">
+                                <div class="form-group">
+                                    <label class="form-label">Website URL</label>
+                                    <input type="url" class="form-input" id="taskUrl" placeholder="https://example.com" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Keywords (comma separated)</label>
+                                    <input type="text" class="form-input" id="taskKeywords" placeholder="SEO, marketing, optimization" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Task Priority</label>
+                                    <select class="form-select" id="taskPriority">
+                                        <option value="basic">Basic ($0.10/click)</option>
+                                        <option value="standard" selected>Standard ($0.12/click)</option>
+                                        <option value="premium">Premium ($0.15/click)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Total Budget ($)</label>
+                                    <input type="number" class="form-input" id="taskCharge" min="10" value="150" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Create Task</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top:2rem">
+                        <div class="card-header">
+                            <h3 class="card-title">Your Tasks</h3>
+                            <button class="btn btn-outline btn-sm" onclick="loadTasks()">Refresh</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
                                 <table class="table">
                                     <thead>
                                         <tr>
-                                            <th>Website</th>
+                                            <th>URL</th>
+                                            <th>Keywords</th>
                                             <th>Views</th>
-                                            <th>Progress</th>
+                                            <th>Budget</th>
+                                            <th>Status</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        ${tasks.slice(0,5).map(task => `
-                                            <tr>
-                                                <td>
-                                                    <a href="${task.url}" target="_blank" style="color:var(--primary)">${task.url}</a>
-                                                    <div style="font-size:.75rem;color:var(--text-light)">${task.keywords_count} keywords</div>
-                                                </td>
-                                                <td>${task.views_count.toLocaleString()}</td>
-                                                <td>
-                                                    <div class="progress">
-                                                        <div class="progress-bar" style="width:${100-task.remaining_percentage}%"></div>
-                                                    </div>
-                                                    <small>${100-task.remaining_percentage}%</small>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-sm" onclick="viewTask('${task._id}')">View</button>
-                                                </td>
-                                            </tr>
-                                        `).join('')}
+                                    <tbody id="tasksTable">
+                                        <tr><td colspan="6">Loading tasks...</td></tr>
                                     </tbody>
                                 </table>
-                            ` : '<div style="text-align:center;padding:3rem;color:var(--text-light)">No tasks yet</div>'}
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Create chart
-            const ctx = document.getElementById('taskChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'Views',
-                        data: tasks.slice(0,7).map(t => t.views_count || 0),
-                        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary'),
-                        backgroundColor: 'rgba(37,99,235,0.1)',
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.1)' } },
-                        x: { grid: { display: false } }
-                    }
-                }
-            });
-        }
-
-        // Tasks
-        async function loadTasks() {
-            const data = await api('/users/dashboard?page=1&page_size=50');
-            const tasks = data?.data?.user?.tasks || [];
-
-            document.getElementById('content').innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
-                    <h2>SEO Tasks Management</h2>
-                    <button class="btn btn-primary" onclick="showAddTask()">+ Create New Task</button>
-                </div>
-                ${tasks.length ? `
-                    <div class="card">
-                        <div class="card-body" style="padding:0">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Website</th>
-                                        <th>Keywords</th>
-                                        <th>Views</th>
-                                        <th>Progress</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${tasks.map(task => `
-                                        <tr>
-                                            <td><a href="${task.url}" target="_blank" style="color:var(--primary)">${task.url}</a></td>
-                                            <td>${task.keywords_count}</td>
-                                            <td>${task.views_count.toLocaleString()}</td>
-                                            <td>
-                                                <div class="progress">
-                                                    <div class="progress-bar" style="width:${100-task.remaining_percentage}%"></div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge ${task.remaining_percentage > 0 ? 'badge-success' : 'badge-warning'}">
-                                                    ${task.remaining_percentage > 0 ? 'Active' : 'Completed'}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-sm" onclick="viewTask('${task._id}')">Details</button>
-                                                <button class="btn btn-sm" onclick="rechargeTask('${task._id}')">Recharge</button>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                ` : `
-                    <div class="card">
-                        <div class="card-body" style="text-align:center;padding:4rem">
-                            <h3>No SEO Tasks Yet</h3>
-                            <p style="color:var(--text-light);margin:1rem 0">Start optimizing your website with our powerful SEO tools</p>
-                            <button class="btn btn-primary" onclick="showAddTask()">Create Your First Task</button>
-                        </div>
-                    </div>
-                `}
-            `;
-        }
-
-        async function showAddTask() {
-            modal(`
-                <div class="modal-header">
-                    <h2>Create New SEO Task</h2>
-                    <button class="modal-close" onclick="closeModal()">✕</button>
-                </div>
-                <div class="modal-body" style="max-width:600px">
-                    <form id="addTaskForm">
-                        <div class="form-group">
-                            <label class="form-label">Website URL</label>
-                            <input type="url" id="taskUrl" class="form-input" placeholder="https://example.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Keywords (comma separated)</label>
-                            <textarea id="taskKeywords" class="form-textarea" rows="3" placeholder="SEO, optimization, ranking" required></textarea>
-                        </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-                            <div class="form-group">
-                                <label class="form-label">Priority</label>
-                                <select id="taskPriority" class="form-select">
-                                    <option value="standard">Standard</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Budget ($)</label>
-                                <input type="number" id="taskBudget" class="form-input" placeholder="100" min="10" required>
                             </div>
                         </div>
-<div style="display:flex;gap:1rem;justify-content:flex-end">
-                           <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                           <button type="submit" class="btn btn-primary">Create Task</button>
-                       </div>
-                   </form>
-               </div>
-           `);
+                    </div>
+                </div>
+            </div>
 
-           document.getElementById('addTaskForm').addEventListener('submit', async (e) => {
-               e.preventDefault();
-               const data = await api('/add-task', {
-                   method: 'POST',
-                   body: JSON.stringify({
-                       task_details: {
-                           url: document.getElementById('taskUrl').value,
-                           keywords: document.getElementById('taskKeywords').value.split(',').map(k => k.trim()),
-                           html_locations: []
-                       },
-                       task_priority: document.getElementById('taskPriority').value,
-                       total_charge: parseFloat(document.getElementById('taskBudget').value),
-                       payment_method: 'stripe',
-                       is_subscription: false,
-                       cancel_previous: false
-                   })
-               });
+            <!-- Partner Section -->
+            <div class="section" id="partner">
+                <div class="content">
+                    <div class="page-header">
+                        <h1 class="page-title">Partner Earnings</h1>
+                        <p class="page-subtitle">Complete SEO tasks and earn money</p>
+                    </div>
 
-               if (data?.status === 'success') {
-                   notify('Task created successfully!');
-                   closeModal();
-                   if (data.data.payment_url) window.open(data.data.payment_url, '_blank');
-                   loadTasks();
-               } else {
-                   notify(data?.error?.message || 'Failed to create task', 'error');
-               }
-           });
-       }
+                    <!-- Partner Stats -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">Current Balance</span>
+                                <span class="stat-icon">💰</span>
+                            </div>
+                            <div class="stat-value" id="partnerCurrentBalance">$0.00</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">Total Earned</span>
+                                <span class="stat-icon">📈</span>
+                            </div>
+                            <div class="stat-value" id="partnerTotalEarned">$0.00</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">Tasks Completed</span>
+                                <span class="stat-icon">✅</span>
+                            </div>
+                            <div class="stat-value" id="partnerTasksDone">0</div>
+                        </div>
+                    </div>
 
-       async function viewTask(taskId) {
-           const data = await api('/get-task-details', {
-               method: 'POST',
-               body: JSON.stringify({ task_id: taskId })
-           });
+                    <!-- Available Tasks -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Available Partner Tasks</h3>
+                            <button class="btn btn-success btn-sm" onclick="loadPartnerTasks()">Refresh Tasks</button>
+                        </div>
+                        <div class="card-body">
+                            <div id="partnerTasks">Loading available tasks...</div>
+                        </div>
+                    </div>
 
-           if (data?.status === 'success') {
-               const task = data.data;
-               modal(`
-                   <div class="modal-header">
-                       <h2>Task Details</h2>
-                       <button class="modal-close" onclick="closeModal()">✕</button>
-                   </div>
-                   <div class="modal-body" style="max-width:800px">
-                       <div class="stats-grid" style="margin-bottom:2rem">
-                           <div class="stat-card">
-                               <div class="stat-label">Total Views</div>
-                               <div class="stat-value">${(task.views_count || 0).toLocaleString()}</div>
-                           </div>
-                           <div class="stat-card">
-                               <div class="stat-label">Available Credit</div>
-                               <div class="stat-value">$${task.available_charge}</div>
-                           </div>
-                       </div>
+                    <!-- Withdrawal -->
+                    <div class="card" style="margin-top:2rem">
+                        <div class="card-header">
+                            <h3 class="card-title">Withdraw Earnings</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="withdrawForm">
+                                <div class="form-group">
+                                    <label class="form-label">Withdrawal Amount ($)</label>
+                                    <input type="number" class="form-input" id="withdrawAmount" min="1" step="0.01" placeholder="Enter amount">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Crypto Wallet Address</label>
+                                    <input type="text" class="form-input" id="withdrawAddress" placeholder="0x...">
+                                </div>
+                                <button type="submit" class="btn btn-success">Request Withdrawal</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                       <div class="card">
-                           <div class="card-header">
-                               <h3 class="card-title">Task Information</h3>
-                           </div>
-                           <div class="card-body">
-                               <p><strong>URL:</strong> <a href="${task.url}" target="_blank" style="color:var(--primary)">${task.url}</a></p>
-                               <p><strong>Created:</strong> ${task.date_created}</p>
-                               <p><strong>Priority:</strong> ${task.task_priority}</p>
-                               <div style="margin-top:1rem">
-                                   <strong>Keywords:</strong>
-                                   <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem">
-                                       ${task.keywords.map(kw => `<span class="badge badge-success">${kw}</span>`).join('')}
+            <!-- Articles Section -->
+            <div class="section" id="articles">
+                <div class="content">
+                    <div class="page-header">
+                        <h1 class="page-title">Articles</h1>
+                        <p class="page-subtitle">Manage your hosted articles and content</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Upload New Article</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="articleForm" enctype="multipart/form-data">
+                                <div class="form-group">
+                                    <label class="form-label">Domain URL</label>
+                                    <input type="text" class="form-input" id="articleUrl" placeholder="example.com/blog" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Article Title</label>
+                                    <input type="text" class="form-input" id="articleSubject" placeholder="Your article title" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Article Content (HTML)</label>
+                                    <textarea class="form-input" id="articleBody" rows="10" placeholder="<p>Your article content...</p>" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Images</label>
+                                    <input type="file" class="form-input" id="articleImages" multiple accept="image/*">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Upload Article</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top:2rem">
+                        <div class="card-header">
+                            <h3 class="card-title">Your Articles</h3>
+                            <button class="btn btn-outline btn-sm" onclick="loadArticles()">Refresh</button>
+                        </div>
+                        <div class="card-body">
+                            <div id="articlesGrid">Loading articles...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Images Section -->
+            <div class="section" id="images">
+                <div class="content">
+                    <div class="page-header">
+                        <h1 class="page-title">Image Hosting</h1>
+                        <p class="page-subtitle">Upload and manage your images with global CDN</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Upload Images</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="imageForm" enctype="multipart/form-data">
+                                <div class="form-group">
+                                    <label class="form-label">Select Images (Max 10 files, 5MB each)</label>
+                                    <input type="file" class="form-input" id="imageFiles" multiple accept="image/*" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Upload Images</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top:2rem">
+                        <div class="card-header">
+                            <h3 class="card-title">Your Images</h3>
+                            <button class="btn btn-outline btn-sm" onclick="loadImages()">Refresh</button>
+                        </div>
+                        <div class="card-body">
+                            <div id="imagesGrid">Loading images...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hosting Section -->
+            <div class="section" id="hosting">
+                <div class="content">
+                    <div class="page-header">
+                        <h1 class="page-title">Hosting Plans</h1>
+                        <p class="page-subtitle">Manage your hosting subscription and usage</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Current Plan</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="hostingStatus">Loading hosting status...</div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top:2rem">
+                        <div class="card-header">
+                            <h3 class="card-title">Available Plans</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-header">
+                                        <span class="stat-title">Basic Plan</span>
+                                        <span class="stat-icon">📦</span>
+                                    </div>
+                                    <div class="stat-value">$9.99/mo</div>
+                                    <div class="stat-change">100 images, 50 articles</div>
+                                    <button class="btn btn-primary btn-sm" onclick="buyPackage('basic')" style="margin-top:1rem">Upgrade</button>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-header">
+                                        <span class="stat-title">Pro Plan</span>
+                                        <span class="stat-icon">🚀</span>
+                                    </div>
+                                    <div class="stat-value">$19.99/mo</div>
+                                    <div class="stat-change">500 images, 200 articles</div>
+                                    <button class="btn btn-primary btn-sm" onclick="buyPackage('pro')" style="margin-top:1rem">Upgrade</button>
+                               </div>
+                               <div class="stat-card">
+                                   <div class="stat-header">
+                                       <span class="stat-title">Enterprise</span>
+                                       <span class="stat-icon">🏢</span>
                                    </div>
+                                   <div class="stat-value">$49.99/mo</div>
+                                   <div class="stat-change">Unlimited everything</div>
+                                   <button class="btn btn-primary btn-sm" onclick="buyPackage('enterprise')" style="margin-top:1rem">Upgrade</button>
                                </div>
                            </div>
                        </div>
-
-                       <div class="card" style="margin-top:1rem">
-                           <div class="card-header">
-                               <h3 class="card-title">Daily Views</h3>
-                           </div>
-                           <div class="card-body">
-                               <div class="chart-container" style="height:200px">
-                                   <canvas id="taskViewsChart"></canvas>
-                               </div>
-                           </div>
-                       </div>
-
-                       <div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:2rem">
-                           <button class="btn btn-secondary" onclick="closeModal()">Close</button>
-                           <button class="btn btn-primary" onclick="rechargeTask('${task._id}')">Recharge Task</button>
-                       </div>
-                   </div>
-               `);
-
-               // Create views chart
-               setTimeout(() => {
-                   const ctx = document.getElementById('taskViewsChart').getContext('2d');
-                   const dates = Object.keys(task.views_by_date || {}).slice(-7);
-                   new Chart(ctx, {
-                       type: 'bar',
-                       data: {
-                           labels: dates,
-                           datasets: [{
-                               label: 'Views',
-                               data: dates.map(d => task.views_by_date[d] || 0),
-                               backgroundColor: 'rgba(37,99,235,0.6)',
-                               borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary'),
-                               borderWidth: 1
-                           }]
-                       },
-                       options: {
-                           responsive: true,
-                           maintainAspectRatio: false,
-                           plugins: { legend: { display: false } }
-                       }
-                   });
-               }, 100);
-           }
-       }
-
-       async function rechargeTask(taskId) {
-           const result = await api('/recharge', {
-               method: 'POST',
-               body: JSON.stringify({
-                   task_ids: [taskId],
-                   payment_method: 'stripe',
-                   cancel_previous: false
-               })
-           });
-
-           if (result?.status === 'success') {
-               notify('Recharge initiated!');
-               if (result.data.payment_url) window.open(result.data.payment_url, '_blank');
-           } else {
-               notify(result?.error?.message || 'Recharge failed', 'error');
-           }
-       }
-
-       // Articles
-       async function loadArticles() {
-           const [articlesData, userData] = await Promise.all([
-               api('/dashboard/articles'),
-               api('/users/dashboard?page=1&page_size=1')
-           ]);
-
-           const articles = articlesData?.data?.articles || [];
-           const domains = userData?.data?.user?.domains || [];
-           const stats = articlesData?.data?.user || {};
-
-           document.getElementById('content').innerHTML = `
-               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
-                   <div>
-                       <h2>Article Management</h2>
-                       <p style="color:var(--text-light)">${stats.uploaded || 0} articles • ${stats.remaining || 0} remaining</p>
-                   </div>
-                   <button class="btn btn-primary" onclick="showArticleEditor()">+ Write Article</button>
-               </div>
-
-               <div class="card" style="margin-bottom:2rem">
-                   <div class="card-header">
-                       <h3 class="card-title">Domain Management</h3>
-                   </div>
-                   <div class="card-body">
-                       <form id="addDomainForm" style="display:flex;gap:1rem;margin-bottom:1rem">
-                           <input type="url" id="domainUrl" class="form-input" placeholder="https://yourdomain.com/blog" required style="flex:1">
-                           <button type="submit" class="btn btn-primary">Add Domain</button>
-                       </form>
-                       ${domains.map(d => `
-                           <div class="domain-card">
-                               <div>
-                                   <div style="font-weight:600">${d.domain}</div>
-                                   <div style="color:var(--text-light);font-size:.875rem">TXT: seotize_verification=${userData.data.user._id || userData.data.user.email}</div>
-                               </div>
-                               <div style="display:flex;align-items:center;gap:1rem">
-                                   <span class="badge ${d.verified ? 'badge-success' : 'badge-warning'}">
-                                       ${d.verified ? '✓ Verified' : '⏳ Pending'}
-                                   </span>
-                                   ${!d.verified ? `<button class="btn btn-sm" onclick="verifyDomain('${d.domain}')">Verify</button>` : ''}
-                               </div>
-                           </div>
-                       `).join('')}
                    </div>
                </div>
+           </div>
 
-               ${articles.length ? `
-                   <div class="image-grid">
-                       ${articles.map(article => `
-                           <div class="image-card" onclick="viewArticle('${article.article_id}')">
-                               ${article.images?.[0] ? `<img src="${article.images[0]}" alt="${article.subject}">` : ''}
-                               <div class="image-info">
-                                   <h4 style="margin-bottom:.5rem">${article.subject}</h4>
-                                   <p style="color:var(--text-light);font-size:.875rem">${article.url}</p>
-                                   <div style="display:flex;justify-content:space-between;margin-top:.5rem">
-                                       <small>${new Date(article.creation_date).toLocaleDateString()}</small>
-                                       <small style="color:var(--primary)">${article.total_views || 0} views</small>
-                                   </div>
-                               </div>
-                           </div>
-                       `).join('')}
+           <!-- Billing Section -->
+           <div class="section" id="billing">
+               <div class="content">
+                   <div class="page-header">
+                       <h1 class="page-title">Billing & Payments</h1>
+                       <p class="page-subtitle">View your payment history and manage billing</p>
                    </div>
-               ` : `
+
                    <div class="card">
-                       <div class="card-body" style="text-align:center;padding:4rem">
-                           <h3>No Articles Yet</h3>
-                           <p style="color:var(--text-light);margin:1rem 0">Create SEO-optimized articles to boost your rankings</p>
-                           <button class="btn btn-primary" onclick="showArticleEditor()">Write Your First Article</button>
+                       <div class="card-header">
+                           <h3 class="card-title">Payment History</h3>
+                           <button class="btn btn-outline btn-sm" onclick="loadBilling()">Refresh</button>
                        </div>
-                   </div>
-               `}
-           `;
-
-           document.getElementById('addDomainForm')?.addEventListener('submit', async (e) => {
-               e.preventDefault();
-               const result = await api('/add-domain', {
-                   method: 'POST',
-                   body: JSON.stringify({ url: document.getElementById('domainUrl').value })
-               });
-
-               if (result?.status === 'success') {
-                   notify(result.data.message);
-                   loadArticles();
-               } else {
-                   notify(result?.data?.message || 'Failed to add domain', 'error');
-               }
-           });
-       }
-
-       async function verifyDomain(domain) {
-           const result = await api('/verify-domain', {
-               method: 'POST',
-               body: JSON.stringify({ url: domain })
-           });
-
-           if (result?.status === 'success') {
-               notify('Domain verified!');
-               loadArticles();
-           } else {
-               notify(result?.data?.message || 'Verification failed', 'error');
-           }
-       }
-
-       function showArticleEditor() {
-           modal(`
-               <div class="modal-header">
-                   <h2>Create Article</h2>
-                   <button class="modal-close" onclick="closeModal()">✕</button>
-               </div>
-               <div class="modal-body" style="max-width:900px">
-                   <form id="articleForm">
-                       <div class="form-group">
-                           <label class="form-label">Domain</label>
-                           <select id="articleUrl" class="form-select" required>
-                               <option value="">Select domain...</option>
-                           </select>
-                       </div>
-                       <div class="form-group">
-                           <label class="form-label">Title</label>
-                           <input type="text" id="articleTitle" class="form-input" placeholder="Article title" required>
-                       </div>
-                       <div class="form-group">
-                           <label class="form-label">Content</label>
-                           <div class="editor-container">
-                               <div id="editor"></div>
-                           </div>
-                       </div>
-                       <div class="form-group">
-                           <label class="form-label">Images</label>
-                           <input type="file" id="articleImages" class="form-input" multiple accept="image/*" required>
-                       </div>
-                       <div style="display:flex;gap:1rem;justify-content:flex-end">
-                           <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                           <button type="submit" class="btn btn-primary">Publish</button>
-                       </div>
-                   </form>
-               </div>
-           `);
-
-           const quill = new Quill('#editor', {
-               theme: 'snow',
-               modules: {
-                   toolbar: [
-                       [{ 'header': [1, 2, 3, false] }],
-                       ['bold', 'italic', 'underline'],
-                       ['link', 'image'],
-                       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                       ['clean']
-                   ]
-               }
-           });
-
-           api('/users/dashboard?page=1&page_size=1').then(data => {
-               const domains = data?.data?.user?.domains?.filter(d => d.verified) || [];
-               document.getElementById('articleUrl').innerHTML = `
-                   <option value="">Select domain...</option>
-                   ${domains.map(d => `<option value="${d.domain}">${d.domain}</option>`).join('')}
-               `;
-           });
-
-           document.getElementById('articleForm').addEventListener('submit', async (e) => {
-               e.preventDefault();
-
-               const formData = new FormData();
-               formData.append('url', document.getElementById('articleUrl').value);
-               formData.append('subject', document.getElementById('articleTitle').value);
-               formData.append('body', quill.root.innerHTML);
-
-               const files = document.getElementById('articleImages').files;
-               for (let file of files) {
-                   formData.append('image_data', file);
-               }
-
-               const result = await api('/add-article', {
-                   method: 'POST',
-                   headers: { 'Session-Token': sessionToken },
-                   body: formData
-               });
-
-               if (result?.status === 'success') {
-                   notify('Article published!');
-                   closeModal();
-                   loadArticles();
-               } else {
-                   notify(result?.error?.message || 'Failed to publish', 'error');
-               }
-           });
-       }
-
-       // Images
-       async function loadImages() {
-           const data = await api('/images/dashboard');
-           const images = data?.data?.images || [];
-           const stats = data?.data?.user || {};
-
-           document.getElementById('content').innerHTML = `
-               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
-                   <div>
-                       <h2>Image CDN</h2>
-                       <p style="color:var(--text-light)">${stats.uploaded || 0} images • ${stats.remaining || 0} remaining</p>
-                   </div>
-                   <button class="btn btn-primary" onclick="showImageUpload()">+ Upload Images</button>
-               </div>
-
-               ${images.length ? `
-                   <div class="chart-grid" style="margin-bottom:2rem">
-                       <div class="card">
-                           <div class="card-header">
-                               <h3 class="card-title">Image Analytics</h3>
-                           </div>
-                           <div class="card-body">
-                               <div class="chart-container">
-                                   <canvas id="imageChart"></canvas>
-                               </div>
-                           </div>
-                       </div>
-                       <div class="card">
-                           <div class="card-header">
-                               <h3 class="card-title">Geographic Distribution</h3>
-                           </div>
-                           <div class="card-body">
-                               <div class="chart-container">
-                                   <canvas id="geoChart"></canvas>
-                               </div>
-                           </div>
-                       </div>
-                   </div>
-
-                   <div class="image-grid">
-                       ${images.map(img => `
-                           <div class="image-card" onclick='showImageDetails(${JSON.stringify(img).replace(/'/g, "&apos;")})'>
-                               <img src="${img.cdn_url}" alt="${img.original_filename}">
-                               <div class="image-info">
-                                   <div style="font-weight:600">${img.original_filename}</div>
-                                   <div style="display:flex;justify-content:space-between;margin-top:.5rem">
-                                       <small>${img.total_views || 0} views</small>
-                                       <small style="color:var(--primary);cursor:pointer" onclick="event.stopPropagation();navigator.clipboard.writeText('${img.cdn_url}');notify('URL copied!')">📋 Copy</small>
-                                   </div>
-                               </div>
-                           </div>
-                       `).join('')}
-                   </div>
-               ` : `
-                   <div class="card">
-                       <div class="card-body" style="text-align:center;padding:4rem">
-                           <h3>No Images Yet</h3>
-                           <p style="color:var(--text-light);margin:1rem 0">Upload images to our global CDN</p>
-                           <button class="btn btn-primary" onclick="showImageUpload()">Upload First Image</button>
-                       </div>
-                   </div>
-               `}
-           `;
-
-           if (images.length) {
-               setTimeout(() => {
-                   // Total views chart
-                   const viewsCtx = document.getElementById('imageChart').getContext('2d');
-                   new Chart(viewsCtx, {
-                       type: 'doughnut',
-                       data: {
-                           labels: images.slice(0,5).map(img => img.original_filename),
-                           datasets: [{
-                               data: images.slice(0,5).map(img => img.total_views || 0),
-                               backgroundColor: ['#2563eb', '#059669', '#f59e0b', '#dc2626', '#8b5cf6']
-                           }]
-                       },
-                       options: {
-                           responsive: true,
-                           maintainAspectRatio: false,
-                           plugins: { legend: { position: 'bottom' } }
-                       }
-                   });
-
-                   // Geographic chart
-                   const geoCtx = document.getElementById('geoChart').getContext('2d');
-                   const countries = {};
-                   images.forEach(img => {
-                       Object.entries(img.monthly_stats || {}).forEach(([month, data]) => {
-                           Object.entries(data.country || {}).forEach(([country, count]) => {
-                               countries[country] = (countries[country] || 0) + count;
-                           });
-                       });
-                   });
-
-                   new Chart(geoCtx, {
-                       type: 'bar',
-                       data: {
-                           labels: Object.keys(countries).slice(0,10),
-                           datasets: [{
-                               label: 'Views by Country',
-                               data: Object.values(countries).slice(0,10),
-                               backgroundColor: 'rgba(37,99,235,0.6)'
-                           }]
-                       },
-                       options: {
-                           responsive: true,
-                           maintainAspectRatio: false,
-                           plugins: { legend: { display: false } }
-                       }
-                   });
-               }, 100);
-           }
-       }
-
-       function showImageUpload() {
-           modal(`
-               <div class="modal-header">
-                   <h2>Upload Images</h2>
-                   <button class="modal-close" onclick="closeModal()">✕</button>
-               </div>
-               <div class="modal-body" style="max-width:600px">
-                   <form id="uploadForm">
-                       <div class="form-group">
-                           <label class="form-label">Select Images</label>
-                           <input type="file" id="imageFiles" class="form-input" multiple accept="image/*" required>
-                           <small style="color:var(--text-light)">Max 10 images, 5MB each</small>
-                       </div>
-                       <div style="display:flex;gap:1rem;justify-content:flex-end">
-                           <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                           <button type="submit" class="btn btn-primary">Upload</button>
-                       </div>
-                   </form>
-               </div>
-           `);
-
-           document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-               e.preventDefault();
-
-               const formData = new FormData();
-               const files = document.getElementById('imageFiles').files;
-               for (let file of files) {
-                   formData.append('file', file);
-               }
-
-               const result = await api('/images/upload', {
-                   method: 'POST',
-                   headers: { 'Session-Token': sessionToken },
-                   body: formData
-               });
-
-               if (result?.status === 'success') {
-                   notify('Images uploaded!');
-                   closeModal();
-                   loadImages();
-               } else {
-                   notify(result?.error?.message || 'Upload failed', 'error');
-               }
-           });
-       }
-
-       function showImageDetails(img) {
-           modal(`
-               <div class="modal-header">
-                   <h2>Image Details</h2>
-                   <button class="modal-close" onclick="closeModal()">✕</button>
-               </div>
-               <div class="modal-body" style="max-width:800px">
-                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
-                       <img src="${img.cdn_url}" alt="${img.original_filename}" style="width:100%;border-radius:8px">
-                       <div>
-                           <h3>${img.original_filename}</h3>
-                           <div class="card" style="margin:1rem 0">
-                               <div class="card-body">
-                                   <div style="margin-bottom:1rem">
-                                       <strong>Total Views:</strong> ${img.total_views || 0}
-                                   </div>
-                                   <div style="margin-bottom:1rem">
-                                       <strong>Upload Date:</strong> ${new Date(img.upload_date).toLocaleDateString()}
-                                   </div>
-                                   <div>
-                                       <strong>Formats Used:</strong>
-                                       <div style="display:flex;gap:.5rem;margin-top:.5rem">
-                                           ${Object.keys(img.formats || {}).map(f => `<span class="badge badge-success">${f}</span>`).join('')}
-                                       </div>
-                                   </div>
-                               </div>
-                           </div>
-                           <input type="text" value="${img.cdn_url}" class="form-input" readonly>
-                           <button class="btn btn-primary" onclick="navigator.clipboard.writeText('${img.cdn_url}');notify('URL copied!')" style="width:100%;margin-top:1rem">📋 Copy URL</button>
-                           <button class="btn btn-secondary" onclick="if(confirm('Delete this image?')){deleteImage('${img.image_id}')}" style="width:100%;margin-top:.5rem">🗑️ Delete</button>
-                       </div>
-                   </div>
-               </div>
-           `);
-       }
-
-       async function deleteImage(imageId) {
-           const result = await api('/images', {
-               method: 'DELETE',
-               body: JSON.stringify({ image_ids: [imageId] })
-           });
-
-           if (result?.status === 'success') {
-               notify('Image deleted');
-               closeModal();
-               loadImages();
-           } else {
-               notify('Delete failed', 'error');
-           }
-       }
-
-       // Billing
-       async function loadBilling() {
-           const [billingData, subData] = await Promise.all([
-               api('/dashboard/billings'),
-               api('/hosting/subscription-status')
-           ]);
-
-           const billings = [...(billingData?.data?.hosting || []), ...(billingData?.data?.tasks || [])];
-           const sub = subData?.data || {};
-
-           document.getElementById('content').innerHTML = `
-               <h2 style="margin-bottom:2rem">Billing & Subscription</h2>
-
-               <div class="stats-grid" style="margin-bottom:2rem">
-                   <div class="stat-card">
-                       <div class="stat-icon">📦</div>
-                       <div class="stat-value">${sub.current_plan || 'Free'}</div>
-                       <div class="stat-label">Current Plan</div>
-                       ${sub.expiry_date ? `<div class="stat-change">Expires: ${new Date(sub.expiry_date).toLocaleDateString()}</div>` : ''}
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-icon">🖼️</div>
-                       <div class="stat-value">${sub.images_uploads || 0}/${sub.images_limit || '∞'}</div>
-                       <div class="stat-label">Images Used</div>
-                       <div class="progress" style="margin-top:.5rem">
-                           <div class="progress-bar" style="width:${sub.images_limit ? (sub.images_uploads/sub.images_limit*100) : 0}%"></div>
-                       </div>
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-icon">📝</div>
-                       <div class="stat-value">${sub.article_uploads || 0}/${sub.articles_limit || '∞'}</div>
-                       <div class="stat-label">Articles Used</div>
-                       <div class="progress" style="margin-top:.5rem">
-                           <div class="progress-bar" style="width:${sub.articles_limit ? (sub.article_uploads/sub.articles_limit*100) : 0}%"></div>
-                       </div>
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-icon">💳</div>
-                       <div class="stat-value">${sub.is_subscription ? 'Active' : 'Inactive'}</div>
-                       <div class="stat-label">Subscription</div>
-                       ${sub.is_subscription ? `<button class="btn btn-sm" onclick="cancelSub()" style="margin-top:.5rem">Cancel</button>` : `<button class="btn btn-primary btn-sm" onclick="showUpgrade()" style="margin-top:.5rem">Upgrade</button>`}
-                   </div>
-               </div>
-
-               <div class="card">
-                   <div class="card-header">
-                       <h3 class="card-title">Billing History</h3>
-                   </div>
-                   <div class="card-body" style="padding:0">
-                       ${billings.length ? `
-                           <table class="table">
-                               <thead>
-                                   <tr>
-                                       <th>Date</th>
-                                       <th>Description</th>
-                                       <th>Amount</th>
-                                       <th>Status</th>
-                                   </tr>
-                               </thead>
-                               <tbody>
-                                   ${billings.map(b => `
+                       <div class="card-body">
+                           <div class="table-container">
+                               <table class="table">
+                                   <thead>
                                        <tr>
-                                           <td>${new Date(b.dates?.created).toLocaleDateString()}</td>
-                                           <td>${b.method === 'create_task' ? 'SEO Task' : b.method === 'recharge' ? 'Recharge' : 'Hosting'}</td>
-                                           <td>$${(b.total_payment || 0).toFixed(2)}</td>
-                                           <td><span class="badge ${b.status === 'Paid' ? 'badge-success' : 'badge-warning'}">${b.status}</span></td>
+                                           <th>Date</th>
+                                           <th>Type</th>
+                                           <th>Amount</th>
+                                           <th>Status</th>
+                                           <th>Invoice</th>
                                        </tr>
-                                   `).join('')}
-                               </tbody>
-                           </table>
-                       ` : '<div style="text-align:center;padding:3rem;color:var(--text-light)">No billing history</div>'}
-                   </div>
-               </div>
-           `;
-       }
-
-       function showUpgrade() {
-           modal(`
-               <div class="modal-header">
-                   <h2>Upgrade Plan</h2>
-                   <button class="modal-close" onclick="closeModal()">✕</button>
-               </div>
-               <div class="modal-body" style="max-width:800px">
-                   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem">
-                       ${['basic', 'premium', 'enterprise'].map(plan => `
-                           <div class="card" style="text-align:center">
-                               <div class="card-body">
-                                   <h3 style="text-transform:capitalize">${plan}</h3>
-                                   <div style="font-size:2rem;font-weight:800;margin:1rem 0">
-                                       $${plan === 'basic' ? '19' : plan === 'premium' ? '49' : '99'}/mo
-                                   </div>
-                                   <button class="btn btn-primary" onclick="purchasePlan('${plan}')">Choose</button>
-                               </div>
+                                   </thead>
+                                   <tbody id="billingTable">
+                                       <tr><td colspan="5">Loading billing history...</td></tr>
+                                   </tbody>
+                               </table>
                            </div>
-                       `).join('')}
+                       </div>
                    </div>
                </div>
-           `);
-       }
+           </div>
 
-       async function purchasePlan(plan) {
-           const result = await api('/hosting/buy-package', {
-               method: 'POST',
-               body: JSON.stringify({
-                   package: plan,
-                   provider: 'stripe',
-                   duration: '3month',
-                   subscription: false,
-                   cancel_previous: false,
-                   cancel_current_plan: false
-               })
-           });
+           <!-- Domains Section -->
+           <div class="section" id="domains">
+               <div class="content">
+                   <div class="page-header">
+                       <h1 class="page-title">Domain Management</h1>
+                       <p class="page-subtitle">Add and verify your domains for hosting</p>
+                   </div>
 
-           if (result?.status === 'success') {
-               notify('Redirecting to payment...');
-               if (result.data.payment_url) window.open(result.data.payment_url, '_blank');
-               closeModal();
-           }
-       }
+                   <div class="card">
+                       <div class="card-header">
+                           <h3 class="card-title">Add New Domain</h3>
+                       </div>
+                       <div class="card-body">
+                           <form id="domainForm">
+                               <div class="form-group">
+                                   <label class="form-label">Domain URL</label>
+                                   <input type="text" class="form-input" id="domainUrl" placeholder="example.com/blog" required>
+                               </div>
+                               <button type="submit" class="btn btn-primary">Add Domain</button>
+                           </form>
+                       </div>
+                   </div>
 
-       async function cancelSub() {
-           if (!confirm('Cancel subscription?')) return;
-           const result = await api('/hosting/cancel-subscription');
-           if (result?.status === 'success') {
-               notify('Subscription cancelled');
-               loadBilling();
-           }
-       }
+                   <div class="card" style="margin-top:2rem">
+                       <div class="card-header">
+                           <h3 class="card-title">Your Domains</h3>
+                       </div>
+                       <div class="card-body">
+                           <div id="domainsList">Loading domains...</div>
+                       </div>
+                   </div>
+               </div>
+           </div>
+       </main>
+   </div>
 
-       // User functions
-       function updateUserInfo() {
-           if (!userData) return;
-           const email = userData.email || 'user@example.com';
-           document.getElementById('userAvatar').textContent = email.substring(0,2).toUpperCase();
-           document.getElementById('userName').textContent = email.split('@')[0];
-           document.getElementById('userEmail').textContent = email;
-       }
+   <!-- Loading Overlay -->
+   <div class="loading" id="loading">
+       <div class="spinner"></div>
+   </div>
 
-       function toggleUserMenu() {
-           document.getElementById('userDropdown').classList.toggle('active');
-       }
+   <!-- Modals -->
+   <div class="modal" id="taskModal">
+       <div class="modal-content">
+           <div class="modal-header">
+               <h3 class="modal-title">Task Details</h3>
+               <button class="modal-close" onclick="closeModal('taskModal')">&times;</button>
+           </div>
+           <div class="modal-body" id="taskModalBody">
+               Loading task details...
+           </div>
+       </div>
+   </div>
 
-       function toggleSidebar() {
-           const sidebar = document.getElementById('sidebar');
-           sidebar.classList.toggle('collapsed');
-           const icon = sidebar.querySelector('.sidebar-toggle');
-           icon.textContent = sidebar.classList.contains('collapsed') ? '›' : '‹';
-       }
+   <div class="modal" id="partnerTaskModal">
+       <div class="modal-content">
+           <div class="modal-header">
+               <h3 class="modal-title">Complete Partner Task</h3>
+               <button class="modal-close" onclick="closeModal('partnerTaskModal')">&times;</button>
+           </div>
+           <div class="modal-body" id="partnerTaskModalBody">
+               Loading task details...
+           </div>
+       </div>
+   </div>
 
-       function toggleTheme() {
-           document.body.classList.toggle('dark');
-           const isDark = document.body.classList.contains('dark');
-           document.querySelector('.theme-toggle').textContent = isDark ? '☀️' : '🌙';
-localStorage.setItem('theme', isDark ? 'dark' : 'light');
-       }
+<script>
+// Global variables
+const API_BASE = 'https://api.seotize.net';
+let sessionToken = localStorage.getItem('session_token');
+let isPartner = false;
+let currentUser = null;
 
-       async function logout() {
-           if (confirm('Are you sure you want to logout?')) {
-               setCookie('session_token', '', -1);
-               window.location.href = 'login.html';
-           }
-       }
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+   if (!sessionToken) {
+       window.location.href = 'index.html';
+       return;
+   }
+   loadTheme();
+   loadDashboard();
+});
 
-       // Initialize
-       document.addEventListener('DOMContentLoaded', async () => {
-           if (!sessionToken) {
-               window.location.href = 'login.html';
-               return;
-           }
+// Theme management
+function toggleTheme() {
+   document.body.classList.toggle('dark');
+   const isDark = document.body.classList.contains('dark');
+   document.querySelector('.theme-toggle').textContent = isDark ? '☀️' : '🌙';
+   localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
 
-           // Load theme
-           const savedTheme = localStorage.getItem('theme');
-           if (savedTheme === 'dark') {
-               document.body.classList.add('dark');
-               document.querySelector('.theme-toggle').textContent = '☀️';
-           }
+function loadTheme() {
+   if (localStorage.getItem('theme') === 'dark') {
+       document.body.classList.add('dark');
+       document.querySelector('.theme-toggle').textContent = '☀️';
+   }
+}
 
-           // Navigation
-           document.querySelectorAll('.nav-link').forEach(link => {
-               link.addEventListener('click', (e) => {
-                   e.preventDefault();
-                   navigate(link.dataset.page);
-               });
-           });
+// Sidebar management
+function toggleSidebar() {
+   document.getElementById('sidebar').classList.toggle('collapsed');
+}
 
-           // Close dropdowns on outside click
-           document.addEventListener('click', (e) => {
-               if (!e.target.closest('.user-menu')) {
-                   document.getElementById('userDropdown').classList.remove('active');
-               }
-           });
+function toggleMobileSidebar() {
+   document.getElementById('sidebar').classList.toggle('mobile-open');
+}
 
-           // Load dashboard
-           await loadPage();
+// Section management
+function showSection(sectionId) {
+   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-           // Animations
-           gsap.from('.sidebar', { x: -280, duration: 0.6, ease: 'power3.out' });
-           gsap.from('.header', { y: -60, duration: 0.6, ease: 'power3.out', delay: 0.2 });
-           gsap.from('.content > *', {
-               opacity: 0,
-               y: 20,
-               duration: 0.6,
-               stagger: 0.1,
-               ease: 'power3.out',
-               delay: 0.4
-           });
+   document.getElementById(sectionId).classList.add('active');
+   document.querySelector(`[onclick="showSection('${sectionId}')"]`).classList.add('active');
+
+   document.getElementById('breadcrumb').textContent = sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
+
+   // Load section-specific data
+   loadSectionData(sectionId);
+}
+
+function loadSectionData(section) {
+   switch(section) {
+       case 'tasks': loadTasks(); break;
+       case 'partner': loadPartnerData(); break;
+       case 'articles': loadArticles(); break;
+       case 'images': loadImages(); break;
+       case 'hosting': loadHostingStatus(); break;
+       case 'billing': loadBilling(); break;
+       case 'domains': loadDomains(); break;
+   }
+}
+
+// API helper functions
+async function apiCall(endpoint, options = {}) {
+   const url = `${API_BASE}${endpoint}`;
+   const headers = {
+       'Content-Type': 'application/json',
+       ...options.headers
+   };
+
+   if (sessionToken && !options.noAuth) {
+       headers['Session-Token'] = sessionToken;
+   }
+
+   try {
+       const response = await fetch(url, {
+           ...options,
+           headers
        });
 
-       // Responsive sidebar
-       let touchStartX = 0;
-       document.addEventListener('touchstart', (e) => {
-           touchStartX = e.touches[0].clientX;
-       });
+       if (response.status === 401) {
+           localStorage.removeItem('session_token');
+           window.location.href = 'index.html';
+           return;
+       }
 
-       document.addEventListener('touchmove', (e) => {
-           if (touchStartX < 50 && e.touches[0].clientX > touchStartX + 100) {
-               document.getElementById('sidebar').classList.add('open');
-           }
-       });
+       return await response.json();
+   } catch (error) {
+       console.error('API Error:', error);
+       return { status: 'error', error: { message: 'Network error' } };
+   }
+}
 
-       // Auto-refresh session
-       setInterval(async () => {
-           const result = await api('/users/dashboard?page=1&page_size=1');
-           if (!result) {
-               window.location.href = 'login.html';
-           }
-       }, 300000); // Every 5 minutes
+function showLoading() {
+   document.getElementById('loading').style.display = 'flex';
+}
 
-       // Keyboard shortcuts
-       document.addEventListener('keydown', (e) => {
-           if (e.ctrlKey || e.metaKey) {
-               switch(e.key) {
-                   case 'k':
-                       e.preventDefault();
-                       // Quick search - could implement later
-                       break;
-                   case 'n':
-                       e.preventDefault();
-                       if (currentPage === 'tasks') showAddTask();
-                       else if (currentPage === 'articles') showArticleEditor();
-                       else if (currentPage === 'images') showImageUpload();
-                       break;
-               }
-           }
-       });
+function hideLoading() {
+   document.getElementById('loading').style.display = 'none';
+}
 
-       // Dark mode CSS adjustments
-       const style = document.createElement('style');
-       style.textContent = `
-           /* Scrollbar */
-           ::-webkit-scrollbar { width: 8px; height: 8px; }
-           ::-webkit-scrollbar-track { background: var(--bg-light); }
-           ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-           ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+function showModal(modalId) {
+   document.getElementById(modalId).classList.add('active');
+}
 
-           /* Quill Editor Dark Mode */
-           body.dark .ql-toolbar { background: var(--card-bg) !important; }
-           body.dark .ql-toolbar .ql-stroke { stroke: var(--text-light) !important; }
-           body.dark .ql-toolbar .ql-fill { fill: var(--text-light) !important; }
-           body.dark .ql-toolbar button:hover .ql-stroke { stroke: var(--primary) !important; }
-           body.dark .ql-toolbar button:hover .ql-fill { fill: var(--primary) !important; }
-           body.dark .ql-editor { color: var(--text) !important; }
-           body.dark .ql-editor.ql-blank::before { color: var(--text-light) !important; }
+function closeModal(modalId) {
+   document.getElementById(modalId).classList.remove('active');
+}
 
-           /* Chart.js Dark Mode */
-           body.dark .chart-container { filter: invert(1) hue-rotate(180deg); }
+// Dashboard loading
+async function loadDashboard() {
+   showLoading();
 
-           /* Animations */
-           @keyframes slideIn {
-               from { transform: translateX(100%); opacity: 0; }
-               to { transform: translateX(0); opacity: 1; }
-           }
+   // Load user dashboard
+   const userDash = await apiCall('/users/dashboard');
+   if (userDash.status === 'success') {
+       currentUser = userDash.data.user;
+       updateUserInfo(currentUser);
+       updateDashboardStats(currentUser);
+   }
 
-           /* Mobile Menu */
-           @media (max-width: 768px) {
-               .mobile-toggle {
-                   position: fixed;
-                   bottom: 20px;
-                   right: 20px;
-                   width: 60px;
-                   height: 60px;
-                   background: linear-gradient(135deg, var(--primary), var(--secondary));
-                   border-radius: 50%;
-                   display: flex;
-                   align-items: center;
-                   justify-content: center;
-                   color: white;
-                   font-size: 1.5rem;
-                   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-                   z-index: 90;
-                   cursor: pointer;
-               }
-           }
+   // Try to load partner dashboard
+   const partnerDash = await apiCall('/partner/dashboard');
+   if (partnerDash.status === 'success') {
+       isPartner = true;
+       updatePartnerStats(partnerDash.data);
+   }
 
-           /* Performance optimizations */
-           .card, .stat-card, .image-card {
-               will-change: transform;
-               transform: translateZ(0);
-           }
+   hideLoading();
+}
 
-           /* Smooth transitions */
-           * {
-               -webkit-font-smoothing: antialiased;
-               -moz-osx-font-smoothing: grayscale;
-           }
+function updateUserInfo(user) {
+   document.getElementById('userEmail').textContent = user.email;
+   document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
+}
+
+function updateDashboardStats(user) {
+   document.getElementById('totalTasks').textContent = user.usage_summary?.total_tasks || 0;
+   document.getElementById('totalViews').textContent = user.task_statistics?.total_views || 0;
+   document.getElementById('totalCharge').textContent = `$${user.task_statistics?.total_charge || 0}`;
+}
+
+function updatePartnerStats(partner) {
+   document.getElementById('partnerBalance').textContent = `$${partner.user?.credit || 0}`;
+   document.getElementById('partnerCurrentBalance').textContent = `$${partner.user?.credit || 0}`;
+}
+
+// Tasks management
+async function loadTasks() {
+   const data = await apiCall('/users/dashboard');
+   if (data.status === 'success') {
+       renderTasks(data.data.user.tasks || []);
+   }
+}
+
+function renderTasks(tasks) {
+   const tbody = document.getElementById('tasksTable');
+   if (!tasks.length) {
+       tbody.innerHTML = '<tr><td colspan="6">No tasks found</td></tr>';
+       return;
+   }
+
+   tbody.innerHTML = tasks.map(task => `
+       <tr>
+           <td>${task.url}</td>
+           <td>${task.keywords_count} keywords</td>
+           <td>${task.views_count}</td>
+           <td>$${task.total_charge}</td>
+           <td><span class="badge badge-${task.remaining_percentage > 0 ? 'success' : 'warning'}">${task.remaining_percentage > 0 ? 'Active' : 'Completed'}</span></td>
+           <td>
+               <button class="btn btn-outline btn-sm" onclick="viewTask('${task._id}')">View</button>
+               <button class="btn btn-primary btn-sm" onclick="rechargeTask('${task._id}')">Recharge</button>
+           </td>
+       </tr>
+   `).join('');
+}
+
+// Task form submission
+document.getElementById('taskForm').addEventListener('submit', async (e) => {
+   e.preventDefault();
+   showLoading();
+
+   const formData = {
+       task_details: {
+           url: document.getElementById('taskUrl').value,
+           keywords: document.getElementById('taskKeywords').value.split(',').map(k => k.trim()),
+           html_locations: ['/html/body//a'] // Default location
+       },
+       task_priority: document.getElementById('taskPriority').value,
+       total_charge: parseInt(document.getElementById('taskCharge').value),
+       provider: 'stripe',
+       is_subscription: false,
+       cancel_previous: false
+   };
+
+   const result = await apiCall('/add-task', {
+       method: 'POST',
+       body: JSON.stringify(formData)
+   });
+
+   if (result.status === 'success') {
+       alert('Task created! Redirecting to payment...');
+       window.open(result.data.payment_url, '_blank');
+       loadTasks();
+   } else {
+       alert(result.error?.message || 'Failed to create task');
+   }
+
+   hideLoading();
+});
+
+// Partner tasks
+async function loadPartnerData() {
+   const data = await apiCall('/partner/dashboard');
+   if (data.status === 'success') {
+       updatePartnerStats(data.data);
+       renderPartnerTasks(data.data.tasks || []);
+       loadPartnerBalance();
+   }
+}
+
+async function loadPartnerBalance() {
+   const data = await apiCall('/partner/balance-management');
+   if (data.status === 'success') {
+       document.getElementById('partnerTotalEarned').textContent = `$${data.data.total_earn || 0}`;
+       document.getElementById('partnerTasksDone').textContent = data.data.number_of_done_tasks || 0;
+   }
+}
+
+function renderPartnerTasks(tasks) {
+   const container = document.getElementById('partnerTasks');
+   if (!Array.isArray(tasks) || !tasks.length) {
+       container.innerHTML = '<p>No tasks available right now. Check back later!</p>';
+       return;
+   }
+
+   container.innerHTML = tasks.map(task => `
+       <div class="card" style="margin-bottom:1rem">
+           <div class="card-body">
+               <h4>${task.url}</h4>
+               <p><strong>Keywords:</strong> ${task.keywords?.join(', ') || 'N/A'}</p>
+               <p><strong>Priority:</strong> $${task.task_priority || 0.12} per click</p>
+               <div style="display:flex;gap:1rem;margin-top:1rem">
+                   ${task.active ?
+                       `<button class="btn btn-success" onclick="startPartnerTask('${task._id}')">Start Task</button>` :
+                       `<span class="badge badge-warning">Cooldown: ${task.remaining_time || 0}min</span>`
+                   }
+               </div>
+           </div>
+       </div>
+   `).join('');
+}
+
+async function startPartnerTask(taskId) {
+   showLoading();
+   const uniqueId = Date.now().toString();
+
+   const result = await apiCall('/allocate-partner-task', {
+       method: 'POST',
+       body: JSON.stringify({
+           user_task_id: taskId,
+           unique_id: uniqueId
+       })
+   });
+
+   if (result.status === 'success') {
+       showPartnerTaskModal(result.data, uniqueId);
+   } else {
+       alert(result.error?.message || 'Failed to start task');
+   }
+
+   hideLoading();
+}
+
+function showPartnerTaskModal(taskData, uniqueId) {
+   document.getElementById('partnerTaskModalBody').innerHTML = `
+       <div>
+           <p><strong>Task Started!</strong></p>
+           <p>Task ID: ${taskData.Task_id}</p>
+           <p>Time: ${taskData.time}</p>
+           <div style="margin-top:1rem">
+               <button class="btn btn-primary" onclick="completePartnerTask('${uniqueId}')">Complete Task</button>
+               <button class="btn btn-outline" onclick="cancelPartnerTask('${taskData.Task_id}')">Cancel</button>
+           </div>
+       </div>
+   `;
+   showModal('partnerTaskModal');
+}
+
+// Withdrawal form
+document.getElementById('withdrawForm').addEventListener('submit', async (e) => {
+   e.preventDefault();
+   showLoading();
+
+   const result = await apiCall('/partner/withdraw', {
+       method: 'POST',
+       body: JSON.stringify({
+           amount: parseFloat(document.getElementById('withdrawAmount').value),
+           address: document.getElementById('withdrawAddress').value
+       })
+   });
+
+   if (result.status === 'success') {
+       alert('Withdrawal request submitted successfully!');
+       loadPartnerBalance();
+   } else {
+       alert(result.error?.message || 'Failed to process withdrawal');
+   }
+
+   hideLoading();
+});
+
+// Articles management
+async function loadArticles() {
+   const data = await apiCall('/dashboard/articles');
+   if (data.status === 'success') {
+       renderArticles(data.data.articles || []);
+   }
+}
+
+function renderArticles(articles) {
+   const container = document.getElementById('articlesGrid');
+   if (!articles.length) {
+       container.innerHTML = '<p>No articles found. Upload your first article!</p>';
+       return;
+   }
+
+   container.innerHTML = articles.map(article => `
+       <div class="card" style="margin-bottom:1rem">
+           <div class="card-body">
+               <h4>${article.subject}</h4>
+               <p><strong>URL:</strong> ${article.url}</p>
+               <p><strong>Views:</strong> ${article.total_views || 0}</p>
+               <p><strong>Created:</strong> ${article.creation_date}</p>
+               <div style="display:flex;gap:1rem;margin-top:1rem">
+                   <button class="btn btn-outline btn-sm" onclick="editArticle('${article.article_id}')">Edit</button>
+                   <button class="btn btn-error btn-sm" onclick="deleteArticle('${article.article_id}')">Delete</button>
+               </div>
+           </div>
+       </div>
+   `).join('');
+}
+
+// Article form submission
+document.getElementById('articleForm').addEventListener('submit', async (e) => {
+   e.preventDefault();
+   showLoading();
+
+   const formData = new FormData();
+   formData.append('url', document.getElementById('articleUrl').value);
+   formData.append('subject', document.getElementById('articleSubject').value);
+   formData.append('body', document.getElementById('articleBody').value);
+
+   const files = document.getElementById('articleImages').files;
+   for (let file of files) {
+       formData.append('image_data', file);
+   }
+
+   const result = await apiCall('/add-article', {
+       method: 'POST',
+       body: formData,
+       headers: {} // Let browser set Content-Type for multipart
+   });
+
+   if (result.status === 'success') {
+       alert('Article uploaded successfully!');
+       document.getElementById('articleForm').reset();
+       loadArticles();
+   } else {
+       alert(result.error?.message || 'Failed to upload article');
+   }
+
+   hideLoading();
+});
+
+// Images management
+async function loadImages() {
+   const data = await apiCall('/images/dashboard');
+   if (data.status === 'success') {
+       renderImages(data.data.images || []);
+   }
+}
+
+function renderImages(images) {
+   const container = document.getElementById('imagesGrid');
+   if (!images.length) {
+       container.innerHTML = '<p>No images found. Upload your first image!</p>';
+       return;
+   }
+
+   container.innerHTML = `
+       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
+           ${images.map(img => `
+               <div class="card">
+                   <img src="${img.cdn_url}" alt="${img.original_filename}" style="width:100%;height:150px;object-fit:cover">
+                   <div class="card-body">
+                       <p style="font-size:.8rem;margin-bottom:.5rem">${img.original_filename}</p>
+                       <p style="font-size:.7rem;color:var(--text-muted)">${img.total_views || 0} views</p>
+                       <button class="btn btn-error btn-sm" onclick="deleteImage('${img.image_id}')" style="margin-top:.5rem">Delete</button>
+                   </div>
+               </div>
+           `).join('')}
+       </div>
+   `;
+}
+
+// Image form submission
+document.getElementById('imageForm').addEventListener('submit', async (e) => {
+   e.preventDefault();
+   showLoading();
+
+   const formData = new FormData();
+   const files = document.getElementById('imageFiles').files;
+
+   for (let file of files) {
+       formData.append('file', file);
+   }
+
+   const result = await apiCall('/images/upload', {
+       method: 'POST',
+       body: formData,
+       headers: {}
+   });
+
+   if (result.status === 'success') {
+       alert(`${result.data.uploaded_images.length} images uploaded successfully!`);
+       document.getElementById('imageForm').reset();
+       loadImages();
+   } else {
+       alert(result.error?.message || 'Failed to upload images');
+   }
+
+   hideLoading();
+});
+
+// Hosting management
+async function loadHostingStatus() {
+   const data = await apiCall('/hosting/subscription-status');
+   if (data.status === 'success') {
+       renderHostingStatus(data.data);
+   }
+}
+
+function renderHostingStatus(hosting) {
+   const container = document.getElementById('hostingStatus');
+   container.innerHTML = `
+       <div class="stats-grid">
+           <div class="stat-card">
+               <div class="stat-header">
+                   <span class="stat-title">Current Plan</span>
+                   <span class="stat-icon">📦</span>
+               </div>
+               <div class="stat-value">${hosting.current_plan?.toUpperCase() || 'FREE'}</div>
+               <div class="stat-change">${hosting.expiry_date ? `Expires: ${hosting.expiry_date}` : 'No expiry'}</div>
+           </div>
+           <div class="stat-card">
+               <div class="stat-header">
+
+           <span class="stat-title">Images Used</span>
+                   <span class="stat-icon">🖼️</span>
+               </div>
+               <div class="stat-value">${hosting.images_uploads || 0}/${hosting.images_limit || 0}</div>
+               <div class="stat-change">${hosting.images_remaining || 0} remaining</div>
+           </div>
+           <div class="stat-card">
+               <div class="stat-header">
+                   <span class="stat-title">Articles Used</span>
+                   <span class="stat-icon">📝</span>
+               </div>
+               <div class="stat-value">${hosting.article_uploads || 0}/${hosting.articles_limit || 0}</div>
+               <div class="stat-change">${hosting.articles_remaining || 0} remaining</div>
+           </div>
+       </div>
+   `;
+}
+
+async function buyPackage(packageName) {
+   showLoading();
+
+   const result = await apiCall('/hosting/buy-package', {
+       method: 'POST',
+       body: JSON.stringify({
+           package: packageName,
+           provider: 'stripe',
+           duration: '3month',
+           subscription: true,
+           cancel_previous: false,
+           cancel_current_plan: false
+       })
+   });
+
+   if (result.status === 'success') {
+       alert('Redirecting to payment...');
+       window.open(result.data.payment_url, '_blank');
+   } else {
+       alert(result.error?.message || 'Failed to create payment session');
+   }
+
+   hideLoading();
+}
+
+// Billing management
+async function loadBilling() {
+   const data = await apiCall('/dashboard/billings');
+   if (data.status === 'success') {
+       renderBilling(data.data);
+   }
+}
+
+function renderBilling(billing) {
+   const tbody = document.getElementById('billingTable');
+   const allPayments = [...(billing.tasks || []), ...(billing.hosting || [])];
+
+   if (!allPayments.length) {
+       tbody.innerHTML = '<tr><td colspan="5">No billing history found</td></tr>';
+       return;
+   }
+
+   tbody.innerHTML = allPayments.map(payment => `
+       <tr>
+           <td>${payment.dates?.paid || payment.dates?.created}</td>
+           <td>${payment.method === 'create_task' ? 'Task' : 'Hosting'}</td>
+           <td>$${payment.total_payment}</td>
+           <td><span class="badge badge-${payment.status === 'Paid' ? 'success' : 'warning'}">${payment.status}</span></td>
+           <td><button class="btn btn-outline btn-sm" onclick="viewInvoice('${payment.billing_id}')">View</button></td>
+       </tr>
+   `).join('');
+}
+
+// Domain management
+async function loadDomains() {
+   // Note: API doesn't have a list domains endpoint, so we'll show the add form
+   document.getElementById('domainsList').innerHTML = '<p>Domains will appear here after you add them.</p>';
+}
+
+document.getElementById('domainForm').addEventListener('submit', async (e) => {
+   e.preventDefault();
+   showLoading();
+
+   const result = await apiCall('/add-domain', {
+       method: 'POST',
+       body: JSON.stringify({
+           url: document.getElementById('domainUrl').value
+       })
+   });
+
+   if (result.status === 'success') {
+       alert(result.data.message);
+       if (result.data.txt_record) {
+           alert(`Please add this TXT record: ${result.data.txt_record}`);
+       }
+       document.getElementById('domainForm').reset();
+   } else {
+       alert(result.error?.message || 'Failed to add domain');
+   }
+
+   hideLoading();
+});
+
+// Utility functions
+async function viewTask(taskId) {
+   const result = await apiCall('/get-task-details', {
+       method: 'POST',
+       body: JSON.stringify({ task_id: taskId })
+   });
+
+   if (result.status === 'success') {
+       document.getElementById('taskModalBody').innerHTML = `
+           <div>
+               <p><strong>URL:</strong> ${result.data.url}</p>
+               <p><strong>Keywords:</strong> ${result.data.keywords?.join(', ')}</p>
+               <p><strong>Total Charge:</strong> $${result.data.total_charge}</p>
+               <p><strong>Available Charge:</strong> $${result.data.available_charge}</p>
+               <p><strong>Created:</strong> ${result.data.date_created}</p>
+               <div style="margin-top:1rem">
+                   <h4>Country Visits:</h4>
+                   ${Object.entries(result.data.country_visits || {}).map(([country, visits]) =>
+                       `<p>${country}: ${visits} visits</p>`
+                   ).join('')}
+               </div>
+           </div>
        `;
-       document.head.appendChild(style);
+       showModal('taskModal');
+   }
+}
 
-       // Error boundary
-       window.addEventListener('error', (e) => {
-           console.error('Error:', e);
-           notify('An error occurred', 'error');
-       });
+async function rechargeTask(taskId) {
+   const amount = prompt('Enter recharge amount ($):');
+   if (!amount) return;
 
-       // Service worker for offline support (optional)
-       if ('serviceWorker' in navigator) {
-           navigator.serviceWorker.register('/sw.js').catch(() => {});
+   showLoading();
+   const result = await apiCall('/recharge', {
+       method: 'POST',
+       body: JSON.stringify({
+           task_ids: [taskId],
+           payment_method: 'stripe',
+           cancel_previous: false
+       })
+   });
+
+   if (result.status === 'success') {
+       alert('Redirecting to payment...');
+       window.open(result.data.payment_url, '_blank');
+   } else {
+       alert(result.error?.message || 'Failed to create recharge');
+   }
+
+   hideLoading();
+}
+
+async function deleteImage(imageId) {
+   if (!confirm('Are you sure you want to delete this image?')) return;
+
+   showLoading();
+   const result = await apiCall('/images', {
+       method: 'DELETE',
+       body: JSON.stringify({ image_ids: [imageId] })
+   });
+
+   if (result.status === 'success') {
+       alert('Image deleted successfully');
+       loadImages();
+   } else {
+       alert(result.error?.message || 'Failed to delete image');
+   }
+
+   hideLoading();
+}
+
+async function deleteArticle(articleId) {
+   if (!confirm('Are you sure you want to delete this article?')) return;
+
+   showLoading();
+   const result = await apiCall(`/delete-article/${articleId}`, {
+       method: 'DELETE'
+   });
+
+   if (result.status === 'success') {
+       alert('Article deleted successfully');
+       loadArticles();
+   } else {
+       alert(result.error?.message || 'Failed to delete article');
+   }
+
+   hideLoading();
+}
+
+// Close modals when clicking outside
+document.querySelectorAll('.modal').forEach(modal => {
+   modal.addEventListener('click', (e) => {
+       if (e.target === modal) {
+           modal.classList.remove('active');
        }
-   </script>
+   });
+});
+
+// User menu toggle
+function toggleUserMenu() {
+   // Simple logout for now
+   if (confirm('Do you want to logout?')) {
+       localStorage.removeItem('session_token');
+       window.location.href = 'index.html';
+   }
+}
+
+// Load partner tasks periodically
+if (isPartner) {
+   setInterval(loadPartnerTasks, 30000); // Refresh every 30 seconds
+}
+
+async function loadPartnerTasks() {
+   const data = await apiCall('/partner/dashboard');
+   if (data.status === 'success' && Array.isArray(data.data.tasks)) {
+       renderPartnerTasks(data.data.tasks);
+   }
+}
+</script>
 </body>
 </html>

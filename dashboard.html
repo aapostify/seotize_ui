@@ -6,820 +6,638 @@
     <title>SEOTIZE Dashboard - Manage Your SEO Tasks & Earnings</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
 :root{
-    --bg:#ffffff;--bg-light:#f8fafc;--bg-dark:#0f172a;--text:#1e293b;--text-light:#64748b;--text-muted:#94a3b8;
-    --border:#e2e8f0;--primary:#2563eb;--success:#10b981;--warning:#f59e0b;--error:#ef4444;--card-bg:#ffffff;
-    --nav-bg:rgba(255,255,255,0.95);--sidebar-bg:#f8fafc
+    --bg:#f5f7fa;--sidebar-bg:#ffffff;--card-bg:#ffffff;--text:#1f2937;--text-light:#4b5563;
+    --border:#e5e7eb;--primary:#3b82f6;--primary-light:rgba(59,130,246,0.1);--secondary:#10b981;
+    --shadow:0 4px 6px rgba(0,0,0,0.05);--radius:0.5rem
 }
 body.dark{
-    --bg:#0f172a;--bg-light:#1e293b;--text:#f1f5f9;--text-light:#cbd5e1;--text-muted:#94a3b8;
-    --border:#334155;--card-bg:#1e293b;--nav-bg:rgba(15,23,42,0.95);--sidebar-bg:#1e293b
+    --bg:#0f172a;--sidebar-bg:#1f2937;--card-bg:#1f2937;--text:#f9fafb;--text-light:#9ca3af;
+    --border:#334155;--primary-light:rgba(59,130,246,0.15)
 }
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;transition:all .3s ease}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;transition:all .3s}
 
 /* Layout */
-.app{display:flex;min-height:100vh}
-.sidebar{width:280px;background:var(--sidebar-bg);border-right:1px solid var(--border);transition:all .3s ease;position:fixed;height:100vh;z-index:100;overflow-y:auto}
-.sidebar.collapsed{width:60px}
-.main-content{flex:1;margin-left:280px;transition:all .3s ease}
-.sidebar.collapsed + .main-content{margin-left:60px}
+.sidebar{width:280px;background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:1.5rem;transform:translateX(-100%);transition:transform .8s ease}
+.main{flex:1;display:flex;flex-direction:column;padding:2rem;overflow:hidden}
 
 /* Sidebar */
-.sidebar-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem}
-.logo{font-size:1.25rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--success));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.sidebar-toggle{background:none;border:none;font-size:1.2rem;color:var(--text);cursor:pointer;padding:.5rem;border-radius:6px;transition:background .2s}
-.sidebar-toggle:hover{background:var(--bg-light)}
-.sidebar-nav{padding:1rem 0}
-.nav-item{display:flex;align-items:center;gap:1rem;padding:.875rem 1.5rem;color:var(--text-light);text-decoration:none;transition:all .2s;border:none;background:none;width:100%;cursor:pointer;font-size:.875rem}
-.nav-item:hover,.nav-item.active{background:var(--bg-light);color:var(--primary)}
-.nav-icon{font-size:1.25rem;min-width:20px}
-.sidebar.collapsed .nav-text{display:none}
-.sidebar.collapsed .nav-item{justify-content:center;padding:.875rem}
+.logo{font-size:1.75rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:2rem;text-decoration:none;display:block}
+.nav-links{list-style:none;flex:1}
+.nav-links a{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:var(--radius);text-decoration:none;color:var(--text-light);font-weight:500;transition:all .2s;margin-bottom:.5rem}
+.nav-links a:hover{background:var(--primary-light);color:var(--primary);transform:translateX(4px)}
+.nav-links a.active{background:var(--primary);color:white;box-shadow:0 5px 15px rgba(59,130,246,0.3)}
+.sidebar-footer{margin-top:auto;border-top:1px solid var(--border);padding-top:1.5rem}
+.user-profile{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem}
+.user-avatar{width:40px;height:40px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-weight:600;text-transform:uppercase}
+.user-email{font-size:.875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:var(--radius);background:transparent;font-weight:500;color:var(--text-light);display:flex;align-items:center;justify-content:center;gap:.5rem;cursor:pointer;transition:all .2s;margin-bottom:.5rem}
+.btn:hover{border-color:var(--primary);color:var(--primary)}
+.btn-primary{background:var(--primary);color:white;border:none;border-radius:var(--radius);padding:.75rem 1.5rem;font-weight:600;display:flex;align-items:center;gap:.5rem;cursor:pointer;transition:all .2s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(59,130,246,0.3)}
 
-/* Top Bar */
-.topbar{background:var(--nav-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
-.topbar-left{display:flex;align-items:center;gap:1rem}
-.breadcrumb{color:var(--text-muted);font-size:.875rem}
-.topbar-right{display:flex;align-items:center;gap:1rem}
-.user-menu{display:flex;align-items:center;gap:.75rem;padding:.5rem 1rem;border-radius:8px;background:var(--card-bg);border:1px solid var(--border);cursor:pointer;transition:all .2s}
-.user-menu:hover{background:var(--bg-light)}
-.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--success));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:.875rem}
-.theme-toggle{background:var(--card-bg);border:1px solid var(--border);padding:.5rem;border-radius:6px;cursor:pointer;transition:all .2s;font-size:1.1rem}
-.theme-toggle:hover{background:var(--bg-light)}
-
-/* Content */
-.content{padding:2rem;max-width:100%;overflow-x:hidden}
-.page-header{margin-bottom:2rem}
-.page-title{font-size:1.875rem;font-weight:800;margin-bottom:.5rem}
-.page-subtitle{color:var(--text-light);font-size:1rem}
+/* Header */
+.main-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem}
+.main-header h1{font-size:2rem;font-weight:800}
 
 /* Stats Grid */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;margin-bottom:2rem}
-.stat-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:1.5rem;transition:all .3s ease}
-.stat-card:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(0,0,0,.1)}
-.stat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
-.stat-title{font-size:.875rem;color:var(--text-muted);font-weight:500}
-.stat-icon{font-size:1.5rem}
-.stat-value{font-size:2rem;font-weight:800;color:var(--text)}
-.stat-change{font-size:.875rem;margin-top:.5rem}
-.stat-change.positive{color:var(--success)}
-.stat-change.negative{color:var(--error)}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.5rem;margin-bottom:2rem}
+.stat-card{background:var(--card-bg);padding:1.5rem;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);transition:all .3s}
+.stat-card:hover{transform:translateY(-5px) scale(1.03);box-shadow:0 10px 15px rgba(0,0,0,0.1)}
+.stat-header{display:flex;align-items:center;gap:.5rem;color:var(--text-light);font-weight:500;margin-bottom:.5rem}
+.stat-value{font-size:2rem;font-weight:800}
+.stat-desc{font-size:.875rem;color:var(--text-light)}
 
-/* Cards */
-.card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .3s ease}
-.card:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(0,0,0,.1)}
+/* Content Sections */
+.section{display:none}
+.section.active{display:block}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:1.5rem}
 .card-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.card-title{font-size:1.125rem;font-weight:700}
+.card-title{font-size:1.125rem;font-weight:600}
 .card-body{padding:1.5rem}
 
-/* Tables */
-.table-container{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
-.table{width:100%;border-collapse:collapse;background:var(--card-bg)}
-.table th,.table td{padding:.875rem 1rem;text-align:left;border-bottom:1px solid var(--border)}
-.table th{background:var(--bg-light);font-weight:600;font-size:.875rem;color:var(--text-muted)}
-.table tbody tr:hover{background:var(--bg-light)}
-
-/* Buttons */
-.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.625rem 1.25rem;border-radius:6px;font-weight:500;font-size:.875rem;cursor:pointer;border:none;text-decoration:none;transition:all .2s;white-space:nowrap}
-.btn-primary{background:var(--primary);color:#fff}
-.btn-primary:hover{background:#1d4ed8}
-.btn-success{background:var(--success);color:#fff}
-.btn-success:hover{background:#059669}
-.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
-.btn-outline:hover{background:var(--bg-light)}
-.btn-sm{padding:.5rem .875rem;font-size:.8125rem}
+/* Tasks */
+.tasks{flex:1;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden;margin-bottom:2rem}
+.tasks-header{padding:1rem 1.5rem;border-bottom:1px solid var(--border);font-size:1.125rem;font-weight:600}
+.tasks-list{flex:1;overflow-y:auto;padding:.5rem}
+.task-item{display:grid;grid-template-columns:3fr 1fr 1fr 1fr;align-items:center;padding:1rem 1.5rem;border-radius:var(--radius);margin-bottom:.5rem;transition:background .2s}
+.task-item:hover{background:var(--primary-light)}
+.task-url{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-stat{text-align:center;color:var(--text-light)}
+.progress-bar{width:100%;height:6px;background:var(--border);border-radius:var(--radius);overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--secondary),var(--primary));width:0%;transition:width 1s ease-in-out}
 
 /* Forms */
 .form-group{margin-bottom:1.5rem}
 .form-label{display:block;margin-bottom:.5rem;font-weight:500;color:var(--text)}
-.form-input{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);transition:border-color .2s}
-.form-input:focus{outline:none;border-color:var(--primary)}
-.form-select{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text)}
+.form-input,.form-select{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--card-bg);color:var(--text);transition:border-color .2s}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--primary)}
 
-/* Status Badges */
+/* Tables */
+.table-container{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+.table{width:100%;border-collapse:collapse;background:var(--card-bg)}
+.table th,.table td{padding:.875rem 1rem;text-align:left;border-bottom:1px solid var(--border)}
+.table th{background:var(--primary-light);font-weight:600;font-size:.875rem;color:var(--text-light)}
+.table tbody tr:hover{background:var(--primary-light)}
+
+/* Badges */
 .badge{display:inline-flex;align-items:center;gap:.25rem;padding:.25rem .75rem;border-radius:20px;font-size:.75rem;font-weight:600}
-.badge-success{background:rgba(16,185,129,.1);color:var(--success)}
-.badge-warning{background:rgba(245,158,11,.1);color:var(--warning)}
-.badge-error{background:rgba(239,68,68,.1);color:var(--error)}
-.badge-primary{background:rgba(37,99,235,.1);color:var(--primary)}
+.badge-success{background:rgba(16,185,129,.1);color:var(--secondary)}
+.badge-warning{background:rgba(245,158,11,.1);color:#f59e0b}
+.badge-primary{background:var(--primary-light);color:var(--primary)}
+
+/* Sub Cards */
+.card-group{display:flex;gap:1.5rem;margin-bottom:2rem}
+.sub-card{flex:1;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow)}
+.sub-card h3{margin-bottom:.5rem;font-size:1rem;color:var(--text-light)}
+.sub-card p{font-weight:600;margin:.25rem 0}
 
 /* Modal */
 .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:1000}
 .modal.active{display:flex}
-.modal-content{background:var(--card-bg);border-radius:12px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto}
+.modal-content{background:var(--card-bg);border-radius:var(--radius);max-width:500px;width:90%;max-height:90vh;overflow-y:auto}
 .modal-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
 .modal-title{font-size:1.25rem;font-weight:700}
-.modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted)}
+.modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light)}
 .modal-body{padding:1.5rem}
 
-/* Progress */
-.progress{width:100%;height:8px;background:var(--bg-light);border-radius:4px;overflow:hidden}
-.progress-bar{height:100%;background:linear-gradient(135deg,var(--primary),var(--success));transition:width .3s ease}
+/* Loading */
+.loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000}
+.spinner{width:60px;height:60px;border:4px solid var(--border);border-top:4px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 
 /* Responsive */
 @media(max-width:768px){
-    .sidebar{transform:translateX(-100%)}
-    .sidebar.mobile-open{transform:translateX(0)}
-    .main-content{margin-left:0}
-    .stats-grid{grid-template-columns:1fr}
-    .content{padding:1rem}
-    .topbar{padding:.875rem 1rem}
+    .sidebar{transform:translateY(-100%);width:100%;flex-direction:row;justify-content:space-between;padding:1rem}
+    .nav-links,.sidebar-footer{display:none}
+    .main{padding:1rem}
+    .stats-grid{grid-template-columns:1fr 1fr}
+    .card-group{flex-direction:column}
+    .task-item{grid-template-columns:1fr;text-align:center;gap:.5rem}
 }
-
-/* Loading */
-.loading{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center}
-.spinner{width:40px;height:40px;border:3px solid var(--border);border-top:3px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite}
-@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-
-/* Hide sections by default */
-.section{display:none}
-.section.active{display:block}
-
-/* Quick Actions */
-.quick-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
-.quick-action{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center;cursor:pointer;transition:all .2s;text-decoration:none;color:var(--text)}
-.quick-action:hover{background:var(--bg-light);transform:translateY(-2px)}
-.quick-action-icon{font-size:2rem;margin-bottom:.5rem;display:block}
-.quick-action-title{font-weight:600;font-size:.875rem}
-
-/* Charts placeholder */
-.chart-container{height:300px;background:var(--bg-light);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text-muted)}
 </style>
 </head>
 <body>
-    <div class="app">
-        <!-- Sidebar -->
-        <nav class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">SEOTIZE</div>
-                <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-            </div>
-            <div class="sidebar-nav">
-                <button class="nav-item active" onclick="showSection('dashboard')">
-                    <span class="nav-icon">📊</span>
-                    <span class="nav-text">Dashboard</span>
-                </button>
-                <button class="nav-item" onclick="showSection('tasks')">
-                    <span class="nav-icon">🎯</span>
-                    <span class="nav-text">SEO Tasks</span>
-                </button>
-                <button class="nav-item" onclick="showSection('partner')">
-                    <span class="nav-icon">💰</span>
-                    <span class="nav-text">Partner Earnings</span>
-                </button>
-                <button class="nav-item" onclick="showSection('articles')">
-                    <span class="nav-icon">📝</span>
-                    <span class="nav-text">Articles</span>
-                </button>
-                <button class="nav-item" onclick="showSection('images')">
-                    <span class="nav-icon">🖼️</span>
-                    <span class="nav-text">Images</span>
-                </button>
-                <button class="nav-item" onclick="showSection('hosting')">
-                    <span class="nav-icon">🌐</span>
-                    <span class="nav-text">Hosting</span>
-                </button>
-                <button class="nav-item" onclick="showSection('billing')">
-                    <span class="nav-icon">💳</span>
-                    <span class="nav-text">Billing</span>
-                </button>
-                <button class="nav-item" onclick="showSection('domains')">
-                    <span class="nav-icon">🔗</span>
-                    <span class="nav-text">Domains</span>
-                </button>
-            </div>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <a href="#" class="logo">SEOTIZE</a>
+        <nav class="nav-links">
+            <a href="#" class="active" onclick="showSection('dashboard')"><span>🏠</span> Dashboard</a>
+            <a href="#" onclick="showSection('tasks')"><span>🎯</span> SEO Tasks</a>
+            <a href="#" onclick="showSection('partner')"><span>💰</span> Partner Jobs</a>
+            <a href="#" onclick="showSection('articles')"><span>📝</span> Articles</a>
+            <a href="#" onclick="showSection('images')"><span>🖼️</span> Images</a>
+            <a href="#" onclick="showSection('hosting')"><span>🌐</span> Hosting</a>
+            <a href="#" onclick="showSection('billing')"><span>💳</span> Billing</a>
+            <a href="#" onclick="showSection('domains')"><span>🔗</span> Domains</a>
         </nav>
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-email" id="userEmail">Loading...</div>
+            </div>
+            <button class="btn" id="themeToggle"><span>🌙</span> Switch Theme</button>
+            <button class="btn" id="logoutBtn"><span>🚪</span> Log Out</button>
+        </div>
+    </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Top Bar -->
-            <div class="topbar">
-                <div class="topbar-left">
-                    <button class="sidebar-toggle mobile-toggle" onclick="toggleMobileSidebar()">☰</button>
-                    <div class="breadcrumb" id="breadcrumb">Dashboard</div>
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Dashboard Section -->
+        <div class="section active" id="dashboard">
+            <div class="main-header">
+                <h1 id="welcomeMessage">Welcome!</h1>
+                <button class="btn-primary" onclick="showSection('tasks')"><span>➕</span> Add New Task</button>
+            </div>
+
+            <!-- Stats Cards -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header"><span>👀</span>Total Views</div>
+                    <div class="stat-value" id="statTotalViews">0</div>
+                    <div class="stat-desc">Across all tasks</div>
                 </div>
-                <div class="topbar-right">
-                    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
-                    <div class="user-menu" onclick="toggleUserMenu()">
-                        <div class="user-avatar" id="userAvatar">U</div>
-                        <span id="userEmail">Loading...</span>
-                        <span>▼</span>
-                    </div>
+                <div class="stat-card">
+                    <div class="stat-header"><span>🔑</span>Total Keywords</div>
+                    <div class="stat-value" id="statTotalKeywords">0</div>
+                    <div class="stat-desc">Driving your traffic</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header"><span>⚡️</span>Total Charge</div>
+                    <div class="stat-value" id="statTotalCharge">$0</div>
+                    <div class="stat-desc">Total task value</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header"><span>🔋</span>Available Charge</div>
+                    <div class="stat-value" id="statAvailableCharge">$0</div>
+                    <div class="stat-desc">Remaining credits</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header"><span>💰</span>Partner Balance</div>
+                    <div class="stat-value" id="statPartnerBalance">$0</div>
+                    <div class="stat-desc">Available to withdraw</div>
+                </div>
+            </section>
+
+            <!-- Active Tasks -->
+            <section class="tasks">
+                <div class="tasks-header">Your Active Tasks</div>
+                <div class="tasks-list" id="tasksList">
+                    <p style="text-align:center; color:var(--text-light); padding:2rem;">
+                        Loading tasks...
+                    </p>
+                </div>
+            </section>
+
+            <!-- Hosting & Partner Stats -->
+            <div class="card-group">
+                <div class="sub-card">
+                    <h3>Articles Uploaded</h3>
+                    <p id="hostArticles">—</p>
+                </div>
+                <div class="sub-card">
+                    <h3>Images Uploaded</h3>
+                    <p id="hostImages">—</p>
+                </div>
+                <div class="sub-card">
+                    <h3>Hosting Plan</h3>
+                    <p id="hostPlan">—</p>
+                    <small>Expires <span id="hostExpiry">—</span></small>
+                </div>
+                <div class="sub-card">
+                    <h3>Partner Earnings</h3>
+                    <p id="partnerEarnings">$0</p>
+                    <small><span id="partnerTasks">0</span> tasks completed</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks Section -->
+        <div class="section" id="tasks">
+            <div class="main-header">
+                <h1>SEO Tasks</h1>
+                <button class="btn-primary" onclick="showTaskForm()"><span>➕</span> Create Task</button>
+            </div>
+
+            <div class="card" id="taskFormCard" style="display:none">
+                <div class="card-header">
+                    <h3 class="card-title">Create New Task</h3>
+                    <button onclick="hideTaskForm()" style="background:none;border:none;font-size:1.2rem;cursor:pointer">×</button>
+                </div>
+                <div class="card-body">
+                    <form id="taskForm">
+                        <div class="form-group">
+                            <label class="form-label">Website URL</label>
+                            <input type="url" class="form-input" id="taskUrl" placeholder="https://example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Keywords (comma separated)</label>
+                            <input type="text" class="form-input" id="taskKeywords" placeholder="SEO, marketing, optimization" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Task Priority</label>
+                            <select class="form-select" id="taskPriority">
+                                <option value="basic">Basic ($0.10/click)</option>
+                                <option value="standard" selected>Standard ($0.12/click)</option>
+                                <option value="premium">Premium ($0.15/click)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Total Budget ($)</label>
+                            <input type="number" class="form-input" id="taskCharge" min="10" value="150" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Create Task</button>
+                    </form>
                 </div>
             </div>
 
-            <!-- Dashboard Section -->
-            <div class="section active" id="dashboard">
-                <div class="content">
-                    <div class="page-header">
-                        <h1 class="page-title">Dashboard Overview</h1>
-                        <p class="page-subtitle">Welcome back! Here's what's happening with your SEO campaigns.</p>
-                    </div>
-
-                    <!-- Stats Grid -->
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-title">Total Tasks</span>
-                                <span class="stat-icon">🎯</span>
-                            </div>
-                            <div class="stat-value" id="totalTasks">-</div>
-                            <div class="stat-change positive">+12% from last month</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-title">Total Views</span>
-                                <span class="stat-icon">👁️</span>
-                            </div>
-                            <div class="stat-value" id="totalViews">-</div>
-                            <div class="stat-change positive">+8.2% this week</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-title">Partner Balance</span>
-                                <span class="stat-icon">💰</span>
-                            </div>
-                            <div class="stat-value" id="partnerBalance">$0.00</div>
-                            <div class="stat-change positive">Available for withdrawal</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-title">Total Charge</span>
-                                <span class="stat-icon">📊</span>
-                            </div>
-                            <div class="stat-value" id="totalCharge">$0.00</div>
-                            <div class="stat-change">Campaign spending</div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Actions -->
-                    <div class="quick-actions">
-                        <div class="quick-action" onclick="showSection('tasks')">
-                            <span class="quick-action-icon">➕</span>
-                            <div class="quick-action-title">Create Task</div>
-                        </div>
-                        <div class="quick-action" onclick="showSection('partner')">
-                            <span class="quick-action-icon">🔍</span>
-                            <div class="quick-action-title">Find Partner Jobs</div>
-                        </div>
-                        <div class="quick-action" onclick="showSection('articles')">
-                            <span class="quick-action-icon">📝</span>
-                            <div class="quick-action-title">Write Article</div>
-                        </div>
-                        <div class="quick-action" onclick="showSection('images')">
-                            <span class="quick-action-icon">🖼️</span>
-                            <div class="quick-action-title">Upload Images</div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Activity -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Recent Activity</h3>
-                            <button class="btn btn-outline btn-sm">View All</button>
-                        </div>
-                        <div class="card-body">
-                            <div id="recentActivity">Loading recent activity...</div>
-                        </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Your Tasks</h3>
+                    <button class="btn" onclick="loadTasks()">Refresh</button>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>URL</th>
+                                    <th>Keywords</th>
+                                    <th>Views</th>
+                                    <th>Budget</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tasksTable">
+                                <tr><td colspan="6">Loading tasks...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Tasks Section -->
-            <div class="section" id="tasks">
-                <div class="content">
-                    <div class="page-header">
-                        <h1 class="page-title">SEO Tasks</h1>
-                        <p class="page-subtitle">Manage your SEO campaigns and track performance</p>
-                    </div>
+        <!-- Partner Section -->
+        <div class="section" id="partner">
+            <div class="main-header">
+                <h1>Partner Jobs</h1>
+                <button class="btn-primary" onclick="loadPartnerTasks()"><span>🔄</span> Refresh Jobs</button>
+            </div>
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Create New Task</h3>
-                        </div>
-                        <div class="card-body">
-                            <form id="taskForm">
-                                <div class="form-group">
-                                    <label class="form-label">Website URL</label>
-                                    <input type="url" class="form-input" id="taskUrl" placeholder="https://example.com" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Keywords (comma separated)</label>
-                                    <input type="text" class="form-input" id="taskKeywords" placeholder="SEO, marketing, optimization" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Task Priority</label>
-                                    <select class="form-select" id="taskPriority">
-                                        <option value="basic">Basic ($0.10/click)</option>
-                                        <option value="standard" selected>Standard ($0.12/click)</option>
-                                        <option value="premium">Premium ($0.15/click)</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Total Budget ($)</label>
-                                    <input type="number" class="form-input" id="taskCharge" min="10" value="150" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Create Task</button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div class="card" style="margin-top:2rem">
-                        <div class="card-header">
-                            <h3 class="card-title">Your Tasks</h3>
-                            <button class="btn btn-outline btn-sm" onclick="loadTasks()">Refresh</button>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-container">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>URL</th>
-                                            <th>Keywords</th>
-                                            <th>Views</th>
-                                            <th>Budget</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tasksTable">
-                                        <tr><td colspan="6">Loading tasks...</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+            <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:2rem">
+                <div class="stat-card">
+                    <div class="stat-header"><span>💰</span>Current Balance</div>
+                    <div class="stat-value" id="partnerCurrentBalance">$0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header"><span>📈</span>Total Earned</div>
+                    <div class="stat-value" id="partnerTotalEarned">$0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header"><span>✅</span>Tasks Done</div>
+                    <div class="stat-value" id="partnerTasksDone">0</div>
                 </div>
             </div>
 
-            <!-- Partner Section -->
-            <div class="section" id="partner">
-                <div class="content">
-                    <div class="page-header">
-                        <h1 class="page-title">Partner Earnings</h1>
-                        <p class="page-subtitle">Complete SEO tasks and earn money</p>
-                    </div>
-
-                    <!-- Partner Stats -->
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-title">Current Balance</span>
-                                <span class="stat-icon">💰</span>
-                            </div>
-                            <div class="stat-value" id="partnerCurrentBalance">$0.00</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-title">Total Earned</span>
-                                <span class="stat-icon">📈</span>
-                            </div>
-                            <div class="stat-value" id="partnerTotalEarned">$0.00</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-title">Tasks Completed</span>
-                                <span class="stat-icon">✅</span>
-                            </div>
-                            <div class="stat-value" id="partnerTasksDone">0</div>
-                        </div>
-                    </div>
-
-                    <!-- Available Tasks -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Available Partner Tasks</h3>
-                            <button class="btn btn-success btn-sm" onclick="loadPartnerTasks()">Refresh Tasks</button>
-                        </div>
-                        <div class="card-body">
-                            <div id="partnerTasks">Loading available tasks...</div>
-                        </div>
-                    </div>
-
-                    <!-- Withdrawal -->
-                    <div class="card" style="margin-top:2rem">
-                        <div class="card-header">
-                            <h3 class="card-title">Withdraw Earnings</h3>
-                        </div>
-                        <div class="card-body">
-                            <form id="withdrawForm">
-                                <div class="form-group">
-                                    <label class="form-label">Withdrawal Amount ($)</label>
-                                    <input type="number" class="form-input" id="withdrawAmount" min="1" step="0.01" placeholder="Enter amount">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Crypto Wallet Address</label>
-                                    <input type="text" class="form-input" id="withdrawAddress" placeholder="0x...">
-                                </div>
-                                <button type="submit" class="btn btn-success">Request Withdrawal</button>
-                            </form>
-                        </div>
-                    </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Available Partner Tasks</h3>
+                </div>
+                <div class="card-body">
+                    <div id="partnerTasks">Loading available tasks...</div>
                 </div>
             </div>
 
-            <!-- Articles Section -->
-            <div class="section" id="articles">
-                <div class="content">
-                    <div class="page-header">
-                        <h1 class="page-title">Articles</h1>
-                        <p class="page-subtitle">Manage your hosted articles and content</p>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Upload New Article</h3>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Withdraw Earnings</h3>
+                </div>
+                <div class="card-body">
+                    <form id="withdrawForm">
+                        <div class="form-group">
+                            <label class="form-label">Amount ($)</label>
+                            <input type="number" class="form-input" id="withdrawAmount" min="1" step="0.01" placeholder="Enter amount">
                         </div>
-                        <div class="card-body">
-                            <form id="articleForm" enctype="multipart/form-data">
-                                <div class="form-group">
-                                    <label class="form-label">Domain URL</label>
-                                    <input type="text" class="form-input" id="articleUrl" placeholder="example.com/blog" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Article Title</label>
-                                    <input type="text" class="form-input" id="articleSubject" placeholder="Your article title" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Article Content (HTML)</label>
-                                    <textarea class="form-input" id="articleBody" rows="10" placeholder="<p>Your article content...</p>" required></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Images</label>
-                                    <input type="file" class="form-input" id="articleImages" multiple accept="image/*">
-                                </div>
-                                <button type="submit" class="btn btn-primary">Upload Article</button>
-                            </form>
+                        <div class="form-group">
+                            <label class="form-label">Crypto Wallet Address</label>
+                            <input type="text" class="form-input" id="withdrawAddress" placeholder="0x...">
                         </div>
-                    </div>
-
-                    <div class="card" style="margin-top:2rem">
-                        <div class="card-header">
-                            <h3 class="card-title">Your Articles</h3>
-                            <button class="btn btn-outline btn-sm" onclick="loadArticles()">Refresh</button>
-                        </div>
-                        <div class="card-body">
-                            <div id="articlesGrid">Loading articles...</div>
-                        </div>
-                    </div>
+                        <button type="submit" class="btn-primary">Request Withdrawal</button>
+                    </form>
                 </div>
             </div>
+        </div>
 
-            <!-- Images Section -->
-            <div class="section" id="images">
-                <div class="content">
-                    <div class="page-header">
-                        <h1 class="page-title">Image Hosting</h1>
-                        <p class="page-subtitle">Upload and manage your images with global CDN</p>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Upload Images</h3>
-                        </div>
-                        <div class="card-body">
-                            <form id="imageForm" enctype="multipart/form-data">
-                                <div class="form-group">
-                                    <label class="form-label">Select Images (Max 10 files, 5MB each)</label>
-                                    <input type="file" class="form-input" id="imageFiles" multiple accept="image/*" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Upload Images</button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div class="card" style="margin-top:2rem">
-                        <div class="card-header">
-                            <h3 class="card-title">Your Images</h3>
-                            <button class="btn btn-outline btn-sm" onclick="loadImages()">Refresh</button>
-                        </div>
-                        <div class="card-body">
-                            <div id="imagesGrid">Loading images...</div>
-                        </div>
-                    </div>
+        <!-- Other sections (Articles, Images, etc.) -->
+        <div class="section" id="articles">
+            <div class="main-header">
+                <h1>Articles</h1>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <p>Article management coming soon...</p>
                 </div>
             </div>
+        </div>
 
-            <!-- Hosting Section -->
-            <div class="section" id="hosting">
-                <div class="content">
-                    <div class="page-header">
-                        <h1 class="page-title">Hosting Plans</h1>
-                        <p class="page-subtitle">Manage your hosting subscription and usage</p>
-                    </div>
+        <div class="section" id="images">
+            <div class="main-header">
+                <h1>Images</h1>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <p>Image management coming soon...</p>
+                </div>
+            </div>
+        </div>
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Current Plan</h3>
-                        </div>
-                        <div class="card-body">
-                            <div id="hostingStatus">Loading hosting status...</div>
-                        </div>
-                    </div>
+        <div class="section" id="hosting">
+            <div class="main-header">
+                <h1>Hosting</h1>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <p>Hosting management coming soon...</p>
+                </div>
+            </div>
+        </div>
 
-                    <div class="card" style="margin-top:2rem">
-                        <div class="card-header">
-                            <h3 class="card-title">Available Plans</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="stats-grid">
-                                <div class="stat-card">
-                                    <div class="stat-header">
-                                        <span class="stat-title">Basic Plan</span>
-                                        <span class="stat-icon">📦</span>
-                                    </div>
-                                    <div class="stat-value">$9.99/mo</div>
-                                    <div class="stat-change">100 images, 50 articles</div>
-                                    <button class="btn btn-primary btn-sm" onclick="buyPackage('basic')" style="margin-top:1rem">Upgrade</button>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-header">
-                                        <span class="stat-title">Pro Plan</span>
-                                        <span class="stat-icon">🚀</span>
-                                    </div>
-                                    <div class="stat-value">$19.99/mo</div>
-                                    <div class="stat-change">500 images, 200 articles</div>
-                                    <button class="btn btn-primary btn-sm" onclick="buyPackage('pro')" style="margin-top:1rem">Upgrade</button>
-                               </div>
-                               <div class="stat-card">
-                                   <div class="stat-header">
-                                       <span class="stat-title">Enterprise</span>
-                                       <span class="stat-icon">🏢</span>
-                                   </div>
-                                   <div class="stat-value">$49.99/mo</div>
-                                   <div class="stat-change">Unlimited everything</div>
-                                   <button class="btn btn-primary btn-sm" onclick="buyPackage('enterprise')" style="margin-top:1rem">Upgrade</button>
-                               </div>
-                           </div>
-                       </div>
-                   </div>
-               </div>
-           </div>
+        <div class="section" id="billing">
+            <div class="main-header">
+                <h1>Billing</h1>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <p>Billing management coming soon...</p>
+                </div>
+            </div>
+        </div>
 
-           <!-- Billing Section -->
-           <div class="section" id="billing">
-               <div class="content">
-                   <div class="page-header">
-                       <h1 class="page-title">Billing & Payments</h1>
-                       <p class="page-subtitle">View your payment history and manage billing</p>
-                   </div>
-
-                   <div class="card">
-                       <div class="card-header">
-                           <h3 class="card-title">Payment History</h3>
-                           <button class="btn btn-outline btn-sm" onclick="loadBilling()">Refresh</button>
-                       </div>
-                       <div class="card-body">
-                           <div class="table-container">
-                               <table class="table">
-                                   <thead>
-                                       <tr>
-                                           <th>Date</th>
-                                           <th>Type</th>
-                                           <th>Amount</th>
-                                           <th>Status</th>
-                                           <th>Invoice</th>
-                                       </tr>
-                                   </thead>
-                                   <tbody id="billingTable">
-                                       <tr><td colspan="5">Loading billing history...</td></tr>
-                                   </tbody>
-                               </table>
-                           </div>
-                       </div>
-                   </div>
-               </div>
-           </div>
-
-           <!-- Domains Section -->
-           <div class="section" id="domains">
-               <div class="content">
-                   <div class="page-header">
-                       <h1 class="page-title">Domain Management</h1>
-                       <p class="page-subtitle">Add and verify your domains for hosting</p>
-                   </div>
-
-                   <div class="card">
-                       <div class="card-header">
-                           <h3 class="card-title">Add New Domain</h3>
-                       </div>
-                       <div class="card-body">
-                           <form id="domainForm">
-                               <div class="form-group">
-                                   <label class="form-label">Domain URL</label>
-                                   <input type="text" class="form-input" id="domainUrl" placeholder="example.com/blog" required>
-                               </div>
-                               <button type="submit" class="btn btn-primary">Add Domain</button>
-                           </form>
-                       </div>
-                   </div>
-
-                   <div class="card" style="margin-top:2rem">
-                       <div class="card-header">
-                           <h3 class="card-title">Your Domains</h3>
-                       </div>
-                       <div class="card-body">
-                           <div id="domainsList">Loading domains...</div>
-                       </div>
-                   </div>
-               </div>
-           </div>
-       </main>
-   </div>
-
-   <!-- Loading Overlay -->
-   <div class="loading" id="loading">
-       <div class="spinner"></div>
-   </div>
-
-   <!-- Modals -->
-   <div class="modal" id="taskModal">
-       <div class="modal-content">
-           <div class="modal-header">
-               <h3 class="modal-title">Task Details</h3>
-               <button class="modal-close" onclick="closeModal('taskModal')">&times;</button>
-           </div>
-           <div class="modal-body" id="taskModalBody">
-               Loading task details...
-           </div>
-       </div>
-   </div>
-
-   <div class="modal" id="partnerTaskModal">
-       <div class="modal-content">
-           <div class="modal-header">
-               <h3 class="modal-title">Complete Partner Task</h3>
-               <button class="modal-close" onclick="closeModal('partnerTaskModal')">&times;</button>
-           </div>
-           <div class="modal-body" id="partnerTaskModalBody">
-               Loading task details...
-           </div>
-       </div>
-   </div>
+        <div class="section" id="domains">
+            <div class="main-header">
+                <h1>Domains</h1>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <p>Domain management coming soon...</p>
+                </div>
+            </div>
+        </div>
+    </main>
 
 <script>
-// Global variables
-const API_BASE = 'https://api.seotize.net';
-let sessionToken = localStorage.getItem('session_token');
-let isPartner = false;
+const baseUrl = 'https://api.seotize.net';
 let currentUser = null;
+let isPartner = false;
 
-// Initialize dashboard
-document.addEventListener('DOMContentLoaded', function() {
-   if (!sessionToken) {
-       window.location.href = 'index.html';
-       return;
-   }
-   loadTheme();
-   loadDashboard();
+document.addEventListener('DOMContentLoaded', () => {
+    const token = getCookie('session_token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    loadTheme();
+    setupListeners();
+
+    // Load dashboard data
+    Promise.all([
+        fetchDashboard(token),
+        fetchPartnerDashboard(token)
+    ]).then(([userDash, partnerDash]) => {
+        if (userDash) {
+            currentUser = userDash;
+            populateDashboard(userDash);
+        }
+        if (partnerDash) {
+            isPartner = true;
+            populatePartnerData(partnerDash);
+        }
+    }).catch(e => {
+        console.error('Dashboard error:', e);
+    }).finally(() => {
+        runAnimations();
+    });
 });
 
-// Theme management
-function toggleTheme() {
-   document.body.classList.toggle('dark');
-   const isDark = document.body.classList.contains('dark');
-   document.querySelector('.theme-toggle').textContent = isDark ? '☀️' : '🌙';
-   localStorage.setItem('theme', isDark ? 'dark' : 'light');
+// Cookie helper function (matching your working version)
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    return parts.length === 2 ? parts.pop().split(';').shift() : '';
 }
 
-function loadTheme() {
-   if (localStorage.getItem('theme') === 'dark') {
-       document.body.classList.add('dark');
-       document.querySelector('.theme-toggle').textContent = '☀️';
-   }
+// API calls with proper cookie-based token handling
+async function fetchDashboard(token) {
+    try {
+        const res = await fetch(`${baseUrl}/users/dashboard?page=1&page_size=10`, {
+            headers: { 'Session-Token': token }
+        });
+        if (!res.ok) throw new Error(res.statusText);
+        const { data } = await res.json();
+        return data.user;
+    } catch (e) {
+        console.error('Failed to fetch dashboard:', e);
+        return null;
+    }
 }
 
-// Sidebar management
-function toggleSidebar() {
-   document.getElementById('sidebar').classList.toggle('collapsed');
+async function fetchPartnerDashboard(token) {
+    try {
+        const res = await fetch(`${baseUrl}/partner/dashboard`, {
+            headers: { 'Session-Token': token }
+        });
+        if (!res.ok) return null;
+        const { data } = await res.json();
+        return data;
+    } catch (e) {
+        console.error('Failed to fetch partner dashboard:', e);
+        return null;
+    }
 }
 
-function toggleMobileSidebar() {
-   document.getElementById('sidebar').classList.toggle('mobile-open');
+// Populate dashboard with user data
+function populateDashboard(user) {
+    const email = user.email;
+    document.getElementById('userEmail').textContent = email;
+    document.getElementById('userAvatar').textContent = email[0].toUpperCase();
+    document.getElementById('welcomeMessage').textContent = `Welcome, ${email.split('@')[0]}!`;
+
+    // Animate stats
+    animateStat('statTotalViews', user.task_statistics?.total_views || 0);
+    animateStat('statTotalKeywords', user.task_statistics?.total_keywords || 0);
+    animateStat('statTotalCharge', user.task_statistics?.total_charge || 0);
+    animateStat('statAvailableCharge', user.task_statistics?.available_charge || 0);
+
+    // Populate hosting info
+    if (user.hosting) {
+        document.getElementById('hostArticles').textContent = user.hosting.article_uploads || 0;
+        document.getElementById('hostImages').textContent = user.hosting.images_uploads || 0;
+        document.getElementById('hostPlan').textContent = user.hosting.type || 'Free';
+        if (user.hosting.expiry_date) {
+            document.getElementById('hostExpiry').textContent = new Date(user.hosting.expiry_date).toLocaleDateString();
+        }
+    }
+
+    // Populate tasks list
+    populateTasksList(user.tasks || []);
 }
 
-// Section management
-function showSection(sectionId) {
-   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+function populatePartnerData(partner) {
+    if (partner.user) {
+        animateStat('statPartnerBalance', partner.user.credit || 0);
+        document.getElementById('partnerCurrentBalance').textContent = `$${partner.user.credit || 0}`;
+        document.getElementById('partnerEarnings').textContent = `$${partner.user.credit || 0}`;
+    }
 
-   document.getElementById(sectionId).classList.add('active');
-   document.querySelector(`[onclick="showSection('${sectionId}')"]`).classList.add('active');
-
-   document.getElementById('breadcrumb').textContent = sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
-
-   // Load section-specific data
-   loadSectionData(sectionId);
+    // Load partner balance details
+    loadPartnerBalance();
 }
 
-function loadSectionData(section) {
-   switch(section) {
-       case 'tasks': loadTasks(); break;
-       case 'partner': loadPartnerData(); break;
-       case 'articles': loadArticles(); break;
-       case 'images': loadImages(); break;
-       case 'hosting': loadHostingStatus(); break;
-       case 'billing': loadBilling(); break;
-       case 'domains': loadDomains(); break;
-   }
+function populateTasksList(tasks) {
+    const list = document.getElementById('tasksList');
+    list.innerHTML = '';
+
+    if (tasks.length) {
+        tasks.forEach(task => {
+            const div = document.createElement('div');
+            div.className = 'task-item';
+            div.innerHTML = `
+                <div class="task-url">${task.url}</div>
+                <div class="task-stat"><strong>${task.views_count || 0}</strong> views</div>
+                <div class="task-stat"><strong>${task.keywords_count || 0}</strong> kw</div>
+                <div class="task-stat">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width:${task.remaining_percentage || 0}%"></div>
+                    </div>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    } else {
+        list.innerHTML = `
+            <p style="text-align:center; color:var(--text-light); padding:2rem;">
+                No active tasks. Click "Add New Task" to get started!
+            </p>
+        `;
+    }
 }
 
-// API helper functions
-async function apiCall(endpoint, options = {}) {
-   const url = `${API_BASE}${endpoint}`;
-   const headers = {
-       'Content-Type': 'application/json',
-       ...options.headers
-   };
+// Load partner balance details
+async function loadPartnerBalance() {
+    const token = getCookie('session_token');
+    try {
+        const res = await fetch(`${baseUrl}/partner/balance-management`, {
+            headers: { 'Session-Token': token }
+        });
+        if (!res.ok) return;
+        const { data } = await res.json();
 
-   if (sessionToken && !options.noAuth) {
-       headers['Session-Token'] = sessionToken;
-   }
+        document.getElementById('partnerTotalEarned').textContent = `$${data.total_earn || 0}`;
+        document.getElementById('partnerTasksDone').textContent = data.number_of_done_tasks || 0;
+        document.getElementById('partnerTasks').textContent = data.number_of_done_tasks || 0;
+    } catch (e) {
+        console.error('Failed to load partner balance:', e);
+    }
+}
+
+// Load partner tasks
+async function loadPartnerTasks() {
+    const token = getCookie('session_token');
+    try {
+        const res = await fetch(`${baseUrl}/partner/dashboard`, {
+            headers: { 'Session-Token': token }
+        });
+        if (!res.ok) return;
+        const { data } = await res.json();
+
+        renderPartnerTasks(data.tasks || []);
+    } catch (e) {
+        console.error('Failed to load partner tasks:', e);
+    }
+}
+
+function renderPartnerTasks(tasks) {
+    const container = document.getElementById('partnerTasks');
+    if (!Array.isArray(tasks) || !tasks.length) {
+        container.innerHTML = '<p>No partner tasks available right now. Check back later!</p>';
+        return;
+    }
+
+    container.innerHTML = tasks.map(task => `
+        <div class="card" style="margin-bottom:1rem">
+            <div class="card-body">
+                <h4>${task.url}</h4>
+                <p><strong>Keywords:</strong> ${task.keywords?.join(', ') || 'N/A'}</p>
+                <p><strong>Priority:</strong> $${task.task_priority || 0.12} per click</p>
+                <div style="display:flex;gap:1rem;margin-top:1rem">
+                    ${task.active ?
+                        `<button class="btn-primary" onclick="startPartnerTask('${task._id}')">Start Task</button>` :
+                        `<span class="badge badge-warning">Cooldown: ${task.remaining_time || 0}min</span>`
+                   }
+               </div>
+           </div>
+       </div>
+   `).join('');
+}
+
+// Start partner task
+async function startPartnerTask(taskId) {
+   const token = getCookie('session_token');
+   const uniqueId = Date.now().toString();
 
    try {
-       const response = await fetch(url, {
-           ...options,
-           headers
+       const res = await fetch(`${baseUrl}/allocate-partner-task`, {
+           method: 'POST',
+           headers: {
+               'Content-Type': 'application/json',
+               'Session-Token': token
+           },
+           body: JSON.stringify({
+               user_task_id: taskId,
+               unique_id: uniqueId
+           })
        });
 
-       if (response.status === 401) {
-           localStorage.removeItem('session_token');
-           window.location.href = 'index.html';
-           return;
+       const result = await res.json();
+       if (result.status === 'success') {
+           alert(`Task started! Please complete the task and return within the time limit.`);
+           loadPartnerTasks(); // Refresh tasks
+       } else {
+           alert(result.error?.message || 'Failed to start task');
        }
-
-       return await response.json();
-   } catch (error) {
-       console.error('API Error:', error);
-       return { status: 'error', error: { message: 'Network error' } };
+   } catch (e) {
+       console.error('Failed to start partner task:', e);
+       alert('Network error occurred');
    }
 }
 
-function showLoading() {
-   document.getElementById('loading').style.display = 'flex';
-}
-
-function hideLoading() {
-   document.getElementById('loading').style.display = 'none';
-}
-
-function showModal(modalId) {
-   document.getElementById(modalId).classList.add('active');
-}
-
-function closeModal(modalId) {
-   document.getElementById(modalId).classList.remove('active');
-}
-
-// Dashboard loading
-async function loadDashboard() {
-   showLoading();
-
-   // Load user dashboard
-   const userDash = await apiCall('/users/dashboard');
-   if (userDash.status === 'success') {
-       currentUser = userDash.data.user;
-       updateUserInfo(currentUser);
-       updateDashboardStats(currentUser);
-   }
-
-   // Try to load partner dashboard
-   const partnerDash = await apiCall('/partner/dashboard');
-   if (partnerDash.status === 'success') {
-       isPartner = true;
-       updatePartnerStats(partnerDash.data);
-   }
-
-   hideLoading();
-}
-
-function updateUserInfo(user) {
-   document.getElementById('userEmail').textContent = user.email;
-   document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
-}
-
-function updateDashboardStats(user) {
-   document.getElementById('totalTasks').textContent = user.usage_summary?.total_tasks || 0;
-   document.getElementById('totalViews').textContent = user.task_statistics?.total_views || 0;
-   document.getElementById('totalCharge').textContent = `$${user.task_statistics?.total_charge || 0}`;
-}
-
-function updatePartnerStats(partner) {
-   document.getElementById('partnerBalance').textContent = `$${partner.user?.credit || 0}`;
-   document.getElementById('partnerCurrentBalance').textContent = `$${partner.user?.credit || 0}`;
-}
-
-// Tasks management
+// Load tasks for tasks section
 async function loadTasks() {
-   const data = await apiCall('/users/dashboard');
-   if (data.status === 'success') {
-       renderTasks(data.data.user.tasks || []);
+   const token = getCookie('session_token');
+   try {
+       const res = await fetch(`${baseUrl}/users/dashboard`, {
+           headers: { 'Session-Token': token }
+       });
+       if (!res.ok) return;
+       const { data } = await res.json();
+
+       renderTasksTable(data.user.tasks || []);
+   } catch (e) {
+       console.error('Failed to load tasks:', e);
    }
 }
 
-function renderTasks(tasks) {
+function renderTasksTable(tasks) {
    const tbody = document.getElementById('tasksTable');
    if (!tasks.length) {
        tbody.innerHTML = '<tr><td colspan="6">No tasks found</td></tr>';
@@ -829,517 +647,273 @@ function renderTasks(tasks) {
    tbody.innerHTML = tasks.map(task => `
        <tr>
            <td>${task.url}</td>
-           <td>${task.keywords_count} keywords</td>
-           <td>${task.views_count}</td>
-           <td>$${task.total_charge}</td>
+           <td>${task.keywords_count || 0} keywords</td>
+           <td>${task.views_count || 0}</td>
+           <td>$${task.total_charge || 0}</td>
            <td><span class="badge badge-${task.remaining_percentage > 0 ? 'success' : 'warning'}">${task.remaining_percentage > 0 ? 'Active' : 'Completed'}</span></td>
            <td>
-               <button class="btn btn-outline btn-sm" onclick="viewTask('${task._id}')">View</button>
-               <button class="btn btn-primary btn-sm" onclick="rechargeTask('${task._id}')">Recharge</button>
+               <button class="btn" onclick="viewTask('${task._id}')">View</button>
+               <button class="btn-primary" onclick="rechargeTask('${task._id}')">Recharge</button>
            </td>
        </tr>
    `).join('');
 }
 
 // Task form submission
-document.getElementById('taskForm').addEventListener('submit', async (e) => {
-   e.preventDefault();
-   showLoading();
+document.addEventListener('DOMContentLoaded', () => {
+   const taskForm = document.getElementById('taskForm');
+   if (taskForm) {
+       taskForm.addEventListener('submit', async (e) => {
+           e.preventDefault();
+           const token = getCookie('session_token');
 
-   const formData = {
-       task_details: {
-           url: document.getElementById('taskUrl').value,
-           keywords: document.getElementById('taskKeywords').value.split(',').map(k => k.trim()),
-           html_locations: ['/html/body//a'] // Default location
-       },
-       task_priority: document.getElementById('taskPriority').value,
-       total_charge: parseInt(document.getElementById('taskCharge').value),
-       provider: 'stripe',
-       is_subscription: false,
-       cancel_previous: false
-   };
+           const formData = {
+               task_details: {
+                   url: document.getElementById('taskUrl').value,
+                   keywords: document.getElementById('taskKeywords').value.split(',').map(k => k.trim()),
+                   html_locations: ['/html/body//a'] // Default location
+               },
+               task_priority: document.getElementById('taskPriority').value,
+               total_charge: parseInt(document.getElementById('taskCharge').value),
+               provider: 'stripe',
+               is_subscription: false,
+               cancel_previous: false
+           };
 
-   const result = await apiCall('/add-task', {
-       method: 'POST',
-       body: JSON.stringify(formData)
-   });
+           try {
+               const res = await fetch(`${baseUrl}/add-task`, {
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                       'Session-Token': token
+                   },
+                   body: JSON.stringify(formData)
+               });
 
-   if (result.status === 'success') {
-       alert('Task created! Redirecting to payment...');
-       window.open(result.data.payment_url, '_blank');
-       loadTasks();
-   } else {
-       alert(result.error?.message || 'Failed to create task');
+               const result = await res.json();
+               if (result.status === 'success') {
+                   alert('Task created! Redirecting to payment...');
+                   window.open(result.data.payment_url, '_blank');
+                   hideTaskForm();
+                   taskForm.reset();
+                   loadTasks();
+               } else {
+                   alert(result.error?.message || 'Failed to create task');
+               }
+           } catch (e) {
+               console.error('Failed to create task:', e);
+               alert('Network error occurred');
+           }
+       });
    }
 
-   hideLoading();
+   // Withdrawal form
+   const withdrawForm = document.getElementById('withdrawForm');
+   if (withdrawForm) {
+       withdrawForm.addEventListener('submit', async (e) => {
+           e.preventDefault();
+           const token = getCookie('session_token');
+
+           try {
+               const res = await fetch(`${baseUrl}/partner/withdraw`, {
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                       'Session-Token': token
+                   },
+                   body: JSON.stringify({
+                       amount: parseFloat(document.getElementById('withdrawAmount').value),
+                       address: document.getElementById('withdrawAddress').value
+                   })
+               });
+
+               const result = await res.json();
+               if (result.status === 'success') {
+                   alert('Withdrawal request submitted successfully!');
+                   withdrawForm.reset();
+                   loadPartnerBalance();
+               } else {
+                   alert(result.error?.message || 'Failed to process withdrawal');
+               }
+           } catch (e) {
+               console.error('Failed to process withdrawal:', e);
+               alert('Network error occurred');
+           }
+       });
+   }
 });
 
-// Partner tasks
-async function loadPartnerData() {
-   const data = await apiCall('/partner/dashboard');
-   if (data.status === 'success') {
-       updatePartnerStats(data.data);
-       renderPartnerTasks(data.data.tasks || []);
-       loadPartnerBalance();
-   }
+// Navigation functions
+function showSection(sectionId) {
+   // Remove active class from all sections and nav links
+   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+   document.querySelectorAll('.nav-links a').forEach(n => n.classList.remove('active'));
+
+   // Show selected section and mark nav as active
+   document.getElementById(sectionId).classList.add('active');
+   document.querySelector(`[onclick="showSection('${sectionId}')"]`).classList.add('active');
+
+   // Load section-specific data
+   if (sectionId === 'tasks') loadTasks();
+   if (sectionId === 'partner') loadPartnerTasks();
 }
 
-async function loadPartnerBalance() {
-   const data = await apiCall('/partner/balance-management');
-   if (data.status === 'success') {
-       document.getElementById('partnerTotalEarned').textContent = `$${data.data.total_earn || 0}`;
-       document.getElementById('partnerTasksDone').textContent = data.data.number_of_done_tasks || 0;
-   }
+// Task form helpers
+function showTaskForm() {
+   document.getElementById('taskFormCard').style.display = 'block';
 }
 
-function renderPartnerTasks(tasks) {
-   const container = document.getElementById('partnerTasks');
-   if (!Array.isArray(tasks) || !tasks.length) {
-       container.innerHTML = '<p>No tasks available right now. Check back later!</p>';
-       return;
-   }
-
-   container.innerHTML = tasks.map(task => `
-       <div class="card" style="margin-bottom:1rem">
-           <div class="card-body">
-               <h4>${task.url}</h4>
-               <p><strong>Keywords:</strong> ${task.keywords?.join(', ') || 'N/A'}</p>
-               <p><strong>Priority:</strong> $${task.task_priority || 0.12} per click</p>
-               <div style="display:flex;gap:1rem;margin-top:1rem">
-                   ${task.active ?
-                       `<button class="btn btn-success" onclick="startPartnerTask('${task._id}')">Start Task</button>` :
-                       `<span class="badge badge-warning">Cooldown: ${task.remaining_time || 0}min</span>`
-                   }
-               </div>
-           </div>
-       </div>
-   `).join('');
+function hideTaskForm() {
+   document.getElementById('taskFormCard').style.display = 'none';
 }
 
-async function startPartnerTask(taskId) {
-   showLoading();
-   const uniqueId = Date.now().toString();
-
-   const result = await apiCall('/allocate-partner-task', {
-       method: 'POST',
-       body: JSON.stringify({
-           user_task_id: taskId,
-           unique_id: uniqueId
-       })
-   });
-
-   if (result.status === 'success') {
-       showPartnerTaskModal(result.data, uniqueId);
-   } else {
-       alert(result.error?.message || 'Failed to start task');
-   }
-
-   hideLoading();
-}
-
-function showPartnerTaskModal(taskData, uniqueId) {
-   document.getElementById('partnerTaskModalBody').innerHTML = `
-       <div>
-           <p><strong>Task Started!</strong></p>
-           <p>Task ID: ${taskData.Task_id}</p>
-           <p>Time: ${taskData.time}</p>
-           <div style="margin-top:1rem">
-               <button class="btn btn-primary" onclick="completePartnerTask('${uniqueId}')">Complete Task</button>
-               <button class="btn btn-outline" onclick="cancelPartnerTask('${taskData.Task_id}')">Cancel</button>
-           </div>
-       </div>
-   `;
-   showModal('partnerTaskModal');
-}
-
-// Withdrawal form
-document.getElementById('withdrawForm').addEventListener('submit', async (e) => {
-   e.preventDefault();
-   showLoading();
-
-   const result = await apiCall('/partner/withdraw', {
-       method: 'POST',
-       body: JSON.stringify({
-           amount: parseFloat(document.getElementById('withdrawAmount').value),
-           address: document.getElementById('withdrawAddress').value
-       })
-   });
-
-   if (result.status === 'success') {
-       alert('Withdrawal request submitted successfully!');
-       loadPartnerBalance();
-   } else {
-       alert(result.error?.message || 'Failed to process withdrawal');
-   }
-
-   hideLoading();
-});
-
-// Articles management
-async function loadArticles() {
-   const data = await apiCall('/dashboard/articles');
-   if (data.status === 'success') {
-       renderArticles(data.data.articles || []);
-   }
-}
-
-function renderArticles(articles) {
-   const container = document.getElementById('articlesGrid');
-   if (!articles.length) {
-       container.innerHTML = '<p>No articles found. Upload your first article!</p>';
-       return;
-   }
-
-   container.innerHTML = articles.map(article => `
-       <div class="card" style="margin-bottom:1rem">
-           <div class="card-body">
-               <h4>${article.subject}</h4>
-               <p><strong>URL:</strong> ${article.url}</p>
-               <p><strong>Views:</strong> ${article.total_views || 0}</p>
-               <p><strong>Created:</strong> ${article.creation_date}</p>
-               <div style="display:flex;gap:1rem;margin-top:1rem">
-                   <button class="btn btn-outline btn-sm" onclick="editArticle('${article.article_id}')">Edit</button>
-                   <button class="btn btn-error btn-sm" onclick="deleteArticle('${article.article_id}')">Delete</button>
-               </div>
-           </div>
-       </div>
-   `).join('');
-}
-
-// Article form submission
-document.getElementById('articleForm').addEventListener('submit', async (e) => {
-   e.preventDefault();
-   showLoading();
-
-   const formData = new FormData();
-   formData.append('url', document.getElementById('articleUrl').value);
-   formData.append('subject', document.getElementById('articleSubject').value);
-   formData.append('body', document.getElementById('articleBody').value);
-
-   const files = document.getElementById('articleImages').files;
-   for (let file of files) {
-       formData.append('image_data', file);
-   }
-
-   const result = await apiCall('/add-article', {
-       method: 'POST',
-       body: formData,
-       headers: {} // Let browser set Content-Type for multipart
-   });
-
-   if (result.status === 'success') {
-       alert('Article uploaded successfully!');
-       document.getElementById('articleForm').reset();
-       loadArticles();
-   } else {
-       alert(result.error?.message || 'Failed to upload article');
-   }
-
-   hideLoading();
-});
-
-// Images management
-async function loadImages() {
-   const data = await apiCall('/images/dashboard');
-   if (data.status === 'success') {
-       renderImages(data.data.images || []);
-   }
-}
-
-function renderImages(images) {
-   const container = document.getElementById('imagesGrid');
-   if (!images.length) {
-       container.innerHTML = '<p>No images found. Upload your first image!</p>';
-       return;
-   }
-
-   container.innerHTML = `
-       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
-           ${images.map(img => `
-               <div class="card">
-                   <img src="${img.cdn_url}" alt="${img.original_filename}" style="width:100%;height:150px;object-fit:cover">
-                   <div class="card-body">
-                       <p style="font-size:.8rem;margin-bottom:.5rem">${img.original_filename}</p>
-                       <p style="font-size:.7rem;color:var(--text-muted)">${img.total_views || 0} views</p>
-                       <button class="btn btn-error btn-sm" onclick="deleteImage('${img.image_id}')" style="margin-top:.5rem">Delete</button>
-                   </div>
-               </div>
-           `).join('')}
-       </div>
-   `;
-}
-
-// Image form submission
-document.getElementById('imageForm').addEventListener('submit', async (e) => {
-   e.preventDefault();
-   showLoading();
-
-   const formData = new FormData();
-   const files = document.getElementById('imageFiles').files;
-
-   for (let file of files) {
-       formData.append('file', file);
-   }
-
-   const result = await apiCall('/images/upload', {
-       method: 'POST',
-       body: formData,
-       headers: {}
-   });
-
-   if (result.status === 'success') {
-       alert(`${result.data.uploaded_images.length} images uploaded successfully!`);
-       document.getElementById('imageForm').reset();
-       loadImages();
-   } else {
-       alert(result.error?.message || 'Failed to upload images');
-   }
-
-   hideLoading();
-});
-
-// Hosting management
-async function loadHostingStatus() {
-   const data = await apiCall('/hosting/subscription-status');
-   if (data.status === 'success') {
-       renderHostingStatus(data.data);
-   }
-}
-
-function renderHostingStatus(hosting) {
-   const container = document.getElementById('hostingStatus');
-   container.innerHTML = `
-       <div class="stats-grid">
-           <div class="stat-card">
-               <div class="stat-header">
-                   <span class="stat-title">Current Plan</span>
-                   <span class="stat-icon">📦</span>
-               </div>
-               <div class="stat-value">${hosting.current_plan?.toUpperCase() || 'FREE'}</div>
-               <div class="stat-change">${hosting.expiry_date ? `Expires: ${hosting.expiry_date}` : 'No expiry'}</div>
-           </div>
-           <div class="stat-card">
-               <div class="stat-header">
-
-           <span class="stat-title">Images Used</span>
-                   <span class="stat-icon">🖼️</span>
-               </div>
-               <div class="stat-value">${hosting.images_uploads || 0}/${hosting.images_limit || 0}</div>
-               <div class="stat-change">${hosting.images_remaining || 0} remaining</div>
-           </div>
-           <div class="stat-card">
-               <div class="stat-header">
-                   <span class="stat-title">Articles Used</span>
-                   <span class="stat-icon">📝</span>
-               </div>
-               <div class="stat-value">${hosting.article_uploads || 0}/${hosting.articles_limit || 0}</div>
-               <div class="stat-change">${hosting.articles_remaining || 0} remaining</div>
-           </div>
-       </div>
-   `;
-}
-
-async function buyPackage(packageName) {
-   showLoading();
-
-   const result = await apiCall('/hosting/buy-package', {
-       method: 'POST',
-       body: JSON.stringify({
-           package: packageName,
-           provider: 'stripe',
-           duration: '3month',
-           subscription: true,
-           cancel_previous: false,
-           cancel_current_plan: false
-       })
-   });
-
-   if (result.status === 'success') {
-       alert('Redirecting to payment...');
-       window.open(result.data.payment_url, '_blank');
-   } else {
-       alert(result.error?.message || 'Failed to create payment session');
-   }
-
-   hideLoading();
-}
-
-// Billing management
-async function loadBilling() {
-   const data = await apiCall('/dashboard/billings');
-   if (data.status === 'success') {
-       renderBilling(data.data);
-   }
-}
-
-function renderBilling(billing) {
-   const tbody = document.getElementById('billingTable');
-   const allPayments = [...(billing.tasks || []), ...(billing.hosting || [])];
-
-   if (!allPayments.length) {
-       tbody.innerHTML = '<tr><td colspan="5">No billing history found</td></tr>';
-       return;
-   }
-
-   tbody.innerHTML = allPayments.map(payment => `
-       <tr>
-           <td>${payment.dates?.paid || payment.dates?.created}</td>
-           <td>${payment.method === 'create_task' ? 'Task' : 'Hosting'}</td>
-           <td>$${payment.total_payment}</td>
-           <td><span class="badge badge-${payment.status === 'Paid' ? 'success' : 'warning'}">${payment.status}</span></td>
-           <td><button class="btn btn-outline btn-sm" onclick="viewInvoice('${payment.billing_id}')">View</button></td>
-       </tr>
-   `).join('');
-}
-
-// Domain management
-async function loadDomains() {
-   // Note: API doesn't have a list domains endpoint, so we'll show the add form
-   document.getElementById('domainsList').innerHTML = '<p>Domains will appear here after you add them.</p>';
-}
-
-document.getElementById('domainForm').addEventListener('submit', async (e) => {
-   e.preventDefault();
-   showLoading();
-
-   const result = await apiCall('/add-domain', {
-       method: 'POST',
-       body: JSON.stringify({
-           url: document.getElementById('domainUrl').value
-       })
-   });
-
-   if (result.status === 'success') {
-       alert(result.data.message);
-       if (result.data.txt_record) {
-           alert(`Please add this TXT record: ${result.data.txt_record}`);
-       }
-       document.getElementById('domainForm').reset();
-   } else {
-       alert(result.error?.message || 'Failed to add domain');
-   }
-
-   hideLoading();
-});
-
-// Utility functions
+// View task details
 async function viewTask(taskId) {
-   const result = await apiCall('/get-task-details', {
-       method: 'POST',
-       body: JSON.stringify({ task_id: taskId })
-   });
+   const token = getCookie('session_token');
+   try {
+       const res = await fetch(`${baseUrl}/get-task-details`, {
+           method: 'POST',
+           headers: {
+               'Content-Type': 'application/json',
+               'Session-Token': token
+           },
+           body: JSON.stringify({ task_id: taskId })
+       });
 
-   if (result.status === 'success') {
-       document.getElementById('taskModalBody').innerHTML = `
-           <div>
-               <p><strong>URL:</strong> ${result.data.url}</p>
-               <p><strong>Keywords:</strong> ${result.data.keywords?.join(', ')}</p>
-               <p><strong>Total Charge:</strong> $${result.data.total_charge}</p>
-               <p><strong>Available Charge:</strong> $${result.data.available_charge}</p>
-               <p><strong>Created:</strong> ${result.data.date_created}</p>
-               <div style="margin-top:1rem">
-                   <h4>Country Visits:</h4>
-                   ${Object.entries(result.data.country_visits || {}).map(([country, visits]) =>
-                       `<p>${country}: ${visits} visits</p>`
-                   ).join('')}
-               </div>
-           </div>
-       `;
-       showModal('taskModal');
+       const result = await res.json();
+       if (result.status === 'success') {
+           const task = result.data;
+           alert(`Task Details:
+URL: ${task.url}
+Keywords: ${task.keywords?.join(', ') || 'N/A'}
+Total Charge: $${task.total_charge}
+Available Charge: $${task.available_charge}
+Created: ${task.date_created}`);
+       } else {
+           alert('Failed to load task details');
+       }
+   } catch (e) {
+       console.error('Failed to view task:', e);
+       alert('Network error occurred');
    }
 }
 
+// Recharge task
 async function rechargeTask(taskId) {
    const amount = prompt('Enter recharge amount ($):');
-   if (!amount) return;
+   if (!amount || isNaN(amount)) return;
 
-   showLoading();
-   const result = await apiCall('/recharge', {
-       method: 'POST',
-       body: JSON.stringify({
-           task_ids: [taskId],
-           payment_method: 'stripe',
-           cancel_previous: false
-       })
-   });
+   const token = getCookie('session_token');
+   try {
+       const res = await fetch(`${baseUrl}/recharge`, {
+           method: 'POST',
+           headers: {
+               'Content-Type': 'application/json',
+               'Session-Token': token
+           },
+           body: JSON.stringify({
+               task_ids: [taskId],
+               payment_method: 'stripe',
+               cancel_previous: false
+           })
+       });
 
-   if (result.status === 'success') {
-       alert('Redirecting to payment...');
-       window.open(result.data.payment_url, '_blank');
-   } else {
-       alert(result.error?.message || 'Failed to create recharge');
-   }
-
-   hideLoading();
-}
-
-async function deleteImage(imageId) {
-   if (!confirm('Are you sure you want to delete this image?')) return;
-
-   showLoading();
-   const result = await apiCall('/images', {
-       method: 'DELETE',
-       body: JSON.stringify({ image_ids: [imageId] })
-   });
-
-   if (result.status === 'success') {
-       alert('Image deleted successfully');
-       loadImages();
-   } else {
-       alert(result.error?.message || 'Failed to delete image');
-   }
-
-   hideLoading();
-}
-
-async function deleteArticle(articleId) {
-   if (!confirm('Are you sure you want to delete this article?')) return;
-
-   showLoading();
-   const result = await apiCall(`/delete-article/${articleId}`, {
-       method: 'DELETE'
-   });
-
-   if (result.status === 'success') {
-       alert('Article deleted successfully');
-       loadArticles();
-   } else {
-       alert(result.error?.message || 'Failed to delete article');
-   }
-
-   hideLoading();
-}
-
-// Close modals when clicking outside
-document.querySelectorAll('.modal').forEach(modal => {
-   modal.addEventListener('click', (e) => {
-       if (e.target === modal) {
-           modal.classList.remove('active');
+       const result = await res.json();
+       if (result.status === 'success') {
+           alert('Redirecting to payment...');
+           window.open(result.data.payment_url, '_blank');
+       } else {
+           alert(result.error?.message || 'Failed to create recharge');
        }
+   } catch (e) {
+       console.error('Failed to recharge task:', e);
+       alert('Network error occurred');
+   }
+}
+
+// Animation helper
+function animateStat(id, value) {
+   const element = document.getElementById(id);
+   if (!element) return;
+
+   // Format value appropriately
+   let formattedValue = value;
+   if (id.includes('Charge') || id.includes('Balance') || id.includes('Earned')) {
+       formattedValue = `$${value}`;
+   }
+
+   gsap.to(element, {
+       duration: 1.5,
+       textContent: formattedValue,
+       ease: 'power2.inOut'
    });
+}
+
+// Setup event listeners
+function setupListeners() {
+   document.getElementById('themeToggle').onclick = toggleTheme;
+   document.getElementById('logoutBtn').onclick = logout;
+}
+
+// Theme management
+function toggleTheme() {
+   document.body.classList.toggle('dark');
+   localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+}
+
+function loadTheme() {
+   if (localStorage.getItem('theme') === 'dark') {
+       document.body.classList.add('dark');
+   }
+}
+
+// Logout function (matching your working version)
+function logout() {
+   const token = getCookie('session_token');
+   if (token) {
+       fetch(`${baseUrl}/logout`, {
+           headers: { 'Session-Token': token }
+       }).catch(e => console.error('Logout error:', e));
+   }
+
+   // Clear cookie
+   document.cookie = 'session_token=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+   window.location.href = 'login.html';
+}
+
+// Animation runner
+function runAnimations() {
+   const overlay = document.getElementById('loadingOverlay');
+   gsap.timeline({ defaults: { ease: 'power3.out' } })
+       .to('.sidebar', { x: '0%', duration: 0.8, delay: 0.2 })
+       .from(
+           '.main-header, .stat-card, .tasks-header',
+           { opacity: 0, y: 30, duration: 0.6, stagger: 0.1 },
+           '-=0.5'
+       )
+       .to(overlay, {
+           opacity: 0,
+           duration: 0.5,
+           onComplete: () => (overlay.style.display = 'none')
+       });
+}
+
+// Auto-refresh partner data if user is a partner
+setInterval(() => {
+   if (isPartner && document.getElementById('partner').classList.contains('active')) {
+       loadPartnerTasks();
+   }
+}, 30000); // Refresh every 30 seconds
+
+// Load initial tasks when tasks section is shown
+document.addEventListener('DOMContentLoaded', () => {
+   // Load tasks initially
+   setTimeout(() => {
+       if (currentUser && currentUser.tasks) {
+           renderTasksTable(currentUser.tasks);
+       }
+   }, 1000);
 });
-
-// User menu toggle
-function toggleUserMenu() {
-   // Simple logout for now
-   if (confirm('Do you want to logout?')) {
-       localStorage.removeItem('session_token');
-       window.location.href = 'index.html';
-   }
-}
-
-// Load partner tasks periodically
-if (isPartner) {
-   setInterval(loadPartnerTasks, 30000); // Refresh every 30 seconds
-}
-
-async function loadPartnerTasks() {
-   const data = await apiCall('/partner/dashboard');
-   if (data.status === 'success' && Array.isArray(data.data.tasks)) {
-       renderPartnerTasks(data.data.tasks);
-   }
-}
 </script>
 </body>
 </html>

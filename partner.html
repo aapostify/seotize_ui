@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEOTIZE Partners - Earn Money Doing SEO Tasks | Get Paid for Searches</title>
+    <meta name="description" content="Join SEOTIZE Partners and earn money by completing SEO tasks, searching keywords on Google, and helping businesses grow. Start earning today with flexible payouts.">
+    <meta name="keywords" content="earn money online, SEO tasks, paid searches, keyword research jobs, work from home, flexible income">
+    <link rel="canonical" href="https://seotize.com/partners">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+    --bg:#ffffff;--bg-light:#f8fafc;--bg-dark:#0f172a;
+    --text:#1e293b;--text-light:#64748b;--text-muted:#94a3b8;
+    --border:#e2e8f0;--primary:#2563eb;--secondary:#059669;
+    --card-bg:#ffffff;--nav-bg:rgba(255,255,255,0.95);
+    --success:#10b981;--warning:#f59e0b;--accent:#8b5cf6
+}
+body.dark{
+    --bg:#0f172a;--bg-light:#1e293b;
+    --text:#f1f5f9;--text-light:#cbd5e1;--text-muted:#94a3b8;
+    --border:#334155;--card-bg:#1e293b;--nav-bg:rgba(15,23,42,0.95)
+}
+body{
+    font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
+    line-height:1.6;transition:all .3s ease
+}
+
+/* ─────────────  Navigation  ───────────── */
+nav{
+    position:fixed;top:0;width:100%;padding:1rem 2rem;
+    background:var(--nav-bg);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);z-index:100;transition:all .3s ease
+}
+nav>div{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+.logo{
+    font-size:1.5rem;font-weight:800;
+    background:linear-gradient(135deg,var(--primary),var(--secondary));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    text-decoration:none
+}
+.nav-links{display:flex;list-style:none;gap:2rem}
+.nav-links a{text-decoration:none;color:var(--text);font-weight:500;transition:color .2s ease}
+.nav-links a:hover{color:var(--primary)}
+.nav-actions{display:flex;gap:1rem;align-items:center}
+.login-btn{
+    background:linear-gradient(135deg,var(--success),var(--secondary));color:#fff;
+    padding:.5rem 1.25rem;border-radius:6px;text-decoration:none;font-weight:500;transition:all .2s ease
+}
+.login-btn:hover{transform:translateY(-2px)}
+.theme-toggle{
+    background:var(--bg-light);border:1px solid var(--border);
+    padding:.5rem;border-radius:6px;cursor:pointer;transition:all .2s ease;color:var(--text)
+}
+.theme-toggle:hover{transform:scale(1.05)}
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+    display: none;
+    background: var(--bg-light);
+    border: 1px solid var(--border);
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+}
+
+.mobile-menu-toggle:hover {
+    transform: scale(1.05);
+}
+
+/* Mobile Menu */
+.mobile-menu {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 80%;
+    height: 100vh;
+    background: var(--card-bg);
+    border-right: 1px solid var(--border);
+    transition: left 0.3s ease;
+    z-index: 200;
+    padding: 2rem;
+}
+
+.mobile-menu.active {
+    left: 0;
+}
+
+.mobile-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.mobile-menu-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.mobile-menu-links {
+    list-style: none;
+}
+
+.mobile-menu-links li {
+    margin: 1rem 0;
+}
+
+.mobile-menu-links a {
+    text-decoration: none;
+    color: var(--text);
+    font-size: 1.125rem;
+    font-weight: 500;
+    display: block;
+    padding: 0.5rem 0;
+    transition: color 0.3s ease;
+}
+
+.mobile-menu-links a:hover {
+    color: var(--primary);
+}
+
+.mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 150;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.mobile-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ─────────────  Hero  ───────────── */
+.hero{
+    height:100vh;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,var(--bg-light),var(--bg));
+    display:flex;align-items:center;padding:0 2rem
+}
+.hero-container{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
+.hero h1{
+    font-size:clamp(2.5rem,5vw,3.5rem);font-weight:800;margin-bottom:1.5rem;
+    background:linear-gradient(135deg,var(--success),var(--secondary));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text
+}
+.hero p{font-size:1.125rem;color:var(--text-light);margin-bottom:2rem}
+.cta{
+    display:inline-block;padding:1rem 2rem;
+    background:linear-gradient(135deg,var(--success),var(--secondary));color:#fff;
+    text-decoration:none;border-radius:8px;font-weight:600;
+    box-shadow:0 10px 15px rgba(16,185,129,.3);transition:all .2s ease;
+    margin-right:1rem
+}
+.cta:hover{transform:translateY(-2px)}
+.cta.secondary{
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    box-shadow:0 10px 15px rgba(37,99,235,.3)
+}
+.hero img{width:100%;border-radius:12px;box-shadow:0 20px 25px rgba(0,0,0,.1)}
+
+/* Stats Bar */
+.stats-bar{
+    position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+    background:var(--card-bg);padding:1rem 2rem;border-radius:50px;
+    box-shadow:0 10px 15px rgba(0,0,0,.1);border:1px solid var(--border);
+    display:flex;gap:2rem;align-items:center
+}
+.stat{text-align:center}
+.stat-number{font-size:1.5rem;font-weight:800;color:var(--success)}
+.stat-label{font-size:.875rem;color:var(--text-muted)}
+
+/* ─────────────  How It Works  ───────────── */
+.how-it-works{padding:6rem 2rem;background:var(--bg)}
+.container{max-width:1200px;margin:0 auto}
+.section-title{
+    text-align:center;font-size:2.5rem;font-weight:800;margin-bottom:1rem;
+    background:linear-gradient(135deg,var(--text),var(--primary));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text
+}
+.section-subtitle{text-align:center;font-size:1.125rem;color:var(--text-light);margin-bottom:4rem}
+.steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2rem}
+.step-card{
+    background:var(--card-bg);padding:2rem;border-radius:12px;border:1px solid var(--border);
+    transition:all .3s ease;position:relative;text-align:center
+}
+.step-card:hover{transform:translateY(-4px);box-shadow:0 20px 25px rgba(0,0,0,.1);border-color:var(--success)}
+.step-number{
+    position:absolute;top:-15px;left:50%;transform:translateX(-50%);
+    width:40px;height:40px;background:linear-gradient(135deg,var(--success),var(--secondary));
+    border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:1.25rem;font-weight:800;color:#fff
+}
+.step-icon{
+    width:60px;height:60px;background:linear-gradient(135deg,var(--success),var(--secondary));
+    border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-size:2rem;color:#fff;margin:1rem auto 1.5rem
+}
+.step-card h3{font-size:1.25rem;font-weight:700;margin-bottom:1rem;color:var(--text)}
+.step-card p{color:var(--text-light);margin-bottom:1rem}
+.step-reward{
+    background:linear-gradient(135deg,var(--success),var(--secondary));
+    color:#fff;padding:.5rem 1rem;border-radius:20px;font-weight:600;
+    display:inline-block;font-size:.875rem
+}
+
+/* ─────────────  Earning Methods  ───────────── */
+.earning-methods{padding:6rem 2rem;background:var(--bg-light)}
+.methods-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:2rem}
+.method-card{
+    background:var(--card-bg);padding:2rem;border-radius:12px;border:1px solid var(--border);
+    transition:all .3s ease;position:relative;overflow:hidden
+}
+.method-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:4px;
+    background:linear-gradient(135deg,var(--success),var(--secondary))
+}
+.method-card:hover{transform:translateY(-4px);box-shadow:0 20px 25px rgba(0,0,0,.1)}
+.method-icon{
+    width:60px;height:60px;background:linear-gradient(135deg,var(--success),var(--secondary));
+    border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-size:2rem;color:#fff;margin-bottom:1.5rem
+}
+.method-card h3{font-size:1.25rem;font-weight:700;margin-bottom:1rem;color:var(--text)}
+.method-card p{color:var(--text-light);margin-bottom:1.5rem}
+.earning-range{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--bg-light);padding:1rem;border-radius:8px;margin-bottom:1rem
+}
+.earning-amount{font-size:1.5rem;font-weight:800;color:var(--success)}
+.earning-label{color:var(--text-muted);font-size:.875rem}
+.method-features{list-style:none}
+.method-features li{
+    padding:.5rem 0;color:var(--text-light);display:flex;align-items:center;gap:.75rem
+}
+.method-features li::before{content:'💰';font-size:1rem}
+
+/* ─────────────  Live Dashboard  ───────────── */
+.live-dashboard{
+    padding:6rem 2rem;background:var(--bg-dark);color:#fff;
+    position:relative;overflow:hidden
+}
+.live-dashboard::before{
+    content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(5, 150, 105, 0.1) 0%, transparent 50%);
+    pointer-events:none
+}
+.dashboard-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:2rem;
+    position:relative;z-index:2
+}
+.dashboard-card{
+    background:rgba(255,255,255,.05);backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.1);padding:2rem;border-radius:12px;
+    transition:all .3s ease;text-align:center
+}
+.dashboard-card:hover{transform:translateY(-4px);background:rgba(255,255,255,.08)}
+.dashboard-icon{
+    font-size:2.5rem;margin-bottom:1rem;display:block
+}
+.dashboard-value{
+    font-size:2rem;font-weight:800;margin-bottom:.5rem;
+    background:linear-gradient(135deg,var(--success),#fff);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text
+}
+.dashboard-label{color:rgba(255,255,255,.7);font-size:.875rem}
+.live-indicator{
+    display:inline-flex;align-items:center;gap:.5rem;
+    background:rgba(16,185,129,.2);color:var(--success);
+    padding:.25rem .75rem;border-radius:20px;font-size:.75rem;font-weight:600;
+    margin-top:1rem
+}
+.live-dot{
+    width:6px;height:6px;background:var(--success);border-radius:50%;
+    animation:pulse 2s infinite
+}
+
+/* ─────────────  Payout Methods  ───────────── */
+.payout-methods{padding:6rem 2rem;background:var(--bg)}
+.payout-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem}
+.payout-card{
+    background:var(--card-bg);padding:2rem;border-radius:12px;border:1px solid var(--border);
+    transition:all .3s ease;text-align:center;position:relative
+}
+.payout-card:hover{transform:translateY(-4px);box-shadow:0 20px 25px rgba(0,0,0,.1);border-color:var(--success)}
+.payout-icon{font-size:3rem;margin-bottom:1rem;display:block}
+.payout-card h3{font-size:1.125rem;font-weight:700;margin-bottom:.5rem;color:var(--text)}
+.payout-min{color:var(--success);font-weight:600;font-size:.875rem}
+.popular-badge{
+    position:absolute;top:-10px;right:-10px;
+    background:linear-gradient(135deg,var(--warning),#f97316);
+    color:#fff;padding:.25rem .75rem;border-radius:20px;
+    font-size:.75rem;font-weight:600;transform:rotate(12deg)
+}
+
+/* ─────────────  FAQ Section  ───────────── */
+.faq{padding:6rem 2rem;background:var(--bg-light)}
+.faq-grid{display:grid;gap:1rem;max-width:800px;margin:0 auto}
+.faq-item{
+    background:var(--card-bg);border:1px solid var(--border);border-radius:8px;
+    overflow:hidden;transition:all .3s ease
+}
+.faq-question{
+    padding:1.5rem;background:none;border:none;width:100%;text-align:left;
+    font-size:1.125rem;font-weight:600;color:var(--text);
+    cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+    transition:all .3s ease
+}
+.faq-question:hover{background:var(--bg-light)}
+.faq-icon{
+    font-size:1.25rem;transition:transform .3s ease;color:var(--success)
+}
+.faq-item.active .faq-icon{transform:rotate(45deg)}
+.faq-answer{
+    max-height:0;overflow:hidden;transition:max-height .3s ease;
+    padding:0 1.5rem;color:var(--text-light)
+}
+.faq-item.active .faq-answer{max-height:300px;padding:0 1.5rem 1.5rem}
+
+/* ─────────────  CTA Section  ───────────── */
+.final-cta{
+    padding:6rem 2rem;background:linear-gradient(135deg,var(--success),var(--secondary));
+    color:#fff;text-align:center;position:relative;overflow:hidden
+}
+.final-cta::before{
+    content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+    background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity:.5
+}
+.final-cta h2{
+    font-size:2.5rem;font-weight:800;margin-bottom:1rem;position:relative;z-index:2
+}
+.final-cta p{
+    font-size:1.25rem;margin-bottom:2rem;opacity:.9;position:relative;z-index:2
+}
+.cta-buttons{
+    display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;z-index:2
+}
+.cta-white{
+    background:#fff;color:var(--success);
+    box-shadow:0 10px 15px rgba(0,0,0,.2)
+}
+
+/* ─────────────  Footer  ───────────── */
+.footer{padding:4rem 2rem 2rem;background:var(--bg-dark);color:#fff}
+.footer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem}
+.footer h3{font-size:1.125rem;font-weight:600;margin-bottom:1rem}
+.footer ul{list-style:none}
+.footer li{margin:.5rem 0}
+.footer a{color:#94a3b8;text-decoration:none;font-size:.9rem}
+.footer a:hover{color:#fff}
+.footer-bottom{
+    padding-top:2rem;border-top:1px solid #334155;
+    display:flex;justify-content:space-between;align-items:center
+}
+.social-links{display:flex;gap:1rem}
+.social-links a{
+    width:36px;height:36px;background:#334155;border-radius:6px;
+    display:flex;align-items:center;justify-content:center;text-decoration:none
+}
+.social-links a:hover{background:var(--success)}
+
+/* ─────────────  Animations  ───────────── */
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(16,185,129,.3)}50%{box-shadow:0 0 30px rgba(16,185,129,.6)}}
+
+.floating{animation:float 3s ease-in-out infinite}
+.glowing{animation:glow 2s ease-in-out infinite}
+
+/* ─────────────  Responsive  ───────────── */
+@media(max-width:768px){
+    .nav-links{display:none}
+    .mobile-menu-toggle{display:block}
+    .hero-container{grid-template-columns:1fr;gap:2rem}
+    .steps-grid,.methods-grid,.payout-grid{grid-template-columns:1fr}
+    .dashboard-grid{grid-template-columns:repeat(2,1fr)}
+    .footer-grid{grid-template-columns:repeat(2,1fr);gap:2rem}
+    .footer-bottom{flex-direction:column;gap:1rem;text-align:center}
+    .cta-buttons{flex-direction:column;align-items:center}
+    .stats-bar{flex-direction:column;gap:1rem;padding:1rem}
+
+    /* Mobile ordering */
+    .hero-container > div:first-child{order:2}
+    .hero-container > div:last-child{order:1}
+}
+
+@media(max-width:480px){
+    .footer-grid{grid-template-columns:1fr}
+    .dashboard-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+    <nav>
+        <div>
+            <a href="index.html" class="logo">SEOTIZE</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#earning">Earning</a></li>
+                <li><a href="#payouts">Payouts</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a href="connect.html" class="login-btn">Join Partners</a>
+                <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <span class="logo">SEOTIZE</span>
+            <button class="mobile-menu-close" onclick="toggleMobileMenu()">✕</button>
+        </div>
+        <ul class="mobile-menu-links">
+            <li><a href="index.html" onclick="toggleMobileMenu()">Home</a></li>
+            <li><a href="#how-it-works" onclick="toggleMobileMenu()">How It Works</a></li>
+            <li><a href="#earning" onclick="toggleMobileMenu()">Earning</a></li>
+            <li><a href="#payouts" onclick="toggleMobileMenu()">Payouts</a></li>
+            <li><a href="#faq" onclick="toggleMobileMenu()">FAQ</a></li>
+            <li><a href="connect.html" onclick="toggleMobileMenu()">Join Partners</a></li>
+        </ul>
+    </div>
+    <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu()"></div>
+
+    <section class="hero">
+        <div class="hero-container">
+            <div>
+                <h1>💰 Earn Money with SEOTIZE Partners</h1>
+                <p>Join thousands of users earning $5-50+ daily by completing simple SEO tasks, searching keywords, and helping businesses grow. No experience required!</p>
+                <a href="connect.html" class="cta">Start Earning Now</a>
+                <a href="#how-it-works" class="cta secondary">Learn How</a>
+            </div>
+            <div>
+                <img src="https://media.giphy.com/media/l0MYunAI4j10uWbFm/giphy.gif" alt="Earning Money Online" class="floating">
+            </div>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-number" id="activeUsers">15,847</div>
+                <div class="stat-label">Active Partners</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="totalEarned">$2.3M+</div>
+                <div class="stat-label">Total Earned</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="avgDaily">$27</div>
+                <div class="stat-label">Avg Daily Earning</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">150+</div>
+                <div class="stat-label">Countries</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Start earning in 3 simple steps</p>
+
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">📝</div>
+                    <h3>Sign Up & Get Verified</h3>
+                    <p>Create your free account, complete quick verification, and access your personal dashboard with available tasks.</p>
+                    <div class="step-reward">Get $2 Welcome Bonus</div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">🔍</div>
+                    <h3>Complete SEO Tasks</h3>
+                    <p>Search for keywords on Google, visit websites, engage with content, and help improve real business rankings.</p>
+                    <div class="step-reward">Earn $0.10 - $2.50 per task</div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">💳</div>
+                    <h3>Get Paid Instantly</h3>
+                    <p>Withdraw your earnings through PayPal, crypto, gift cards, or bank transfer. No minimum payout required!</p>
+                    <div class="step-reward">Instant payouts available</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="earning" class="earning-methods">
+        <div class="container">
+            <h2 class="section-title">Multiple Ways to Earn</h2>
+            <p class="section-subtitle">Choose tasks that fit your schedule and skills</p>
+
+            <div class="methods-grid">
+                <div class="method-card">
+                    <div class="method-icon">🔍</div>
+                    <h3>Keyword Search Tasks</h3>
+                    <p>Search for specific keywords on Google and interact with target websites naturally.</p>
+                    <div class="earning-range">
+                        <div>
+                            <div class="earning-amount">$0.10-$0.50</div>
+                            <div class="earning-label">per search</div>
+                        </div>
+                        <div>
+                            <div class="earning-amount">5-10 min</div>
+                            <div class="earning-label">per task</div>
+                        </div>
+                    </div>
+                    <ul class="method-features">
+                        <li>Simple Google searches</li>
+                        <li>Natural website visits</li>
+                        <li>No technical skills needed</li>
+                        <li>Available 24/7</li>
+                    </ul>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-icon">👥</div>
+                    <h3>User Engagement Tasks</h3>
+                    <p>Spend time on websites, read content, and create authentic user engagement signals.</p>
+                    <div class="earning-range">
+                        <div>
+                            <div class="earning-amount">$0.25-$1.00</div>
+                            <div class="earning-label">per engagement</div>
+                        </div>
+                        <div>
+                            <div class="earning-amount">10-15 min</div>
+                            <div class="earning-label">per task</div>
+                        </div>
+                    </div>
+                    <ul class="method-features">
+                        <li>Read articles and content</li>
+                        <li>Browse product pages</li>
+                        <li>Interact with websites</li>
+                        <li>Higher paying tasks</li>
+                    </ul>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-icon">📊</div>
+                    <h3>Data Collection Tasks</h3>
+                    <p>Help collect valuable SEO data by reporting search results and website information.</p>
+                    <div class="earning-range">
+                        <div>
+                            <div class="earning-amount">$0.50-$2.50</div>
+                            <div class="earning-label">per task</div>
+                            </div>
+                       <div>
+                           <div class="earning-amount">15-30 min</div>
+                           <div class="earning-label">per task</div>
+                       </div>
+                   </div>
+                   <ul class="method-features">
+                       <li>Report search rankings</li>
+                       <li>Screenshot verification</li>
+                       <li>Detailed task instructions</li>
+                       <li>Premium task rewards</li>
+                   </ul>
+               </div>
+
+               <div class="method-card">
+                   <div class="method-icon">🎯</div>
+                   <h3>Location-Based Tasks</h3>
+                   <p>Complete tasks specific to your geographic location for local SEO campaigns.</p>
+                   <div class="earning-range">
+                       <div>
+                           <div class="earning-amount">$1.00-$5.00</div>
+                           <div class="earning-label">per task</div>
+                       </div>
+                       <div>
+                           <div class="earning-amount">20-45 min</div>
+                           <div class="earning-label">per task</div>
+                       </div>
+                   </div>
+                   <ul class="method-features">
+                       <li>Local business searches</li>
+                       <li>Regional content tasks</li>
+                       <li>Higher value rewards</li>
+                       <li>Location verification bonus</li>
+                   </ul>
+               </div>
+
+               <div class="method-card">
+                   <div class="method-icon">⭐</div>
+                   <h3>Bonus & Referral Program</h3>
+                   <p>Earn extra through daily bonuses, streaks, achievements, and referring friends.</p>
+                   <div class="earning-range">
+                       <div>
+                           <div class="earning-amount">$2-$20</div>
+                           <div class="earning-label">per referral</div>
+                       </div>
+                       <div>
+                           <div class="earning-amount">$1-$10</div>
+                           <div class="earning-label">daily bonus</div>
+                       </div>
+                   </div>
+                   <ul class="method-features">
+                       <li>Daily login bonuses</li>
+                       <li>Task completion streaks</li>
+                       <li>Friend referral rewards</li>
+                       <li>Achievement unlocks</li>
+                   </ul>
+               </div>
+
+               <div class="method-card">
+                   <div class="method-icon">🚀</div>
+                   <h3>Premium Partner Program</h3>
+                   <p>Unlock higher-paying tasks and exclusive opportunities as a verified premium partner.</p>
+                   <div class="earning-range">
+                       <div>
+                           <div class="earning-amount">$5-$50</div>
+                           <div class="earning-label">per task</div>
+                       </div>
+                       <div>
+                           <div class="earning-amount">VIP</div>
+                           <div class="earning-label">access</div>
+                       </div>
+                   </div>
+                   <ul class="method-features">
+                       <li>Exclusive high-value tasks</li>
+                       <li>Priority task assignment</li>
+                       <li>Direct client projects</li>
+                       <li>Premium support access</li>
+                   </ul>
+               </div>
+           </div>
+       </div>
+   </section>
+
+   <section class="live-dashboard">
+       <div class="container">
+           <h2 class="section-title" style="color: white;">Live Partner Dashboard</h2>
+           <p class="section-subtitle" style="color: rgba(255,255,255,0.8);">Real-time stats from our partner network</p>
+
+           <div class="dashboard-grid">
+               <div class="dashboard-card">
+                   <div class="dashboard-icon">🏃‍♂️</div>
+                   <div class="dashboard-value" id="liveTasks">1,247</div>
+                   <div class="dashboard-label">Active Tasks</div>
+                   <div class="live-indicator">
+                       <div class="live-dot"></div>
+                       Live Updates
+                   </div>
+               </div>
+
+               <div class="dashboard-card">
+                   <div class="dashboard-icon">💰</div>
+                   <div class="dashboard-value" id="liveEarnings">$18,432</div>
+                   <div class="dashboard-label">Earned Today</div>
+                   <div class="live-indicator">
+                       <div class="live-dot"></div>
+                       Updating Live
+                   </div>
+               </div>
+
+               <div class="dashboard-card">
+                   <div class="dashboard-icon">👥</div>
+                   <div class="dashboard-value" id="livePartners">847</div>
+                   <div class="dashboard-label">Online Now</div>
+                   <div class="live-indicator">
+                       <div class="live-dot"></div>
+                       Real-time
+                   </div>
+               </div>
+
+               <div class="dashboard-card">
+                   <div class="dashboard-icon">🎯</div>
+                   <div class="dashboard-value" id="liveCompletion">94.7%</div>
+                   <div class="dashboard-label">Success Rate</div>
+                   <div class="live-indicator">
+                       <div class="live-dot"></div>
+                       Live Stats
+                   </div>
+               </div>
+           </div>
+       </div>
+   </section>
+
+   <section id="payouts" class="payout-methods">
+       <div class="container">
+           <h2 class="section-title">Flexible Payout Options</h2>
+           <p class="section-subtitle">Choose how you want to receive your earnings</p>
+
+           <div class="payout-grid">
+               <div class="payout-card">
+                   <div class="popular-badge">Most Popular</div>
+                   <div class="payout-icon">💳</div>
+                   <h3>PayPal</h3>
+                   <div class="payout-min">Min: $1.00</div>
+               </div>
+
+               <div class="payout-card">
+                   <div class="payout-icon">🏦</div>
+                   <h3>Bank Transfer</h3>
+                   <div class="payout-min">Min: $10.00</div>
+               </div>
+
+               <div class="payout-card">
+                   <div class="payout-icon">₿</div>
+                   <h3>Bitcoin</h3>
+                   <div class="payout-min">Min: $5.00</div>
+               </div>
+
+               <div class="payout-card">
+                   <div class="payout-icon">🎁</div>
+                   <h3>Gift Cards</h3>
+                   <div class="payout-min">Min: $2.00</div>
+               </div>
+
+               <div class="payout-card">
+                   <div class="payout-icon">💎</div>
+                   <h3>Ethereum</h3>
+                   <div class="payout-min">Min: $5.00</div>
+               </div>
+
+               <div class="payout-card">
+                   <div class="payout-icon">🌟</div>
+                   <h3>Platform Credits</h3>
+                   <div class="payout-min">Min: $0.50</div>
+               </div>
+           </div>
+       </div>
+   </section>
+
+   <section id="faq" class="faq">
+       <div class="container">
+           <h2 class="section-title">Frequently Asked Questions</h2>
+           <p class="section-subtitle">Everything you need to know about earning with SEOTIZE</p>
+
+           <div class="faq-grid">
+               <div class="faq-item">
+                   <button class="faq-question" onclick="toggleFaq(this)">
+                       How much can I really earn per day?
+                       <span class="faq-icon">+</span>
+                   </button>
+                   <div class="faq-answer">
+                       <p>Earnings vary based on time invested and task availability. Beginners typically earn $5-15 daily, while active partners can earn $25-50+ per day. Premium partners often earn $100+ daily through exclusive high-value tasks.</p>
+                   </div>
+               </div>
+
+               <div class="faq-item">
+                   <button class="faq-question" onclick="toggleFaq(this)">
+                       What exactly do I need to do?
+                       <span class="faq-icon">+</span>
+                   </button>
+                   <div class="faq-answer">
+                       <p>Tasks include searching for keywords on Google, visiting specific websites, reading content, taking screenshots, and reporting search results. All tasks come with clear instructions and are designed to create natural user engagement.</p>
+                   </div>
+               </div>
+
+               <div class="faq-item">
+                   <button class="faq-question" onclick="toggleFaq(this)">
+                       How fast can I get paid?
+                       <span class="faq-icon">+</span>
+                   </button>
+                   <div class="faq-answer">
+                       <p>Instant payouts are available for PayPal and crypto payments with no minimum threshold. Bank transfers typically take 1-3 business days. You can request payouts anytime once you have earnings in your account.</p>
+                   </div>
+               </div>
+
+               <div class="faq-item">
+                   <button class="faq-question" onclick="toggleFaq(this)">
+                       Do I need any special skills or experience?
+                       <span class="faq-icon">+</span>
+                   </button>
+                   <div class="faq-answer">
+                       <p>No special skills required! If you can use Google and browse websites, you can complete our tasks. We provide detailed instructions for every task, and our support team is available 24/7 to help.</p>
+                   </div>
+               </div>
+
+               <div class="faq-item">
+                   <button class="faq-question" onclick="toggleFaq(this)">
+                       Is this available in my country?
+                       <span class="faq-icon">+</span>
+                   </button>
+                   <div class="faq-answer">
+                       <p>SEOTIZE Partners is available in 150+ countries worldwide. We actually prefer partners from diverse locations as it helps our clients with global SEO campaigns. Location-specific tasks often pay higher rates.</p>
+                   </div>
+               </div>
+
+               <div class="faq-item">
+                   <button class="faq-question" onclick="toggleFaq(this)">
+                       How do I become a Premium Partner?
+                       <span class="faq-icon">+</span>
+                   </button>
+                   <div class="faq-answer">
+                       <p>Premium Partner status is earned through consistent high-quality task completion, maintaining good ratings, and completing advanced verification. Premium Partners get access to exclusive $5-50 tasks and direct client projects.</p>
+                   </div>
+               </div>
+
+               <div class="faq-item">
+                   <button class="faq-question" onclick="toggleFaq(this)">
+                       Are there any fees or costs to join?
+                       <span class="faq-icon">+</span>
+                   </button>
+                   <div class="faq-answer">
+                       <p>Joining SEOTIZE Partners is completely free! We never charge registration fees, monthly fees, or any other costs. You only earn money - we make money when our clients succeed through your work.</p>
+                   </div>
+               </div>
+           </div>
+       </div>
+   </section>
+
+   <section class="final-cta">
+       <div class="container">
+           <h2>Ready to Start Earning Today?</h2>
+           <p>Join thousands of partners already earning daily income with SEOTIZE. Get your $2 welcome bonus and start your first task within minutes!</p>
+           <div class="cta-buttons">
+               <a href="connect.html" class="cta cta-white">Join Partners Now</a>
+               <a href="#how-it-works" class="cta">Learn More</a>
+           </div>
+       </div>
+   </section>
+
+   <footer class="footer">
+       <div class="container">
+           <div class="footer-grid">
+               <div>
+                   <h3>SEOTIZE Partners</h3>
+                   <ul>
+                       <li><a href="#how-it-works">How It Works</a></li>
+                       <li><a href="#earning">Earning Methods</a></li>
+                       <li><a href="#payouts">Payout Options</a></li>
+                       <li><a href="connect.html">Join Now</a></li>
+                   </ul>
+               </div>
+               <div>
+                   <h3>Support</h3>
+                   <ul>
+                       <li><a href="connect.html">Help Center</a></li>
+                       <li><a href="connect.html">Partner Guidelines</a></li>
+                       <li><a href="connect.html">Task Instructions</a></li>
+                       <li><a href="connect.html">Payment Help</a></li>
+                   </ul>
+               </div>
+               <div>
+                   <h3>Platform</h3>
+                   <ul>
+                       <li><a href="index.html">SEOTIZE Main</a></li>
+                       <li><a href="connect.html">Business Solutions</a></li>
+                       <li><a href="connect.html">API Access</a></li>
+                       <li><a href="connect.html">Enterprise</a></li>
+                   </ul>
+               </div>
+               <div>
+                   <h3>Legal</h3>
+                   <ul>
+                       <li><a href="connect.html">Terms of Service</a></li>
+                       <li><a href="connect.html">Privacy Policy</a></li>
+                       <li><a href="connect.html">Payment Terms</a></li>
+                       <li><a href="connect.html">Partner Agreement</a></li>
+                   </ul>
+               </div>
+           </div>
+           <div class="footer-bottom">
+               <p>© 2024 Seotize Partners. All rights reserved.</p>
+               <div class="social-links">
+                   <a href="#" aria-label="Email">📧</a>
+                   <a href="#" aria-label="Twitter">🐦</a>
+                   <a href="#" aria-label="LinkedIn">💼</a>
+                   <a href="#" aria-label="Discord">📱</a>
+               </div>
+           </div>
+       </div>
+   </footer>
+
+<script>
+gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+// Animate live dashboard numbers
+function animateNumbers() {
+   // Active tasks counter
+   gsap.to("#liveTasks", {
+       textContent: () => Math.floor(Math.random() * 500) + 1000,
+       duration: 2,
+       ease: "none",
+       snap: { textContent: 1 },
+       stagger: 1
+   });
+
+   // Live earnings counter
+   gsap.to("#liveEarnings", {
+       textContent: () => "$" + (Math.floor(Math.random() * 5000) + 15000).toLocaleString(),
+       duration: 2,
+       ease: "none",
+       stagger: 1
+   });
+
+   // Online partners counter
+   gsap.to("#livePartners", {
+       textContent: () => Math.floor(Math.random() * 200) + 700,
+       duration: 2,
+       ease: "none",
+       snap: { textContent: 1 },
+       stagger: 1
+   });
+
+   // Success rate with variation
+   gsap.to("#liveCompletion", {
+       textContent: () => (Math.random() * 5 + 93).toFixed(1) + "%",
+       duration: 2,
+       ease: "none",
+       stagger: 1
+   });
+}
+
+// Animate hero stats
+function animateHeroStats() {
+   gsap.to("#activeUsers", {
+       textContent: () => (Math.floor(Math.random() * 1000) + 15000).toLocaleString(),
+       duration: 3,
+       ease: "none",
+       snap: { textContent: 1 }
+   });
+
+   gsap.to("#totalEarned", {
+       textContent: () => "$" + (Math.random() * 0.5 + 2.3).toFixed(1) + "M+",
+       duration: 3,
+       ease: "none"
+   });
+
+   gsap.to("#avgDaily", {
+       textContent: () => "$" + Math.floor(Math.random() * 10 + 25),
+       duration: 3,
+       ease: "none",
+       snap: { textContent: 1 }
+   });
+}
+
+// FAQ toggle functionality
+function toggleFaq(button) {
+   const faqItem = button.parentElement;
+   const isActive = faqItem.classList.contains('active');
+
+   // Close all FAQ items
+   document.querySelectorAll('.faq-item').forEach(item => {
+       item.classList.remove('active');
+   });
+
+   // Open clicked item if it wasn't active
+   if (!isActive) {
+       faqItem.classList.add('active');
+   }
+}
+
+// Mobile menu functionality
+function toggleMobileMenu() {
+   const menu = document.getElementById('mobileMenu');
+   const overlay = document.getElementById('mobileOverlay');
+   menu.classList.toggle('active');
+   overlay.classList.toggle('active');
+}
+
+// Theme toggle functionality
+function toggleTheme() {
+   document.body.classList.toggle('dark');
+   const toggle = document.querySelector('.theme-toggle');
+   const isDark = document.body.classList.contains('dark');
+   toggle.textContent = isDark ? '☀️' : '🌙';
+   localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
+// Load saved theme
+function loadTheme() {
+   const savedTheme = localStorage.getItem('theme');
+   if (savedTheme === 'dark') {
+       document.body.classList.add('dark');
+       document.querySelector('.theme-toggle').textContent = '☀️';
+   }
+}
+
+// Smooth scrolling for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+   anchor.addEventListener('click', function (e) {
+       e.preventDefault();
+       const target = document.querySelector(this.getAttribute('href'));
+       if (target) {
+           target.scrollIntoView({
+               behavior: 'smooth',
+               block: 'start'
+           });
+       }
+   });
+});
+
+// GSAP Animations
+function initAnimations() {
+   // Animate cards on scroll
+   gsap.utils.toArray('.step-card, .method-card, .payout-card').forEach((card, i) => {
+       gsap.from(card, {
+           opacity: 0,
+           y: 50,
+           duration: 0.8,
+           delay: i * 0.1,
+           ease: "power2.out",
+           scrollTrigger: {
+               trigger: card,
+               start: 'top 85%',
+               toggleActions: 'play none none reverse'
+           }
+       });
+   });
+
+   // Animate dashboard cards
+   gsap.utils.toArray('.dashboard-card').forEach((card, i) => {
+       gsap.from(card, {
+           opacity: 0,
+           scale: 0.8,
+           duration: 0.6,
+           delay: i * 0.1,
+           ease: "back.out(1.7)",
+           scrollTrigger: {
+               trigger: card,
+               start: 'top 85%'
+           }
+       });
+   });
+
+   // Animate FAQ items
+   gsap.utils.toArray('.faq-item').forEach((item, i) => {
+       gsap.from(item, {
+           opacity: 0,
+           x: -30,
+           duration: 0.6,
+           delay: i * 0.1,
+           scrollTrigger: {
+               trigger: item,
+               start: 'top 90%'
+           }
+       });
+   });
+
+   // Hero image floating animation
+   gsap.to('.floating', {
+       y: -20,
+       duration: 3,
+       ease: "power2.inOut",
+       yoyo: true,
+       repeat: -1
+   });
+
+   // Glowing effect for CTA buttons
+   gsap.utils.toArray('.cta').forEach(button => {
+       button.addEventListener('mouseenter', () => {
+           gsap.to(button, {
+               boxShadow: "0 15px 30px rgba(16,185,129,0.4)",
+               scale: 1.05,
+               duration: 0.3
+           });
+       });
+
+       button.addEventListener('mouseleave', () => {
+           gsap.to(button, {
+               boxShadow: "0 10px 15px rgba(16,185,129,0.3)",
+               scale: 1,
+               duration: 0.3
+           });
+       });
+   });
+}
+
+// Initialize everything when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+   loadTheme();
+   initAnimations();
+   animateHeroStats();
+
+   // Start live dashboard animations
+   animateNumbers();
+   setInterval(animateNumbers, 5000);
+
+   // Update hero stats periodically
+   setInterval(animateHeroStats, 10000);
+});
+
+// Navigation background on scroll
+let ticking = false;
+window.addEventListener('scroll', () => {
+   if (!ticking) {
+       requestAnimationFrame(() => {
+           const nav = document.querySelector('nav');
+           const scrolled = window.pageYOffset;
+           const opacity = Math.min(scrolled / 100, 1);
+           nav.style.backgroundColor = `rgba(${document.body.classList.contains('dark') ? '15, 23, 42' : '255, 255, 255'}, ${0.95 * opacity})`;
+           ticking = false;
+       });
+       ticking = true;
+   }
+});
+
+// Close mobile menu when clicking overlay
+document.getElementById('mobileOverlay').addEventListener('click', toggleMobileMenu);
+
+// Add some randomization to make the numbers feel more "live"
+setInterval(() => {
+   const liveElements = document.querySelectorAll('.live-indicator');
+   liveElements.forEach(element => {
+       gsap.to(element, {
+           opacity: 0.7,
+           duration: 0.5,
+           yoyo: true,
+           repeat: 1,
+           ease: "power2.inOut"
+       });
+   });
+}, 3000);
+</script>
+</body>
+</html>

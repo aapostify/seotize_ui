@@ -6,7 +6,6 @@
     <title>SEOTIZE Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <style>
 :root{--radius:12px;--shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06)}
 [data-theme="dark"]{--bg:#0f172a;--sidebar:#1e293b;--card:#1e293b;--text:#e2e8f0;--text-light:#94a3b8;--border:#334155;--primary:#3b82f6;--primary-hover:#2563eb;--secondary:#10b981;--error:#ef4444;--warning:#f59e0b;--success:#10b981;--input-bg:#0f172a}
@@ -40,7 +39,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .btn-sm{padding:.375rem .75rem;font-size:.875rem}
 .btn-icon{width:36px;height:36px;padding:0;justify-content:center}
 
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;position:relative;overflow:hidden}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--primary),var(--secondary))}
 .stat-value{font-size:1.75rem;font-weight:700;margin:.5rem 0}
@@ -57,6 +56,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .badge-success{background:rgba(16,185,129,0.2);color:var(--success)}
 .badge-warning{background:rgba(245,158,11,0.2);color:var(--warning)}
 .badge-error{background:rgba(239,68,68,0.2);color:var(--error)}
+
+.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--secondary),var(--primary));transition:width .3s}
 
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:1000}
 .modal.show{display:flex}
@@ -76,6 +78,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .toast.error{background:var(--error)}
 .toast.warning{background:var(--warning)}
 
+.tabs{display:flex;gap:1rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+.tab{padding:.75rem 1.5rem;border-bottom:2px solid transparent;color:var(--text-light);cursor:pointer;transition:all .2s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+
 .section{display:none}
 .section.active{display:block}
 
@@ -83,35 +90,43 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 @keyframes spin{to{transform:rotate(360deg)}}
 
 .empty-state{text-align:center;padding:3rem;color:var(--text-light)}
+.empty-state svg{width:64px;height:64px;margin:0 auto 1rem;opacity:0.3}
 
+/* Task Specific */
 .task-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;cursor:pointer;transition:all .2s}
 .task-item:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow)}
-
-.analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;margin-bottom:1.5rem}
-.chart-container{height:300px;position:relative}
-
-.compact-sessions{max-height:200px;overflow-y:auto}
-.compact-sessions .table{font-size:.875rem}
-.compact-sessions .table th,.compact-sessions .table td{padding:.5rem .875rem}
-
-.hosting-menu{display:grid;grid-template-columns:200px 1fr;gap:1.5rem}
-.hosting-nav{display:flex;flex-direction:column;gap:.5rem}
-.hosting-nav-item{padding:.75rem 1rem;border-radius:var(--radius);background:var(--input-bg);cursor:pointer;transition:all .2s}
-.hosting-nav-item:hover{background:var(--border)}
-.hosting-nav-item.active{background:var(--primary);color:white}
-.hosting-content{min-height:400px}
-
-.location-preview{border:1px solid var(--border);border-radius:var(--radius);height:400px;overflow:hidden;position:relative;margin-bottom:1rem}
-.location-preview iframe{width:100%;height:100%;border:0}
-.location-overlay{position:absolute;inset:0;pointer-events:auto;cursor:crosshair}
-.location-marker{position:absolute;width:20px;height:20px;background:var(--primary);border:2px solid white;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 2px 4px rgba(0,0,0,0.2);animation:pulse 2s infinite}
-@keyframes pulse{0%{transform:translate(-50%,-50%) scale(1);opacity:1}50%{transform:translate(-50%,-50%) scale(1.2);opacity:0.8}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
 
 .keyword-grid{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
 .keyword-item{padding:.5rem 1rem;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .2s}
 .keyword-item:hover{border-color:var(--primary);background:rgba(59,130,246,0.1)}
 .keyword-item.selected{background:var(--primary);color:white;border-color:var(--primary)}
 
+.location-preview{border:1px solid var(--border);border-radius:var(--radius);height:400px;overflow:hidden;position:relative;margin-bottom:1rem}
+.location-preview iframe{width:100%;height:100%;border:0}
+.location-overlay{position:absolute;inset:0;pointer-events:none}
+.location-marker{position:absolute;width:20px;height:20px;background:var(--primary);border:2px solid white;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+
+/* Image/Article Grid */
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem}
+.media-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .2s}
+.media-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.media-preview{height:150px;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.media-preview img{width:100%;height:100%;object-fit:cover}
+.media-info{padding:1rem}
+
+.analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem}
+.chart-container{height:300px;position:relative}
+
+/* Domain Verification */
+.domain-item{display:flex;justify-content:space-between;align-items:center;padding:1rem;border-bottom:1px solid var(--border);background:var(--card);border-radius:var(--radius);margin-bottom:.5rem}
+.domain-status{display:flex;align-items:center;gap:.5rem}
+
+/* Drag & Drop */
+.dropzone{border:2px dashed var(--border);border-radius:var(--radius);padding:2rem;text-align:center;cursor:pointer;transition:all .2s}
+.dropzone:hover{border-color:var(--primary);background:rgba(59,130,246,0.05)}
+.dropzone.active{border-color:var(--primary);background:rgba(59,130,246,0.1)}
+
+/* Mobile */
 .mobile-toggle{display:none;position:fixed;top:1rem;left:1rem;z-index:100;width:40px;height:40px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);align-items:center;justify-content:center;cursor:pointer}
 
 @media(max-width:768px){
@@ -122,7 +137,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
     .stat-grid{grid-template-columns:1fr 1fr}
     .analytics-grid{grid-template-columns:1fr}
     .modal-content{width:95%}
-    .hosting-menu{grid-template-columns:1fr;gap:1rem}
 }
 </style>
 </head>
@@ -168,7 +182,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 
         <!-- Dashboard Section -->
         <section class="section active" id="dashboard">
-            <!-- Analytics First -->
+            <div class="stat-grid" id="dashboardStats"></div>
+
             <div class="analytics-grid">
                 <div class="card">
                     <div class="card-header">
@@ -192,21 +207,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
                 </div>
             </div>
 
-            <div class="stat-grid" id="dashboardStats"></div>
-
-            <!-- Compact Active Sessions -->
-            <div class="card" style="margin-bottom:1rem">
+            <div class="card">
                 <div class="card-header">
                     <h3>Active Sessions</h3>
                     <span class="badge badge-primary" id="sessionCount">0 Active</span>
                 </div>
-                <div class="card-body compact-sessions">
+                <div class="card-body">
                     <table class="table">
                         <thead>
                             <tr>
                                 <th>Location</th>
                                 <th>IP Address</th>
                                 <th>Created</th>
+                                <th>Expires</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -251,24 +264,87 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
                     <div class="loader"></div>
                 </div>
             </div>
+
+            <div class="card" id="taskDetails" style="display:none">
+                <div class="card-header">
+                    <h3>Task Analytics</h3>
+                    <button class="btn btn-sm" onclick="closeTaskDetails()">Close</button>
+                </div>
+                <div class="card-body" id="taskDetailsContent"></div>
+            </div>
         </section>
 
         <!-- Hosting Section -->
         <section class="section" id="hosting">
-            <div class="hosting-menu">
-                <div class="hosting-nav">
-                    <div class="hosting-nav-item active" onclick="showHostingContent('overview')">📊 Overview</div>
-                    <div class="hosting-nav-item" onclick="showHostingContent('images')">🖼️ Images</div>
-                    <div class="hosting-nav-item" onclick="showHostingContent('articles')">📝 Articles</div>
-                    <div class="hosting-nav-item" onclick="showHostingContent('domains')">🌐 Domains</div>
+            <div class="tabs">
+                <div class="tab active" onclick="showHostingTab('overview')">Overview</div>
+                <div class="tab" onclick="showHostingTab('images')">Images</div>
+                <div class="tab" onclick="showHostingTab('articles')">Articles</div>
+            </div>
+
+            <div class="section active" id="hosting-overview">
+                <div class="stat-grid" id="hostingStats"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Current Plan Details</h3>
+                        <button class="btn btn-primary" onclick="showUpgradeModal()">Upgrade Plan</button>
+                    </div>
+                    <div class="card-body" id="planDetails"></div>
                 </div>
-                <div class="hosting-content" id="hostingContent"></div>
+            </div>
+
+            <div class="section" id="hosting-images">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                    <h2>Image Management</h2>
+                    <button class="btn btn-primary" onclick="showImageUploadModal()">Upload Images</button>
+                </div>
+                <div class="media-grid" id="imageGrid"></div>
+            </div>
+
+            <div class="section" id="hosting-articles">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                    <h2>Article Management</h2>
+                    <button class="btn btn-primary" onclick="showArticleModal()">Create Article</button>
+                </div>
+
+                <div class="card" style="margin-bottom:1.5rem">
+                    <div class="card-header">
+                        <h3>Domain Verification</h3>
+                        <button class="btn btn-sm" onclick="showDomainModal()">Add Domain</button>
+                    </div>
+                    <div class="card-body" id="domainsList"></div>
+                </div>
+
+                <div id="articlesList"></div>
             </div>
         </section>
 
         <!-- Billing Section -->
         <section class="section" id="billing">
             <div class="stat-grid" id="billingStats"></div>
+
+            <div class="analytics-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Spending Overview</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="spendingChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Payment Distribution</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="paymentChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="card">
                 <div class="card-header">
@@ -364,10 +440,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     setupNavigation();
     loadDashboard();
-    
-    // Animate elements on load
-    gsap.from('.stat-card', {duration: 0.6, y: 20, opacity: 0, stagger: 0.1});
-    gsap.from('.card', {duration: 0.8, y: 30, opacity: 0, stagger: 0.15, delay: 0.3});
 });
 
 // Navigation & UI
@@ -387,9 +459,6 @@ function showSection(section) {
     document.getElementById(section).classList.add('active');
     document.querySelector(`[data-section="${section}"]`).classList.add('active');
     document.getElementById('sectionTitle').textContent = section.charAt(0).toUpperCase() + section.slice(1);
-
-    // Animate section transition
-    gsap.from(`#${section}`, {duration: 0.5, opacity: 0, y: 20});
 
     // Load section data
     switch(section) {
@@ -438,36 +507,23 @@ async function api(endpoint, options = {}) {
 // Dashboard
 async function loadDashboard() {
     try {
-        // Load billing data for dashboard
-        const { data } = await api('/dashboard/billings?page=1&limit=50');
-        currentData.billingData = data;
-
-        // Extract user info from any available transaction
-        const allTransactions = [...(data.tasks || []), ...(data.hosting || [])];
-        const user = {
-            email: allTransactions[0]?.transaction_data?.customer_details?.email || 'user@example.com',
-            task_statistics: {
-                total_views: allTransactions.filter(t => t.method === 'create_task').reduce((sum, t) => sum + (t.views_count || 0), 0),
-                active_tasks: allTransactions.filter(t => t.method === 'create_task' && t.status === 'Paid').length,
-                total_charge: allTransactions.reduce((sum, t) => sum + (typeof t.total_payment === 'number' ? t.total_payment : parseFloat(t.total_payment?.parsedValue || 0)), 0),
-                available_charge: allTransactions.filter(t => t.status === 'Paid').reduce((sum, t) => sum + (t.final_amount || 0), 0)
-            },
-            sessions: [] // Mock empty sessions
-        };
-
+        const { data } = await api('/users/dashboard?page=1&page_size=10');
+        const user = data.user;
         currentData.user = user;
 
         // Update user info
         document.getElementById('userEmail').textContent = user.email;
         document.getElementById('userAvatar').textContent = user.email[0].toUpperCase();
-        document.getElementById('userSince').textContent = `Member since ${new Date().toLocaleDateString()}`;
+        document.getElementById('userSince').textContent = `Member since ${new Date(user.created_at).toLocaleDateString()}`;
 
         // Stats
         const stats = [
-            { label: 'Active Tasks', value: user.task_statistics.active_tasks, change: '+12%' },
-            { label: 'Total Views', value: user.task_statistics.total_views.toLocaleString(), change: '+8%' },
-            { label: 'Total Spent', value: `$${user.task_statistics.total_charge.toFixed(2)}` },
-            { label: 'Available Budget', value: `$${user.task_statistics.available_charge.toFixed(2)}` }
+            { label: 'Active Tasks', value: user.usage_summary?.active_tasks || 0, change: '+12%' },
+            { label: 'Total Views', value: (user.task_statistics?.total_views || 0).toLocaleString(), change: '+8%' },
+            { label: 'Total Keywords', value: user.task_statistics?.total_keywords || 0 },
+            { label: 'Total Spent', value: `$${(user.task_statistics?.total_charge || 0).toFixed(2)}` },
+            { label: 'Available Budget', value: `$${(user.task_statistics?.available_charge || 0).toFixed(2)}` },
+            { label: 'Hosting Plan', value: (user.hosting?.type || 'free').toUpperCase(), change: user.hosting?.expiry_date ? `Expires ${new Date(user.hosting.expiry_date).toLocaleDateString()}` : '' }
         ];
 
         document.getElementById('dashboardStats').innerHTML = stats.map(stat => `
@@ -478,31 +534,35 @@ async function loadDashboard() {
             </div>
         `).join('');
 
-        // Sessions (compact)
+        // Sessions
         document.getElementById('sessionCount').textContent = `${user.sessions?.length || 0} Active`;
-        document.getElementById('sessionsTable').innerHTML = user.sessions?.length ? user.sessions.map(session => `
+        document.getElementById('sessionsTable').innerHTML = (user.sessions || []).map(session => `
             <tr>
                 <td><span class="badge badge-primary">${session.country_code}</span></td>
                 <td>${session.ip_address}</td>
-                <td>${new Date(session.timestamp).toLocaleDateString()}</td>
+                <td>${new Date(session.timestamp).toLocaleString()}</td>
+                <td>${new Date(session.expires_at).toLocaleString()}</td>
                 <td><button class="btn btn-sm" onclick="revokeSession('${session.token}')">Revoke</button></td>
             </tr>
-        `).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--text-light)">No active sessions</td></tr>';
+        `).join('');
 
         // Recent Activity
-        const recentTasks = allTransactions.filter(t => t.method === 'create_task').slice(0, 5);
+        const recentTasks = (user.tasks || []).slice(0, 5);
         document.getElementById('recentActivity').innerHTML = recentTasks.length ? recentTasks.map(task => `
-            <div class="task-item" onclick="viewTaskDetails('${task.billing_id}')">
+            <div class="task-item" onclick="viewTask('${task._id}')">
                 <div style="display:flex;justify-content:space-between;align-items:start">
                     <div>
-                        <div style="font-weight:600">${task.details?.url || 'Task URL'}</div>
+                        <div style="font-weight:600">${task.url}</div>
                         <div style="font-size:.875rem;color:var(--text-light);margin-top:.25rem">
-                            ${task.details?.keywords?.length || 0} keywords • $${task.total_payment || 0} budget
+                            ${task.keywords_count} keywords • ${task.views_count} views • $${task.total_charge}
                         </div>
                     </div>
                     <div style="text-align:right">
-                        <div class="badge badge-${task.status === 'Paid' ? 'success' : task.status === 'cancelled' ? 'error' : 'warning'}">
-                            ${task.status}
+                        <div class="badge badge-${task.remaining_percentage > 50 ? 'success' : task.remaining_percentage > 20 ? 'warning': 'error'}">
+                            ${task.remaining_percentage}% remaining
+                        </div>
+                        <div class="progress-bar" style="width:100px;margin-top:.5rem">
+                            <div class="progress-fill" style="width:${task.remaining_percentage}%"></div>
                         </div>
                     </div>
                 </div>
@@ -510,19 +570,19 @@ async function loadDashboard() {
         `).join('') : '<div class="empty-state"><p>No active tasks yet</p></div>';
 
         // Charts
-        createDashboardCharts(allTransactions);
+        createDashboardCharts(user);
 
     } catch (error) {
         console.error('Dashboard error:', error);
     }
 }
 
-function createDashboardCharts(transactions) {
+function createDashboardCharts(user) {
     // Tasks Performance Chart
-    const taskData = transactions.filter(t => t.method === 'create_task').map(task => ({
-        label: task.details?.url ? new URL(task.details.url).hostname : 'Task',
-        amount: typeof task.total_payment === 'number' ? task.total_payment : parseFloat(task.total_payment?.parsedValue || 0),
-        status: task.status
+    const taskData = (user.tasks || []).map(task => ({
+        label: new URL(task.url).hostname,
+        views: task.views_count,
+        budget: task.available_charge
     }));
 
     if (charts.tasks) charts.tasks.destroy();
@@ -532,9 +592,13 @@ function createDashboardCharts(transactions) {
         data: {
             labels: taskData.map(t => t.label),
             datasets: [{
-                label: 'Task Budget',
-                data: taskData.map(t => t.amount),
-                backgroundColor: taskData.map(t => t.status === 'Paid' ? 'rgba(16, 185, 129, 0.8)' : 'rgba(59, 130, 246, 0.8)')
+                label: 'Views',
+                data: taskData.map(t => t.views),
+                backgroundColor: 'rgba(59, 130, 246, 0.8)'
+            }, {
+                label: 'Budget Remaining',
+                data: taskData.map(t => t.budget),
+                backgroundColor: 'rgba(16, 185, 129, 0.8)'
             }]
         },
         options: {
@@ -544,66 +608,72 @@ function createDashboardCharts(transactions) {
         }
     });
 
-    // Country Distribution (mock data for now)
-    const countryData = {'US': 45, 'UK': 25, 'CA': 15, 'AU': 10, 'DE': 5};
-
-    if (charts.country) charts.country.destroy();
-    const ctx2 = document.getElementById('countryChart').getContext('2d');
-    charts.country = new Chart(ctx2, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(countryData),
-            datasets: [{
-                data: Object.values(countryData),
-                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'right' }
-            }
+    // Country Distribution
+    const countryData = {};
+    user.tasks?.forEach(task => {
+        if (task.country_visits) {
+            Object.entries(task.country_visits).forEach(([country, visits]) => {
+                countryData[country] = (countryData[country] || 0) + visits;
+            });
         }
     });
+
+    if (Object.keys(countryData).length) {
+        if (charts.country) charts.country.destroy();
+        const ctx2 = document.getElementById('countryChart').getContext('2d');
+        charts.country = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(countryData),
+                datasets: [{
+                    data: Object.values(countryData),
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+    }
 }
 
 // Tasks Management
 async function loadTasks() {
     try {
-        const { data } = await api('/dashboard/billings?page=1&limit=50');
-        const tasks = (data.tasks || []).filter(t => t.method === 'create_task');
-        currentData.tasks = tasks;
+        const { data } = await api('/users/dashboard?page=1&page_size=50');
+        const user = data.user;
+        currentData.tasks = user.tasks || [];
 
         // Update stats
-        const activeTasks = tasks.filter(t => t.status === 'Paid').length;
-        const totalBudget = tasks.reduce((sum, t) => sum + (t.final_amount || 0), 0);
-
-        document.getElementById('activeTasksCount').textContent = activeTasks;
-        document.getElementById('totalViewsCount').textContent = '0'; // No views data in billing API
-        document.getElementById('availableBudget').textContent = `$${totalBudget.toFixed(2)}`;
+        document.getElementById('activeTasksCount').textContent = user.usage_summary?.active_tasks || 0;
+        document.getElementById('totalViewsCount').textContent = (user.task_statistics?.total_views || 0).toLocaleString();
+        document.getElementById('availableBudget').textContent = `$${(user.task_statistics?.available_charge || 0).toFixed(2)}`;
 
         // Tasks list
         const tasksList = document.getElementById('tasksList');
-        if (tasks.length) {
-            tasksList.innerHTML = tasks.map(task => `
-                <div class="task-item" onclick="viewTaskDetails('${task.billing_id}')">
+        if (currentData.tasks.length) {
+            tasksList.innerHTML = currentData.tasks.map(task => `
+                <div class="task-item" onclick="viewTask('${task._id}')">
                     <div style="display:flex;justify-content:space-between;align-items:center">
                         <div style="flex:1">
-                            <h4 style="margin:0 0 .5rem">${task.details?.url || 'Task URL'}</h4>
+                            <h4 style="margin:0 0 .5rem">${task.url}</h4>
                             <div style="display:flex;gap:1rem;flex-wrap:wrap">
-                                <span class="badge badge-primary">${task.details?.keywords?.length || 0} keywords</span>
-                                <span class="badge badge-warning">$${task.total_payment || 0} budget</span>
-                                <span class="badge badge-${task.details?.priority === 0.15 ? 'error' : task.details?.priority === 0.12 ? 'warning' : 'primary'}">
-                                    ${task.details?.priority === 0.15 ? 'Premium' : task.details?.priority === 0.12 ? 'Standard' : 'Basic'}
+                                <span class="badge badge-primary">${task.keywords_count} keywords</span>
+                                <span class="badge badge-success">${task.views_count} views</span>
+                                <span class="badge badge-warning">$${task.total_charge} budget</span>
+                                <span class="badge badge-${task.task_priority === 0.15 ? 'error' : task.task_priority === 0.12 ? 'warning' : 'primary'}">
+                                    ${task.task_priority === 0.15 ? 'Premium' : task.task_priority === 0.12 ? 'Standard' : 'Basic'}
                                 </span>
                             </div>
                         </div>
                         <div style="text-align:right">
-                            <div class="badge badge-${task.status === 'Paid' ? 'success' : task.status === 'cancelled' ? 'error' : 'warning'}">
-                                ${task.status}
-                            </div>
-                            ${task.status === 'Paid' ? `<button class="btn btn-sm" style="margin-top:.5rem" onclick="event.stopPropagation();rechargeTask('${task.task_id || task.billing_id}')">Recharge</button>` : ''}
+                            <div style="font-size:1.5rem;font-weight:700;color:var(--primary)">${task.remaining_percentage}%</div>
+                            <div style="font-size:.875rem;color:var(--text-light)">remaining</div>
+                            <button class="btn btn-sm" style="margin-top:.5rem" onclick="event.stopPropagation();rechargeTask('${task._id}')">Recharge</button>
                         </div>
                     </div>
                 </div>
@@ -611,6 +681,9 @@ async function loadTasks() {
         } else {
             tasksList.innerHTML = `
                 <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
                     <p>No SEO tasks created yet</p>
                     <button class="btn btn-primary" onclick="showTaskModal()">Create Your First Task</button>
                 </div>
@@ -621,53 +694,119 @@ async function loadTasks() {
     }
 }
 
-async function viewTaskDetails(taskId) {
-    const task = currentData.tasks?.find(t => t.billing_id === taskId);
-    if (!task) {
-        showToast('Task not found', 'error');
-        return;
-    }
+async function viewTask(taskId) {
+    try {
+        const { data } = await api('/get-task-details', {
+            method: 'POST',
+            body: JSON.stringify({ task_id: taskId })
+        });
 
-    showModal('Task Details', `
-        <div class="stat-grid" style="margin-bottom:1.5rem">
-            <div class="stat-card">
-                <div class="stat-label">Total Budget</div>
-                <div class="stat-value">$${task.total_payment || 0}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Final Amount</div>
-                <div class="stat-value">$${task.final_amount || 0}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Status</div>
-                <div class="stat-value">
-                    <span class="badge badge-${task.status === 'Paid' ? 'success' : task.status === 'cancelled' ? 'error' : 'warning'}">
-                        ${task.status}
-                    </span>
+        document.getElementById('taskDetails').style.display = 'block';
+        document.getElementById('taskDetailsContent').innerHTML = `
+            <div class="stat-grid" style="margin-bottom:1.5rem">
+                <div class="stat-card">
+                    <div class="stat-label">Total Budget</div>
+                    <div class="stat-value">$${data.total_charge}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Remaining</div>
+                    <div class="stat-value">$${data.available_charge}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Views</div>
+                    <div class="stat-value">${data.views_count || 0}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Keywords</div>
+                    <div class="stat-value">${data.keywords?.length || 0}</div>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">Keywords</div>
-                <div class="stat-value">${task.details?.keywords?.length || 0}</div>
-            </div>
-        </div>
 
-        <div style="margin-bottom:1.5rem">
-            <h4>Task Information</h4>
-            <div style="display:grid;gap:.5rem;margin-top:1rem">
-                <div><strong>URL:</strong> <a href="${task.details?.url || '#'}" target="_blank" style="color:var(--primary)">${task.details?.url || 'N/A'}</a></div>
-                <div><strong>Created:</strong> ${new Date(task.dates?.created).toLocaleString()}</div>
-                <div><strong>Priority:</strong> ${task.details?.priority === 0.15 ? 'Premium ($0.15/click)' : task.details?.priority === 0.12 ? 'Standard ($0.12/click)' : 'Basic ($0.10/click)'}</div>
-                <div><strong>Keywords:</strong> ${task.details?.keywords?.map(k => `<span class="badge badge-primary">${k}</span>`).join(' ') || 'None'}</div>
-                ${task.details?.html_locations ? `<div><strong>HTML Locations:</strong> ${task.details.html_locations.length} selected</div>` : ''}
+            <div style="margin-bottom:1.5rem">
+                <h4>Task Information</h4>
+                <div style="display:grid;gap:.5rem;margin-top:1rem">
+                    <div><strong>URL:</strong> <a href="${data.url}" target="_blank" style="color:var(--primary)">${data.url}</a></div>
+                    <div><strong>Created:</strong> ${new Date(data.date_created).toLocaleString()}</div>
+                    <div><strong>Priority:</strong> ${data.task_priority === 0.15 ? 'Premium ($0.15/click)' : data.task_priority === 0.12 ? 'Standard ($0.12/click)' : 'Basic ($0.10/click)'}</div>
+                    <div><strong>Keywords:</strong> ${data.keywords?.map(k => `<span class="badge badge-primary">${k}</span>`).join(' ') || 'None'}</div>
+                </div>
             </div>
-        </div>
 
-        <div style="display:flex;gap:1rem;margin-top:1.5rem">
-            ${task.status === 'Paid' ? `<button class="btn btn-primary" onclick="rechargeTask('${task.task_id || task.billing_id}')">Recharge Task</button>` : ''}
-            <button class="btn" onclick="exportTaskData('${task.billing_id}')">Export Data</button>
-        </div>
-    `);
+            ${data.country_visits && Object.keys(data.country_visits).length ? `
+                <div class="analytics-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Views by Country</h4>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="taskCountryChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Daily Views</h4>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="taskDailyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            ` : '<p style="text-align:center;color:var(--text-light)">No analytics data available yet</p>'}
+
+            <div style="display:flex;gap:1rem;margin-top:1.5rem">
+                <button class="btn btn-primary" onclick="rechargeTask('${taskId}')">Recharge Task</button>
+                <button class="btn" onclick="exportTaskData('${taskId}')">Export Data</button>
+            </div>
+        `;
+
+        // Create task-specific charts
+        if (data.country_visits && Object.keys(data.country_visits).length) {
+            setTimeout(() => {
+                const ctx1 = document.getElementById('taskCountryChart').getContext('2d');
+                new Chart(ctx1, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(data.country_visits),
+                        datasets: [{
+                            data: Object.values(data.country_visits),
+                            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                if (data.views_by_date) {
+                    const ctx2 = document.getElementById('taskDailyChart').getContext('2d');
+                    const dates = Object.keys(data.views_by_date).sort();
+                    new Chart(ctx2, {
+                        type: 'line',
+                        data: {
+                            labels: dates,
+                            datasets: [{
+                                label: 'Daily Views',
+                                data: dates.map(d => data.views_by_date[d]),
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: { y: { beginAtZero: true } }
+                        }
+                    });
+                }
+            }, 100);
+        }
+
+    } catch (error) {
+        console.error('View task error:', error);
+    }
+}
+
+function closeTaskDetails() {
+    document.getElementById('taskDetails').style.display = 'none';
 }
 
 async function showTaskModal() {
@@ -695,7 +834,7 @@ async function showTaskModal() {
         <div id="taskStep3" style="display:none">
             <div class="form-group">
                 <label class="form-label">Keywords</label>
-                <input type="text" class="form-input" id="taskKeywords" placeholder="Enter keywords separated by commas">
+                <input type="text" class="form-input" id="taskKeywords" placeholder="Enter keywords or click AI Suggest">
                 <button class="btn btn-sm" style="margin-top:.5rem" onclick="suggestKeywords()">🤖 AI Suggest Keywords</button>
                 <div class="keyword-grid" id="keywordSuggestions"></div>
             </div>
@@ -704,9 +843,9 @@ async function showTaskModal() {
                 <div class="form-group">
                     <label class="form-label">Task Priority</label>
                     <select class="form-select" id="taskPriority" onchange="updatePricing()">
-                        <option value="0.10">Basic ($0.10/click)</option>
-                        <option value="0.12" selected>Standard ($0.12/click)</option>
-                        <option value="0.15">Premium ($0.15/click)</option>
+                        <option value="basic">Basic ($0.10/click, 1 location)</option>
+                        <option value="standard" selected>Standard ($0.12/click, 3 locations)</option>
+                        <option value="premium">Premium ($0.15/click, 5 locations)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -747,7 +886,7 @@ function loadTaskStep2() {
     const iframe = document.getElementById('taskPreview');
     iframe.src = url;
 
-    // Enhanced click handler for XPath detection
+    // Add click handler to iframe
     iframe.onload = () => {
         const overlay = document.getElementById('locationOverlay');
         overlay.addEventListener('click', (e) => {
@@ -755,44 +894,19 @@ function loadTaskStep2() {
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
-            // Calculate relative position
-            const relativeX = (x / rect.width) * 100;
-            const relativeY = (y / rect.height) * 100;
-
             const marker = document.createElement('div');
             marker.className = 'location-marker';
             marker.style.left = x + 'px';
             marker.style.top = y + 'px';
             overlay.appendChild(marker);
 
-            // Generate more accurate XPath based on position
-            const xpath = generateXPath(relativeX, relativeY, currentData.taskLocations.length + 1);
+            // Generate XPath (simplified)
+            const xpath = `/html/body/div[${Math.floor(x/100)}]/a[${currentData.taskLocations.length + 1}]`;
             currentData.taskLocations.push(xpath);
 
             updateSelectedLocations();
-            
-            // Animate marker
-            gsap.from(marker, {duration: 0.3, scale: 0, ease: "back.out(1.7)"});
         });
     };
-}
-
-function generateXPath(x, y, index) {
-    // More sophisticated XPath generation based on common website structures
-    const sections = [
-        '/html/body/header//a',
-        '/html/body/nav//a',
-        '/html/body/main//a',
-        '/html/body/footer//a',
-        '/html/body/div[@class="content"]//a',
-        '/html/body/div[@class="container"]//a'
-    ];
-    
-    // Select section based on Y position
-    let sectionIndex = Math.floor((y / 100) * sections.length);
-    if (sectionIndex >= sections.length) sectionIndex = sections.length - 1;
-    
-    return `${sections[sectionIndex]}[${index}]`;
 }
 
 function updateSelectedLocations() {
@@ -806,10 +920,7 @@ function updateSelectedLocations() {
 function removeLocation(idx) {
     currentData.taskLocations.splice(idx, 1);
     updateSelectedLocations();
-    const markers = document.querySelectorAll('.location-marker');
-    if (markers[idx]) {
-        gsap.to(markers[idx], {duration: 0.3, scale: 0, ease: "back.in(1.7)", onComplete: () => markers[idx].remove()});
-    }
+    document.querySelectorAll('.location-marker')[idx]?.remove();
 }
 
 function loadTaskStep3() {
@@ -820,10 +931,6 @@ function loadTaskStep3() {
 
     document.getElementById('taskStep2').style.display = 'none';
     document.getElementById('taskStep3').style.display = 'block';
-    
-    // Animate step transition
-    gsap.from('#taskStep3', {duration: 0.5, opacity: 0, x: 20});
-    updatePricing();
 }
 
 async function suggestKeywords() {
@@ -843,9 +950,6 @@ async function suggestKeywords() {
             <div class="keyword-item" onclick="toggleKeyword('${keyword}')">${keyword}</div>
         `).join('');
 
-        // Animate keywords
-        gsap.from('.keyword-item', {duration: 0.3, y: 10, opacity: 0, stagger: 0.05});
-
     } catch (error) {
         showToast('Failed to get keyword suggestions', 'error');
     } finally {
@@ -856,26 +960,27 @@ async function suggestKeywords() {
 
 function toggleKeyword(keyword) {
     const idx = currentData.selectedKeywords.indexOf(keyword);
-    const element = event.target;
-    
     if (idx === -1) {
         currentData.selectedKeywords.push(keyword);
-        element.classList.add('selected');
-        gsap.to(element, {duration: 0.2, scale: 1.05, ease: "back.out(1.7)"});
     } else {
         currentData.selectedKeywords.splice(idx, 1);
-        element.classList.remove('selected');
-        gsap.to(element, {duration: 0.2, scale: 1});
     }
+
+    document.querySelectorAll('.keyword-item').forEach(item => {
+        if (item.textContent === keyword) {
+            item.classList.toggle('selected');
+        }
+    });
 
     document.getElementById('taskKeywords').value = currentData.selectedKeywords.join(', ');
 }
 
 function updatePricing() {
-    const priority = parseFloat(document.getElementById('taskPriority').value);
+    const priority = document.getElementById('taskPriority').value;
     const budget = parseFloat(document.getElementById('taskBudget').value) || 0;
 
-    const clicks = Math.floor(budget / priority);
+    const rates = { basic: 0.10, standard: 0.12, premium: 0.15 };
+    const clicks = Math.floor(budget / rates[priority]);
 
     document.getElementById('estimatedClicks').textContent = clicks.toLocaleString();
     document.getElementById('estimatedDuration').textContent = `~${Math.ceil(clicks / 200)} days`;
@@ -895,8 +1000,7 @@ async function createTask() {
                 task_details: {
                     url: document.getElementById('taskUrl').value,
                     keywords: keywords,
-                    html_locations: currentData.taskLocations,
-                    priority: parseFloat(document.getElementById('taskPriority').value)
+                    html_locations: currentData.taskLocations
                 },
                 task_priority: document.getElementById('taskPriority').value,
                 total_charge: parseInt(document.getElementById('taskBudget').value),
@@ -925,7 +1029,6 @@ async function rechargeTask(taskId) {
             method: 'POST',
             body: JSON.stringify({
                 task_ids: [taskId],
-                amount: parseFloat(amount),
                 payment_method: 'stripe',
                 cancel_previous: false
             })
@@ -941,170 +1044,763 @@ async function rechargeTask(taskId) {
 
 // Hosting Management
 async function loadHosting() {
-    showHostingContent('overview');
+    try {
+        const { data } = await api('/hosting/subscription-status');
+        currentData.hosting = data;
+
+        // Stats
+        const stats = [
+            { label: 'Current Plan', value: (data.current_plan || 'free').toUpperCase() },
+            { label: 'Images Used', value: `${data.images_uploads || 0}/${data.images_limit || 0}` },
+            { label: 'Articles Used', value: `${data.article_uploads || 0}/${data.articles_limit || 0}` },
+            { label: 'Expires', value: data.expiry_date ? new Date(data.expiry_date).toLocaleDateString() : 'Never' }
+        ];
+
+        document.getElementById('hostingStats').innerHTML = stats.map(stat => `
+            <div class="stat-card">
+                <div class="stat-label">${stat.label}</div>
+                <div class="stat-value">${stat.value}</div>
+            </div>
+        `).join('');
+
+        // Plan details
+        document.getElementById('planDetails').innerHTML = `
+            <div style="display:grid;gap:1rem">
+                ${data.is_subscription ? `
+                    <div class="card" style="background:var(--input-bg)">
+                        <div style="padding:1rem">
+                            <h4>Subscription Details</h4>
+                            <div style="display:grid;gap:.5rem;margin-top:1rem">
+                                <div><strong>Status:</strong> <span class="badge badge-${data.subscription_status === 'active' ? 'success' : 'warning'}">${data.subscription_status}</span></div>
+                                <div><strong>Period:</strong> ${data.subscription_period_start} to ${data.subscription_period_end}</div>
+                                <div><strong>Last Payment:</strong> $${data.billing?.last_payment_amount} on ${data.billing?.last_payment_date}</div>
+                            </div>
+                            <button class="btn btn-error btn-sm" style="margin-top:1rem" onclick="cancelSubscription()">Cancel Subscription</button>
+                        </div>
+                    </div>
+                ` : ''}
+
+                <div>
+                    <h4>Plan Limits</h4>
+                    <div style="margin-top:1rem">
+                        <div style="margin-bottom:1rem">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:.5rem">
+                                <span>Images</span>
+                                <span>${data.images_uploads || 0} / ${data.images_limit || 0}</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width:${((data.images_uploads || 0) / (data.images_limit || 1) * 100)}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:.5rem">
+                                <span>Articles</span>
+                                <span>${data.article_uploads || 0} / ${data.articles_limit || 0}</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width:${((data.article_uploads || 0) / (data.articles_limit || 1) * 100)}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Load default tab
+        showHostingTab('overview');
+
+    } catch (error) {
+        console.error('Hosting error:', error);
+    }
 }
 
-function showHostingContent(type) {
-    // Update navigation
-    document.querySelectorAll('.hosting-nav-item').forEach(item => item.classList.remove('active'));
-    event.target.classList.add('active');
+function showHostingTab(tab) {
+    document.querySelectorAll('#hosting .tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#hosting .section').forEach(s => s.classList.remove('active'));
 
-    const content = document.getElementById('hostingContent');
-    
-    switch(type) {
-        case 'overview':
-            content.innerHTML = `
-                <div class="stat-grid" style="margin-bottom:1.5rem">
-                    <div class="stat-card">
-                        <div class="stat-label">Current Plan</div>
-                        <div class="stat-value">FREE</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Images Used</div>
-                        <div class="stat-value">0/10</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Articles Used</div>
-                        <div class="stat-value">0/5</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Storage Used</div>
-                        <div class="stat-value">0GB/1GB</div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Upgrade Your Plan</h3>
-                        <button class="btn btn-primary" onclick="showUpgradeModal()">Upgrade Now</button>
-                    </div>
-                    <div class="card-body">
-                        <p>Upgrade to unlock more storage, images, and articles for your hosting needs.</p>
-                    </div>
-                </div>
-            `;
-            break;
-        case 'images':
-            content.innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-                    <h3>Image Management</h3>
-                    <button class="btn btn-primary" onclick="showImageUploadModal()">Upload Images</button>
-                </div>
-                <div class="empty-state">
-                    <p>No images uploaded yet</p>
-                </div>
-            `;
-            break;
-        case 'articles':
-            content.innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-                    <h3>Article Management</h3>
-                    <button class="btn btn-primary" onclick="showArticleModal()">Create Article</button>
-                </div>
-                <div class="empty-state">
-                    <p>No articles published yet</p>
-                </div>
-            `;
-            break;
-        case 'domains':
-            content.innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-                    <h3>Domain Management</h3>
-                    <button class="btn btn-primary" onclick="showDomainModal()">Add Domain</button>
-                </div>
-                <div class="empty-state">
-                    <p>No domains configured yet</p>
-                </div>
-            `;
-            break;
-    }
-    
-    // Animate content
-    gsap.from(content.children, {duration: 0.5, y: 20, opacity: 0, stagger: 0.1});
+    event.target.classList.add('active');
+    document.getElementById(`hosting-${tab}`).classList.add('active');
+
+    if (tab === 'images') loadImages();
+    if (tab === 'articles') loadArticles();
 }
 
 async function showUpgradeModal() {
     showModal('Upgrade Hosting Plan', `
         <div style="display:grid;gap:1rem">
-            <div class="card" style="cursor:pointer;transition:all .2s;padding:1.5rem" onclick="selectPlan('basic')">
-                <h4>Basic Plan</h4>
-                <div class="stat-value">$9.99/mo</div>
-                <p style="color:var(--text-light);margin-top:.5rem">100 images, 50 articles, 10GB storage</p>
+            <div class="card" style="cursor:pointer;transition:all .2s" onclick="selectPlan('basic')" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="padding:1.5rem">
+                    <h4>Basic Plan</h4>
+                    <div class="stat-value">$9.99/mo</div>
+                    <p style="color:var(--text-light);margin-top:.5rem">100 images, 50 articles</p>
+                    <ul style="margin-top:1rem;list-style:none;padding:0">
+                        <li>✓ Basic CDN</li>
+                        <li>✓ Email Support</li>
+                        <li>✓ 99.9% Uptime</li>
+                    </ul>
+                </div>
             </div>
-            <div class="card" style="cursor:pointer;transition:all .2s;border:2px solid var(--primary);padding:1.5rem" onclick="selectPlan('pro')">
-                <div class="badge badge-primary" style="position:absolute;top:1rem;right:1rem">Popular</div>
-                <h4>Pro Plan</h4>
-                <div class="stat-value">$19.99/mo</div>
-                <p style="color:var(--text-light);margin-top:.5rem">500 images, 200 articles, 50GB storage</p>
+            <div class="card" style="cursor:pointer;transition:all .2s;border:2px solid var(--primary)" onclick="selectPlan('pro')" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="padding:1.5rem">
+                    <div class="badge badge-primary" style="position:absolute;top:1rem;right:1rem">Popular</div>
+                    <h4>Pro Plan</h4>
+                    <div class="stat-value">$19.99/mo</div>
+                    <p style="color:var(--text-light);margin-top:.5rem">500 images, 200 articles</p>
+                    <ul style="margin-top:1rem;list-style:none;padding:0">
+                        <li>✓ Premium CDN</li>
+                        <li>✓ Priority Support</li>
+                        <li>✓ 99.99% Uptime</li>
+                        <li>✓ Advanced Analytics</li>
+                    </ul>
+                </div>
             </div>
-            <div class="card" style="cursor:pointer;transition:all .2s;padding:1.5rem" onclick="selectPlan('enterprise')">
-                <h4>Enterprise Plan</h4>
-                <div class="stat-value">$49.99/mo</div>
-                <p style="color:var(--text-light);margin-top:.5rem">Unlimited everything</p>
+            <div class="card" style="cursor:pointer;transition:all .2s" onclick="selectPlan('enterprise')" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="padding:1.5rem">
+                    <h4>Enterprise Plan</h4>
+                    <div class="stat-value">$49.99/mo</div>
+                    <p style="color:var(--text-light);margin-top:.5rem">Unlimited everything</p>
+                    <ul style="margin-top:1rem;list-style:none;padding:0">
+                        <li>✓ Global CDN</li>
+                        <li>✓ 24/7 Phone Support</li>
+                        <li>✓ 100% Uptime SLA</li>
+                        <li>✓ Custom Features</li>
+                        <li>✓ Dedicated Account Manager</li>
+                    </ul>
+                </div>
             </div>
         </div>
+
+        <form id="planForm" style="display:none;margin-top:1.5rem">
+            <div class="form-group">
+                <label class="form-label">Billing Period</label>
+                <select class="form-select" name="duration" onchange="updatePlanPricing()">
+                    <option value="3month">3 Months (Save 5%)</option>
+                    <option value="6month">6 Months (Save 10%)</option>
+                    <option value="12month">12 Months (Save 20%)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="subscription" checked> Enable auto-renewal
+                </label>
+            </div>
+            <div class="card" style="background:var(--input-bg);padding:1rem;margin-bottom:1rem">
+                <div style="display:flex;justify-content:space-between">
+                    <span>Total Price:</span>
+                    <strong id="planTotalPrice">$29.97</strong>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Proceed to Payment</button>
+        </form>
     `);
 }
 
 function selectPlan(plan) {
-    showToast(`${plan.charAt(0).toUpperCase() + plan.slice(1)} plan selected! Payment integration coming soon.`, 'success');
-    closeModal();
+    currentData.selectedPlan = plan;
+    document.getElementById('planForm').style.display = 'block';
+    updatePlanPricing();
+    document.getElementById('planForm').addEventListener('submit', buyPlan);
 }
 
-// Billing Management
-async function loadBilling(page = 1, type = 'all') {
+function updatePlanPricing() {
+    const prices = { basic: 9.99, pro: 19.99, enterprise: 49.99 };
+    const duration = document.querySelector('[name="duration"]').value;
+    const months = { '3month': 3, '6month': 6, '12month': 12 };
+    const discounts = { '3month': 0.95, '6month': 0.90, '12month': 0.80 };
+
+    const total = prices[currentData.selectedPlan] * months[duration] * discounts[duration];
+    document.getElementById('planTotalPrice').textContent = `$${total.toFixed(2)}`;
+}
+
+async function buyPlan(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
     try {
-        const { data } = await api('/dashboard/billings?page=1&limit=50');
-        let allPayments = [...(data.tasks || []), ...(data.hosting || [])];
-        
-        if (type !== 'all') {
-            allPayments = type === 'tasks' ? (data.tasks || []) : (data.hosting || []);
+        const { data } = await api('/hosting/buy-package', {
+            method: 'POST',
+            body: JSON.stringify({
+                package: currentData.selectedPlan,
+                provider: 'stripe',
+                duration: formData.get('duration'),
+                subscription: formData.get('subscription') === 'on',
+                cancel_previous: false,
+                cancel_current_plan: false
+            })
+        });
+
+        window.open(data.payment_url, '_blank');
+        closeModal();
+        showToast('Redirecting to payment...', 'success');
+
+    } catch (error) {
+        console.error('Buy plan error:', error);
+    }
+}
+
+async function cancelSubscription() {
+    if (!confirm('Are you sure you want to cancel your subscription?')) return;
+
+    try {
+        await api('/hosting/cancel-subscription');
+        showToast('Subscription cancelled successfully', 'success');
+        loadHosting();
+    } catch (error) {
+        console.error('Cancel subscription error:', error);
+    }
+}
+
+// Images Management
+async function loadImages(page = 1) {
+    try {
+        const { data, pagination } = await api(`/images/dashboard?page=${page}&page_size=20`);
+
+        const imageGrid = document.getElementById('imageGrid');
+        if (data.images?.length) {
+            imageGrid.innerHTML = data.images.map(img => `
+                <div class="media-card">
+                    <div class="media-preview">
+                        <img src="${img.cdn_url}" alt="${img.original_filename}" loading="lazy">
+                    </div>
+                    <div class="media-info">
+                        <div style="font-weight:600;font-size:.875rem;margin-bottom:.5rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${img.original_filename}</div>
+                        <div style="font-size:.75rem;color:var(--text-light)">
+                            ${img.total_views || 0} views • ${new Date(img.upload_date).toLocaleDateString()}
+                        </div>
+                        <div style="display:flex;gap:.5rem;margin-top:.5rem">
+                            <button class="btn btn-sm" onclick="copyToClipboard('${img.cdn_url}')">Copy URL</button>
+                            <button class="btn btn-sm" onclick="viewImageStats('${img.image_id}')">Stats</button>
+                            <button class="btn btn-sm" onclick="deleteImage('${img.image_id}')">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            imageGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>No images uploaded yet</p></div>';
+        }
+    } catch (error) {
+        console.error('Images error:', error);
+    }
+}
+
+async function showImageUploadModal() {
+    showModal('Upload Images', `
+        <div class="dropzone" id="dropzone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+            <p style="margin-top:1rem">Drop images here or click to browse</p>
+            <p style="font-size:.875rem;color:var(--text-light)">Max 10 files, 5MB each</p>
+            <input type="file" id="imageFiles" multiple accept="image/*" style="display:none" onchange="handleFiles(this.files)">
+        </div>
+        <div id="imagePreview" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.5rem;margin-top:1rem"></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:1rem;display:none" id="uploadBtn" onclick="uploadImages()">Upload Images</button>
+    `);
+
+    document.getElementById('dropzone').addEventListener('click', () => {
+        document.getElementById('imageFiles').click();
+    });
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('active');
+}
+
+function handleDragLeave(e) {
+    e.currentTarget.classList.remove('active');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('active');
+    handleFiles(e.dataTransfer.files);
+}
+
+function handleFiles(files) {
+    if (files.length > 10) {
+        showToast('Maximum 10 files allowed', 'error');
+        return;
+    }
+
+    currentData.uploadFiles = files;
+    const preview = document.getElementById('imagePreview');
+    preview.innerHTML = '';
+
+    Array.from(files).forEach((file, idx) => {
+        if (file.size > 5 * 1024 * 1024) {
+            showToast(`${file.name} exceeds 5MB limit`, 'error');
+            return;
         }
 
-        // Stats (simplified)
-        const totalTransactions = allPayments.length;
-        const paidCount = allPayments.filter(p => p.status === 'Paid').length;
-        const totalAmount = allPayments.reduce((sum, p) => {
-            const amount = typeof p.total_payment === 'number' ? p.total_payment : parseFloat(p.total_payment?.parsedValue || 0);
-            return sum + amount;
-        }, 0);
+        const reader = new FileReader();
+        reader.onload = e => {
+            preview.innerHTML += `
+                <div style="position:relative">
+                    <img src="${e.target.result}" style="width:100%;height:100px;object-fit:cover;border-radius:var(--radius)">
+                    <button class="btn-icon" style="position:absolute;top:4px;right:4px;width:24px;height:24px;background:var(--error);color:white;border:none" onclick="removeFile(${idx})">×</button>
+                    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);color:white;font-size:.7rem;padding:.25rem;text-align:center">
+                        ${(file.size / 1024 / 1024).toFixed(1)}MB
+                    </div>
+                </div>
+            `;
+        };
+        reader.readAsDataURL(file);
+    });
 
+    document.getElementById('uploadBtn').style.display = files.length ? 'block' : 'none';
+}
+
+async function uploadImages() {
+    const formData = new FormData();
+    Array.from(currentData.uploadFiles).forEach(file => {
+        formData.append('file', file);
+    });
+
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loader"></span> Uploading...';
+
+    try {
+        const response = await fetch(`${API_BASE}/images/upload`, {
+            method: 'POST',
+            headers: { 'Session-Token': sessionToken },
+            body: formData
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+            closeModal();
+            showToast(`${result.data.uploaded_images.length} images uploaded successfully`, 'success');
+            loadImages();
+        } else {
+            throw new Error(result.error?.message || 'Upload failed');
+        }
+    } catch (error) {
+        showToast(error.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Upload Images';
+    }
+}
+
+async function viewImageStats(imageId) {
+    // Implementation for viewing image statistics
+    showToast('Image statistics coming soon', 'info');
+}
+
+async function deleteImage(imageId) {
+    if (!confirm('Delete this image permanently?')) return;
+
+    try {
+        await api('/images', {
+            method: 'DELETE',
+            body: JSON.stringify({ image_ids: [imageId] })
+        });
+
+        showToast('Image deleted successfully', 'success');
+        loadImages();
+    } catch (error) {
+        console.error('Delete image error:', error);
+    }
+}
+
+// Articles Management
+async function loadArticles(page = 1) {
+    try {
+        // Load domains first
+        await loadDomains();
+
+        const { data, pagination } = await api(`/dashboard/articles?page=${page}&page_size=10`);
+
+        const articlesList = document.getElementById('articlesList');
+        if (data.articles?.length) {
+            articlesList.innerHTML = data.articles.map(article => `
+                <div class="card" style="margin-bottom:1rem">
+                    <div class="card-body">
+                        <div style="display:flex;justify-content:space-between;align-items:start">
+                            <div style="flex:1">
+                                <h4>${article.subject}</h4>
+                                <div style="font-size:.875rem;color:var(--text-light);margin:.5rem 0">
+                                    📍 ${article.url} • 📅 ${new Date(article.creation_date).toLocaleDateString()} • 👁️ ${article.total_views || 0} views
+                                </div>
+                                ${article.images?.length ? `
+                                    <div style="display:flex;gap:.5rem;margin-top:.5rem">
+                                        ${article.images.slice(0, 3).map(img => `
+                                            <img src="${img}" style="width:60px;height:60px;object-fit:cover;border-radius:var(--radius)">
+                                        `).join('')}
+                                        ${article.images.length > 3 ? `<div style="width:60px;height:60px;background:var(--input-bg);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:.875rem">+${article.images.length - 3}</div>` : ''}
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <div style="display:flex;gap:.5rem">
+                                <button class="btn btn-sm" onclick="viewArticle('${article.article_id}')">View</button>
+                                <button class="btn btn-sm" onclick="editArticle('${article.article_id}')">Edit</button>
+                                <button class="btn btn-sm" onclick="deleteArticle('${article.article_id}')">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            articlesList.innerHTML = '<div class="empty-state"><p>No articles published yet</p></div>';
+        }
+    } catch (error) {
+        console.error('Articles error:', error);
+    }
+}
+
+async function loadDomains() {
+    const domainsList = document.getElementById('domainsList');
+
+    // Since we don't have a list endpoint, show the current domains from articles
+    if (currentData.user?.hosting) {
+        domainsList.innerHTML = `
+            <div class="domain-item">
+                <div class="domain-status">
+                    <span class="badge badge-success">✓ Verified</span>
+                    <span>example.com</span>
+                </div>
+                <button class="btn btn-sm" onclick="showDomainModal()">Add New Domain</button>
+            </div>
+        `;
+    }
+}
+
+async function showDomainModal() {
+    showModal('Add Domain', `
+        <form id="domainForm">
+            <div class="form-group">
+                <label class="form-label">Domain URL</label>
+                <input type="text" class="form-input" name="url" required placeholder="example.com/blog">
+                <p style="font-size:.875rem;color:var(--text-light);margin-top:.5rem">
+                    Enter your domain or subdomain where articles will be published
+                </p>
+            </div>
+            <div class="card" style="background:var(--input-bg);padding:1rem">
+                <p style="font-size:.875rem">
+                    After adding your domain, you'll need to verify ownership by adding a TXT record to your DNS settings.
+                </p>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Add Domain</button>
+        </form>
+    `);
+
+    document.getElementById('domainForm').addEventListener('submit', addDomain);
+}
+
+async function addDomain(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    try {
+        const { data } = await api('/add-domain', {
+            method: 'POST',
+            body: JSON.stringify({ url: formData.get('url') })
+        });
+
+        if (data.txt_record) {
+            showModal('Domain Verification Required', `
+                <div class="card" style="background:var(--input-bg);padding:1.5rem">
+                    <h4>Domain added successfully!</h4>
+                    <p style="margin-top:1rem">To verify ownership, add this TXT record to your DNS:</p>
+                    <div style="background:var(--bg);padding:1rem;border-radius:var(--radius);margin:1rem 0;font-family:monospace;word-break:break-all">
+                        ${data.txt_record}
+                    </div>
+                    <button class="btn btn-primary" onclick="copyToClipboard('${data.txt_record}')">Copy TXT Record</button>
+                    <button class="btn" style="margin-left:.5rem" onclick="verifyDomain('${formData.get('url')}')">Verify Now</button>
+                </div>
+                <p style="font-size:.875rem;color:var(--text-light);margin-top:1rem">
+                    DNS changes may take up to 48 hours to propagate
+                </p>
+            `);
+        } else {
+            showToast('Domain added and verified successfully', 'success');
+            closeModal();
+            loadArticles();
+        }
+    } catch (error) {
+        console.error('Add domain error:', error);
+    }
+}
+
+async function verifyDomain(url) {
+    try {
+        await api('/verify-domain', {
+            method: 'POST',
+            body: JSON.stringify({ url })
+        });
+
+        showToast('Domain verified successfully', 'success');
+        closeModal();
+        loadArticles();
+    } catch (error) {
+        if (error.message.includes('DNS')) {
+            showToast('Verification failed. Please ensure the TXT record is added correctly.', 'warning');
+        }
+    }
+}
+
+async function showArticleModal(articleId = null) {
+    const isEdit = !!articleId;
+    let article = {};
+
+    if (isEdit) {
+        try {
+            const { data } = await api(`/dashboard/articles?article_id=${articleId}`);
+            article = data.article;
+        } catch (error) {
+            console.error('Load article error:', error);
+            return;
+        }
+    }
+
+    showModal(isEdit ? 'Edit Article' : 'Create New Article', `
+        <form id="articleForm">
+            <div class="form-group">
+                <label class="form-label">Domain URL</label>
+                <input type="text" class="form-input" name="url" value="${article.url || ''}" ${isEdit ? 'readonly' : 'required'} placeholder="example.com/blog">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Article Title</label>
+                <input type="text" class="form-input" name="subject" value="${article.subject || ''}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Article Content (HTML)</label>
+                <textarea class="form-textarea" name="body" rows="10" required>${article.body || ''}</textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">${isEdit ? 'Add New Images' : 'Images'}</label>
+                <input type="file" class="form-input" name="images" multiple accept="image/*">
+            </div>
+            ${isEdit && article.images?.length ? `
+                <div class="form-group">
+                    <label class="form-label">Current Images (click to remove)</label>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:.5rem" id="currentImages">
+                        ${article.images.map((img, idx) => `
+                            <div style="position:relative;cursor:pointer" onclick="toggleImageDelete(this, '${img}')">
+                                <img src="${img}" style="width:100%;height:80px;object-fit:cover;border-radius:var(--radius)">
+                                <div style="position:absolute;inset:0;background:rgba(239,68,68,0.8);color:white;display:none;align-items:center;justify-content:center;border-radius:var(--radius)">×</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <input type="hidden" name="deleteImages" value="">
+                </div>
+            ` : ''}
+            <button type="submit" class="btn btn-primary" style="width:100%">${isEdit ? 'Update Article' : 'Publish Article'}</button>
+        </form>
+    `);
+
+    document.getElementById('articleForm').addEventListener('submit', e => {
+        e.preventDefault();
+        if (isEdit) {
+            updateArticle(articleId, e.target);
+        } else {
+            createArticle(e.target);
+        }
+    });
+}
+
+async function createArticle(form) {
+    const formData = new FormData(form);
+
+    try {
+        const response = await fetch(`${API_BASE}/add-article`, {
+            method: 'POST',
+            headers: { 'Session-Token': sessionToken },
+            body: formData
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+            closeModal();
+            showToast('Article published successfully', 'success');
+            loadArticles();
+        } else {
+            throw new Error(result.error?.message || 'Failed to publish article');
+        }
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
+}
+
+async function updateArticle(articleId, form) {
+    const formData = new FormData(form);
+    const deleteImages = formData.get('deleteImages');
+    if (deleteImages) {
+        formData.append('delete_image_ids', deleteImages);
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/edit-article/${articleId}`, {
+            method: 'PUT',
+            headers: { 'Session-Token': sessionToken },
+            body: formData
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+            closeModal();
+            showToast('Article updated successfully', 'success');
+            loadArticles();
+        } else {
+            throw new Error(result.error?.message || 'Failed to update article');
+        }
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
+}
+
+async function viewArticle(articleId) {
+    try {
+        const { data } = await api(`/dashboard/articles?article_id=${articleId}`);
+        const article = data.article;
+
+        showModal(article.subject, `
+            <div style="margin-bottom:1rem">
+                <strong>URL:</strong> <a href="https://${article.url}" target="_blank" style="color:var(--primary)">${article.url}</a><br>
+                <strong>Created:</strong> ${new Date(article.creation_date).toLocaleString()}<br>
+                <strong>Total Views:</strong> ${article.total_views || 0}
+            </div>
+
+            ${article.images?.length ? `
+                <div style="margin-bottom:1rem">
+                    <strong>Images:</strong>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.5rem;margin-top:.5rem">
+                        ${article.images.map(img => `
+                            <img src="${img}" style="width:100%;height:100px;object-fit:cover;border-radius:var(--radius);cursor:pointer" onclick="window.open('${img}', '_blank')">
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+
+            <div style="margin-bottom:1rem">
+                <strong>Content:</strong>
+                <div style="max-height:300px;overflow-y:auto;padding:1rem;background:var(--input-bg);border-radius:var(--radius);margin-top:.5rem">
+                    ${article.body}
+                </div>
+            </div>
+
+            ${article.stats ? `
+                <div class="analytics-grid">
+                    <canvas id="articleStatsChart"></canvas>
+                </div>
+            ` : ''}
+
+            <div style="display:flex;gap:1rem;margin-top:1rem">
+                <button class="btn btn-primary" onclick="editArticle('${articleId}')">Edit Article</button>
+                <button class="btn" onclick="window.open('https://${article.url}', '_blank')">View Live</button>
+                <button class="btn" onclick="closeModal()">Close</button>
+            </div>
+        `);
+
+        // Create article stats chart if available
+        if (article.stats) {
+            setTimeout(() => {
+                const ctx = document.getElementById('articleStatsChart').getContext('2d');
+                const monthlyData = Object.entries(article.stats).map(([month, data]) => ({
+                    month,
+                    views: Object.values(data.daily || {}).reduce((a, b) => a + b, 0)
+                }));
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: monthlyData.map(d => d.month),
+                        datasets: [{
+                            label: 'Monthly Views',
+                            data: monthlyData.map(d => d.views),
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }, 100);
+        }
+    } catch (error) {
+        console.error('View article error:', error);
+    }
+}
+
+async function deleteArticle(articleId) {
+    if (!confirm('Delete this article permanently?')) return;
+
+    try {
+        await api(`/delete-article/${articleId}`, { method: 'DELETE' });
+        showToast('Article deleted successfully', 'success');
+        loadArticles();
+    } catch (error) {
+        console.error('Delete article error:', error);
+    }
+}
+
+function toggleImageDelete(elem, imageId) {
+    const overlay = elem.querySelector('div');
+    const input = document.querySelector('input[name="deleteImages"]');
+    const deleteList = input.value ? input.value.split(',') : [];
+
+    if (overlay.style.display === 'flex') {
+        overlay.style.display = 'none';
+        const index = deleteList.indexOf(imageId);
+        if (index > -1) deleteList.splice(index, 1);
+    } else {
+        overlay.style.display = 'flex';
+        deleteList.push(imageId);
+    }
+
+    input.value = deleteList.join(',');
+}
+
+// Billing
+async function loadBilling(page = 1, type = 'all') {
+    try {
+        const { data, pagination } = await api(`/dashboard/billings?page=${page}&limit=10&type=${type}`);
+
+        const allPayments = [...(data.tasks || []), ...(data.hosting || [])];
+        const totalSpent = allPayments.reduce((sum, p) => sum + (p.total_payment || 0), 0);
+        const paidCount = allPayments.filter(p => p.status === 'Paid').length;
+        const pendingCount = allPayments.filter(p => p.status !== 'Paid').length;
+
+        // Stats
         document.getElementById('billingStats').innerHTML = `
             <div class="stat-card">
-                <div class="stat-label">Total Transactions</div>
-                <div class="stat-value">${totalTransactions}</div>
+                <div class="stat-label">Total Spent</div>
+                <div class="stat-value">$${totalSpent.toFixed(2)}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Completed Payments</div>
+                <div class="stat-label">Total Transactions</div>
+                <div class="stat-value">${allPayments.length}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Completed</div>
                 <div class="stat-value">${paidCount}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Total Amount</div>
-                <div class="stat-value">$${totalAmount.toFixed(2)}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Success Rate</div>
-                <div class="stat-value">${totalTransactions ? Math.round((paidCount / totalTransactions) * 100) : 0}%</div>
+                <div class="stat-label">Pending</div>
+                <div class="stat-value">${pendingCount}</div>
             </div>
         `;
 
         // Table
         const tbody = document.getElementById('billingTable');
         if (allPayments.length) {
-            tbody.innerHTML = allPayments.map(payment => {
-                const amount = typeof payment.total_payment === 'number' ? payment.total_payment : parseFloat(payment.total_payment?.parsedValue || 0);
-                return `
+            tbody.innerHTML = allPayments.map(payment => `
                 <tr>
-                    <td>${new Date(payment.dates?.created).toLocaleDateString()}</td>
+                    <td>${new Date(payment.dates?.paid || payment.dates?.created).toLocaleDateString()}</td>
                     <td>
                         <span class="badge badge-${payment.method === 'create_task' ? 'primary' : payment.method === 'recharge' ? 'warning' : 'success'}">
                             ${payment.method === 'create_task' ? 'Task' : payment.method === 'recharge' ? 'Recharge' : 'Hosting'}
                         </span>
                     </td>
                     <td>${payment.details?.url || payment.details?.package || payment.method}</td>
-                    <td>$${amount.toFixed(2)}</td>
+                    <td>$${payment.total_payment || 0}</td>
                     <td>
-                        <span class="badge badge-${payment.status === 'Paid' ? 'success' : payment.status === 'cancelled' ? 'error' : 'warning'}">
+                        <span class="badge badge-${payment.status === 'Paid' ? 'success' : 'warning'}">
                             ${payment.status}
                         </span>
                     </td>
@@ -1112,53 +1808,106 @@ async function loadBilling(page = 1, type = 'all') {
                         <button class="btn btn-sm" onclick="viewPayment('${payment.billing_id}')">View</button>
                     </td>
                 </tr>
-                `;
-            }).join('');
+            `).join('');
         } else {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">No transactions found</td></tr>';
         }
+
+        createBillingCharts(allPayments);
 
     } catch (error) {
         console.error('Billing error:', error);
     }
 }
 
+function createBillingCharts(payments) {
+    // Spending chart
+    const monthlySpending = {};
+    payments.forEach(p => {
+        if (p.dates?.paid) {
+            const month = p.dates.paid.substring(0, 7);
+            monthlySpending[month] = (monthlySpending[month] || 0) + (p.total_payment || 0);
+        }
+    });
+
+    if (charts.spending) charts.spending.destroy();
+    const ctx1 = document.getElementById('spendingChart').getContext('2d');
+    charts.spending = new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: Object.keys(monthlySpending).sort(),
+            datasets: [{
+                label: 'Monthly Spending',
+                data: Object.keys(monthlySpending).sort().map(m => monthlySpending[m]),
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // Payment type distribution
+    const paymentTypes = {};
+    payments.forEach(p => {
+        const type = p.method === 'create_task' ? 'Tasks' : p.method === 'recharge' ? 'Recharges' : 'Hosting';
+        paymentTypes[type] = (paymentTypes[type] || 0) + (p.total_payment || 0);
+    });
+
+    if (charts.payment) charts.payment.destroy();
+    const ctx2 = document.getElementById('paymentChart').getContext('2d');
+    charts.payment = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(paymentTypes),
+            datasets: [{
+                data: Object.values(paymentTypes),
+                backgroundColor: ['#3b82f6', '#f59e0b', '#10b981']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
 async function viewPayment(paymentId) {
-    const payment = [...(currentData.billingData?.tasks || []), ...(currentData.billingData?.hosting || [])]
-        .find(p => p.billing_id === paymentId);
-    
-    if (!payment) {
-        showToast('Payment not found', 'error');
-        return;
-    }
+    try {
+        const { data } = await api(`/get-payment-status?payment_id=${paymentId}`);
 
-    const amount = typeof payment.total_payment === 'number' ? payment.total_payment : parseFloat(payment.total_payment?.parsedValue || 0);
-
-    showModal('Payment Details', `
-        <div class="stat-grid" style="margin-bottom:1rem">
-            <div class="stat-card">
-                <div class="stat-label">Amount</div>
-                <div class="stat-value">$${amount.toFixed(2)}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Status</div>
-                <div class="stat-value">
-                    <span class="badge badge-${payment.status === 'Paid' ? 'success' : 'warning'}">${payment.status}</span>
+        showModal('Payment Details', `
+            <div class="stat-grid" style="margin-bottom:1rem">
+                <div class="stat-card">
+                    <div class="stat-label">Amount</div>
+                    <div class="stat-value">$${data.amount}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Status</div>
+                    <div class="stat-value">
+                        <span class="badge badge-${data.status === 'Paid' ? 'success' : 'warning'}">${data.status}</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div style="display:grid;gap:.5rem">
-            <div><strong>Type:</strong> ${payment.method}</div>
-            <div><strong>Date:</strong> ${new Date(payment.dates?.created).toLocaleString()}</div>
-            <div><strong>Provider:</strong> ${payment.provider}</div>
-            <div><strong>Transaction ID:</strong> <code style="font-size:.875rem">${payment.txID || 'N/A'}</code></div>
-            ${payment.task_id ? `<div><strong>Task ID:</strong> ${payment.task_id}</div>` : ''}
-            ${payment.details?.package ? `<div><strong>Package:</strong> ${payment.details.package} (${payment.details.duration})</div>` : ''}
-        </div>
+            <div style="display:grid;gap:.5rem">
+                <div><strong>Type:</strong> ${data.type}</div>
+                <div><strong>Date:</strong> ${new Date(data.date_of_payment).toLocaleString()}</div>
+                <div><strong>Method:</strong> ${data.payment_method}</div>
+                <div><strong>Transaction ID:</strong> <code style="font-size:.875rem">${data.transaction_id || 'N/A'}</code></div>
+                ${data.task_id ? `<div><strong>Task ID:</strong> ${data.task_id}</div>` : ''}
+                ${data.package ? `<div><strong>Package:</strong> ${data.package} (${data.duration})</div>` : ''}
+            </div>
 
-        <button class="btn" style="margin-top:1rem;width:100%" onclick="closeModal()">Close</button>
-    `);
+            <button class="btn" style="margin-top:1rem;width:100%" onclick="closeModal()">Close</button>
+        `);
+    } catch (error) {
+        console.error('View payment error:', error);
+    }
 }
 
 // SEO Tools
@@ -1189,6 +1938,27 @@ async function analyzeKeywords() {
                             ${data.keywords.map(kw => `<span class="badge badge-primary">${kw}</span>`).join('')}
                         </div>
                     </div>
+                    ${data.density ? `
+                        <div style="margin-top:1rem">
+                            <strong>Keyword Density:</strong>
+                            <div style="margin-top:.5rem">
+                                ${Object.entries(data.density).map(([kw, density]) => `
+                                    <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)">
+                                        <span>${kw}</span>
+                                        <span>${density}%</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            </div>
+                    ` : ''}
+                    ${data.recommendations ? `
+                        <div style="margin-top:1rem">
+                            <strong>Recommendations:</strong>
+                            <ul style="margin-top:.5rem">
+                                ${data.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -1222,36 +1992,36 @@ async function checkSerpPosition() {
         document.getElementById('serpResults').innerHTML = `
             <div class="card">
                 <div class="card-body">
-                    <h4>SERP Results for "${keyword}"</h4>
-                    <div class="stat-grid" style="margin-top:1rem">
+                    <div class="stat-grid">
                         <div class="stat-card">
-                            <div class="stat-label">Google Position</div>
-                            <div class="stat-value">${data.Google?.position || 'Not Found'}</div>
+                            <div class="stat-label">Position</div>
+                            <div class="stat-value">${data.position || 'Not Found'}</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">Bing Position</div>
-                            <div class="stat-value">${data.Bing?.position || 'Not Found'}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">DuckDuckGo Position</div>
-                            <div class="stat-value">${data.Duckduckgo?.position || 'Not Found'}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Total Results</div>
-                            <div class="stat-value">${data.Google?.totalResults || 0}</div>
+                            <div class="stat-label">Page</div>
+                            <div class="stat-value">${data.page || 'N/A'}</div>
                         </div>
                     </div>
 
-                    ${data.Google?.exist ? `
+                    ${data.competitors ? `
                         <div style="margin-top:1.5rem">
-                            <h5>Found URLs in Google:</h5>
-                            <div style="max-height:200px;overflow-y:auto;margin-top:.5rem">
-                                ${data.Google.urls.slice(0, 10).map(urlItem => `
-                                    <div style="padding:.5rem 0;border-bottom:1px solid var(--border)">
-                                        <a href="${urlItem}" target="_blank" style="color:var(--primary);text-decoration:none">${urlItem}</a>
-                                    </div>
-                                `).join('')}
-                            </div>
+                            <h4>Top Competitors</h4>
+                            <table class="table" style="margin-top:1rem">
+                                <thead>
+                                    <tr>
+                                        <th>Position</th>
+                                        <th>URL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.competitors.map(comp => `
+                                        <tr>
+                                            <td>${comp.position}</td>
+                                            <td><a href="https://${comp.url}" target="_blank" style="color:var(--primary)">${comp.url}</a></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
                         </div>
                     ` : ''}
                 </div>
@@ -1270,9 +2040,6 @@ function showModal(title, content) {
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalBody').innerHTML = content;
     document.getElementById('modal').classList.add('show');
-    
-    // Animate modal
-    gsap.from('.modal-content', {duration: 0.3, scale: 0.9, opacity: 0, ease: "back.out(1.7)"});
 }
 
 function closeModal() {
@@ -1290,7 +2057,13 @@ function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
         showToast('Copied to clipboard', 'success');
     }).catch(() => {
-        showToast('Failed to copy', 'error');
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('Copied to clipboard', 'success');
     });
 }
 
@@ -1309,13 +2082,14 @@ async function logout() {
     }
 }
 
-function revokeSession(token) {
+async function revokeSession(token) {
+    if (!confirm('Revoke this session?')) return;
     showToast('Session revoked', 'success');
     loadDashboard();
 }
 
 function exportTaskData(taskId) {
-    const task = currentData.tasks?.find(t => t.billing_id === taskId);
+    const task = currentData.tasks.find(t => t._id === taskId);
     if (!task) return;
 
     const data = JSON.stringify(task, null, 2);
@@ -1329,32 +2103,27 @@ function exportTaskData(taskId) {
     showToast('Data exported successfully', 'success');
 }
 
-// Modal and image upload functions (simplified for space)
-function showImageUploadModal() {
-    showModal('Upload Images', '<p>Image upload functionality - implementation needed</p>');
-}
-
-function showArticleModal() {
-    showModal('Create Article', '<p>Article creation functionality - implementation needed</p>');
-}
-
-function showDomainModal() {
-    showModal('Add Domain', '<p>Domain management functionality - implementation needed</p>');
-}
-
 // Load theme preference
 document.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.body.dataset.theme = savedTheme;
 });
 
-// Event listeners
+// Click outside modal to close
 document.getElementById('modal').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeModal();
 });
 
+// Keyboard shortcuts
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeModal();
+    if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+            case 'k': e.preventDefault(); document.querySelector('[data-section="tasks"]').click(); break;
+            case 'd': e.preventDefault(); document.querySelector('[data-section="dashboard"]').click(); break;
+            case 'b': e.preventDefault(); document.querySelector('[data-section="billing"]').click(); break;
+        }
+    }
 });
 </script>
 </body>

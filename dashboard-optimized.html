@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEOTIZE Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<style>
+:root{--radius:12px;--shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06)}
+[data-theme="dark"]{--bg:#0f172a;--sidebar:#1e293b;--card:#1e293b;--text:#e2e8f0;--text-light:#94a3b8;--border:#334155;--primary:#3b82f6;--primary-hover:#2563eb;--secondary:#10b981;--error:#ef4444;--warning:#f59e0b;--success:#10b981;--input-bg:#0f172a}
+[data-theme="light"]{--bg:#f8fafc;--sidebar:#ffffff;--card:#ffffff;--text:#1e293b;--text-light:#64748b;--border:#e2e8f0;--primary:#3b82f6;--primary-hover:#2563eb;--secondary:#10b981;--error:#ef4444;--warning:#f59e0b;--success:#10b981;--input-bg:#f1f5f9}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;transition:all .3s}
+
+/* Layout */
+.sidebar{width:260px;background:var(--sidebar);padding:1.5rem;display:flex;flex-direction:column;border-right:1px solid var(--border);transition:transform .3s}
+.main{flex:1;overflow-y:auto;padding:2rem}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem}
+
+/* Components */
+.logo{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:2rem}
+.nav-item{display:flex;align-items:center;gap:.75rem;padding:.875rem 1rem;border-radius:var(--radius);color:var(--text-light);font-weight:500;transition:all .2s;margin-bottom:.5rem;cursor:pointer}
+.nav-item:hover{background:rgba(59,130,246,0.1);color:var(--primary)}
+.nav-item.active{background:var(--primary);color:white}
+.nav-item.active:hover{background:var(--primary-hover)}
+
+.theme-toggle{width:40px;height:40px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+.theme-toggle:hover{border-color:var(--primary)}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:1.5rem}
+.card-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.card-body{padding:1.5rem}
+
+.btn{padding:.5rem 1rem;border-radius:var(--radius);font-weight:500;cursor:pointer;transition:all .2s;border:1px solid var(--border);background:transparent;color:var(--text);display:inline-flex;align-items:center;gap:.5rem}
+.btn:hover{border-color:var(--primary);color:var(--primary)}
+.btn-primary{background:var(--primary);color:white;border:none}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-sm{padding:.375rem .75rem;font-size:.875rem}
+.btn-icon{width:36px;height:36px;padding:0;justify-content:center}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--primary),var(--secondary))}
+.stat-value{font-size:1.75rem;font-weight:700;margin:.5rem 0}
+.stat-label{font-size:.875rem;color:var(--text-light)}
+.stat-change{font-size:.75rem;color:var(--success);margin-top:.25rem}
+
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:.875rem;text-align:left;border-bottom:1px solid var(--border)}
+.table th{font-weight:600;color:var(--text-light);font-size:.875rem}
+.table tr:hover{background:rgba(59,130,246,0.05)}
+
+.badge{padding:.25rem .75rem;border-radius:20px;font-size:.75rem;font-weight:600;display:inline-flex;align-items:center;gap:.25rem}
+.badge-primary{background:rgba(59,130,246,0.2);color:var(--primary)}
+.badge-success{background:rgba(16,185,129,0.2);color:var(--success)}
+.badge-warning{background:rgba(245,158,11,0.2);color:var(--warning)}
+.badge-error{background:rgba(239,68,68,0.2);color:var(--error)}
+
+.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--secondary),var(--primary));transition:width .3s}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal.show{display:flex}
+.modal-content{background:var(--card);border-radius:var(--radius);max-width:90%;width:600px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-body{padding:1.5rem}
+
+.form-group{margin-bottom:1.25rem}
+.form-label{display:block;margin-bottom:.5rem;font-weight:500;font-size:.875rem}
+.form-input,.form-select,.form-textarea{width:100%;padding:.75rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--input-bg);color:var(--text);transition:all .2s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.form-textarea{resize:vertical;min-height:100px}
+
+.toast{position:fixed;bottom:2rem;right:2rem;padding:1rem 1.5rem;border-radius:var(--radius);color:white;font-weight:500;transform:translateX(400px);transition:transform .3s;z-index:1000}
+.toast.show{transform:translateX(0)}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--error)}
+.toast.warning{background:var(--warning)}
+
+.section{display:none}
+.section.active{display:block}
+
+.loader{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.empty-state{text-align:center;padding:3rem;color:var(--text-light)}
+.empty-state svg{width:64px;height:64px;margin:0 auto 1rem;opacity:0.3}
+
+/* Task Specific */
+.task-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;cursor:pointer;transition:all .2s}
+.task-item:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow)}
+
+.keyword-grid{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+.keyword-item{padding:.5rem 1rem;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .2s}
+.keyword-item:hover{border-color:var(--primary);background:rgba(59,130,246,0.1)}
+.keyword-item.selected{background:var(--primary);color:white;border-color:var(--primary)}
+
+.location-preview{border:1px solid var(--border);border-radius:var(--radius);height:400px;overflow:hidden;position:relative;margin-bottom:1rem}
+.location-preview iframe{width:100%;height:100%;border:0}
+.location-overlay{position:absolute;inset:0;pointer-events:none}
+.location-marker{position:absolute;width:20px;height:20px;background:var(--primary);border:2px solid white;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+
+/* Image/Article Grid */
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem}
+.media-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .2s}
+.media-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.media-preview{height:150px;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.media-preview img{width:100%;height:100%;object-fit:cover}
+.media-info{padding:1rem}
+
+.analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem}
+.chart-container{height:300px;position:relative}
+
+/* Dashboard Layout Improvements */
+.dashboard-layout{display:grid;grid-template-columns:1fr 300px;gap:2rem}
+.dashboard-main{display:flex;flex-direction:column;gap:1.5rem}
+.dashboard-sidebar{display:flex;flex-direction:column;gap:1.5rem}
+
+/* Hosting Improvements */
+.hosting-menu{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem}
+.hosting-menu-item{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .2s}
+.hosting-menu-item:hover{border-color:var(--primary)}
+.hosting-menu-item.active{background:var(--primary);color:white}
+.hosting-menu-item.active:hover{background:var(--primary-hover)}
+
+/* Mobile */
+.mobile-toggle{display:none;position:fixed;top:1rem;left:1rem;z-index:100;width:40px;height:40px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);align-items:center;justify-content:center;cursor:pointer}
+
+@media(max-width:768px){
+    .mobile-toggle{display:flex}
+    .sidebar{position:fixed;z-index:99;height:100%;transform:translateX(-100%)}
+    .sidebar.show{transform:translateX(0)}
+    .main{padding:1rem}
+    .stat-grid{grid-template-columns:1fr 1fr}
+    .analytics-grid{grid-template-columns:1fr}
+    .modal-content{width:95%}
+    .dashboard-layout{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body data-theme="dark">
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+
+    <aside class="sidebar">
+        <div class="logo">SEOTIZE</div>
+        <nav>
+            <div class="nav-item active" data-section="dashboard">
+                <span>📊</span> Dashboard
+            </div>
+            <div class="nav-item" data-section="tasks">
+                <span>🎯</span> SEO Tasks
+            </div>
+            <div class="nav-item" data-section="hosting">
+                <span>🌐</span> Hosting
+            </div>
+            <div class="nav-item" data-section="billing">
+                <span>💳</span> Billing
+            </div>
+            <div class="nav-item" data-section="tools">
+                <span>🛠️</span> SEO Tools
+            </div>
+        </nav>
+        <div style="margin-top:auto;padding-top:1.5rem;border-top:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:600" id="userAvatar">U</div>
+                <div style="flex:1">
+                    <div id="userEmail" style="font-size:.875rem;font-weight:500">Loading...</div>
+                    <div id="userSince" style="font-size:.75rem;color:var(--text-light)"></div>
+                </div>
+            </div>
+            <button class="btn" style="width:100%" onclick="logout()">Logout</button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="header">
+            <h1 id="sectionTitle">Dashboard</h1>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+        </div>
+
+        <!-- Dashboard Section -->
+        <section class="section active" id="dashboard">
+            <div class="dashboard-layout">
+                <div class="dashboard-main">
+                    <!-- Analytics First -->
+                    <div class="analytics-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Recent Tasks Performance</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="tasksChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Views by Country</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="countryChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recent Activity</h3>
+                            <button class="btn btn-sm" onclick="showSection('tasks')">View All Tasks</button>
+                        </div>
+                        <div class="card-body" id="recentActivity"></div>
+                    </div>
+                </div>
+
+                <div class="dashboard-sidebar">
+                    <!-- Active Sessions - Smaller on Left -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Active Sessions</h3>
+                            <span class="badge badge-primary" id="sessionCount">0 Active</span>
+                        </div>
+                        <div class="card-body">
+                            <div id="sessionsList" style="max-height:300px;overflow-y:auto"></div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="stat-grid" id="dashboardStats"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tasks Section -->
+        <section class="section" id="tasks">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+                <div class="stat-grid" style="flex:1;margin:0">
+                    <div class="stat-card">
+                        <div class="stat-label">Active Tasks</div>
+                        <div class="stat-value" id="activeTasksCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Views</div>
+                        <div class="stat-value" id="totalViewsCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Available Budget</div>
+                        <div class="stat-value" id="availableBudget">$0</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="showTaskModal()">
+                    <span>➕</span> Create New Task
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-body" id="tasksList">
+                    <div class="loader"></div>
+                </div>
+            </div>
+
+            <div class="card" id="taskDetails" style="display:none">
+                <div class="card-header">
+                    <h3>Task Analytics</h3>
+                    <button class="btn btn-sm" onclick="closeTaskDetails()">Close</button>
+                </div>
+                <div class="card-body" id="taskDetailsContent"></div>
+            </div>
+        </section>
+
+        <!-- Hosting Section -->
+        <section class="section" id="hosting">
+            <div class="hosting-menu">
+                <div class="hosting-menu-item active" onclick="showHostingTab('overview')">
+                    <span>📊 Overview</span>
+                    <span>→</span>
+                </div>
+                <div class="hosting-menu-item" onclick="showHostingTab('images')">
+                    <span>🖼️ Images</span>
+                    <span>→</span>
+                </div>
+                <div class="hosting-menu-item" onclick="showHostingTab('articles')">
+                    <span>📝 Articles</span>
+                    <span>→</span>
+                </div>
+            </div>
+
+            <div class="section active" id="hosting-overview">
+                <div class="stat-grid" id="hostingStats"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Current Plan Details</h3>
+                        <button class="btn btn-primary" onclick="showUpgradeModal()">Upgrade Plan</button>
+                    </div>
+                    <div class="card-body" id="planDetails"></div>
+                </div>
+            </div>
+
+            <div class="section" id="hosting-images">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                    <h2>Image Management</h2>
+                    <button class="btn btn-primary" onclick="showImageUploadModal()">Upload Images</button>
+                </div>
+                <div class="media-grid" id="imageGrid"></div>
+            </div>
+
+            <div class="section" id="hosting-articles">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                    <h2>Article Management</h2>
+                    <button class="btn btn-primary" onclick="showArticleModal()">Create Article</button>
+                </div>
+
+                <div class="card" style="margin-bottom:1.5rem">
+                    <div class="card-header">
+                        <h3>Domain Verification</h3>
+                        <button class="btn btn-sm" onclick="showDomainModal()">Add Domain</button>
+                    </div>
+                    <div class="card-body" id="domainsList"></div>
+                </div>
+
+                <div id="articlesList"></div>
+            </div>
+        </section>
+
+        <!-- Billing Section -->
+        <section class="section" id="billing">
+            <div class="stat-grid" id="billingStats"></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Transaction History</h3>
+                    <select class="form-select" style="width:auto" onchange="loadBilling(1,this.value)">
+                        <option value="all">All Types</option>
+                        <option value="tasks">Tasks Only</option>
+                        <option value="hosting">Hosting Only</option>
+                    </select>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billingTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEO Tools Section -->
+        <section class="section" id="tools">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Keyword Research</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Enter URL for keyword analysis</label>
+                        <div style="display:flex;gap:1rem">
+                            <input type="url" class="form-input" id="keywordUrl" placeholder="https://example.com">
+                            <button class="btn btn-primary" onclick="analyzeKeywords()">Analyze</button>
+                        </div>
+                    </div>
+                    <div id="keywordResults"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>SERP Position Checker</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                        <div class="form-group">
+                            <label class="form-label">Keyword</label>
+                            <input type="text" class="form-input" id="serpKeyword" placeholder="SEO optimization">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">URL</label>
+                            <input type="url" class="form-input" id="serpUrl" placeholder="example.com">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="checkSerpPosition()">Check Position</button>
+                    <div id="serpResults" style="margin-top:1.5rem"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Modal</h3>
+                <button class="btn-icon" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+</body>
+</html>

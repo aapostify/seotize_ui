@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEOTIZE Dashboard v5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        :root {
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --sidebar: #1e293b;
+            --card: #1e293b;
+            --text: #e2e8f0;
+            --text-light: #94a3b8;
+            --border: #334155;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --input-bg: #0f172a;
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --sidebar: #ffffff;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --input-bg: #f1f5f9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            transition: all .3s;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+            transition: transform .3s;
+            box-shadow: var(--shadow);
+        }
+
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            background: var(--bg);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: 1rem;
+            border-radius: var(--radius);
+            color: var(--text-light);
+            font-weight: 500;
+            transition: all .2s;
+            margin-bottom: .75rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(59,130,246,0.1);
+            color: var(--primary);
+            border-color: rgba(59,130,246,0.2);
+            transform: translateX(4px);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-item.active:hover {
+            background: var(--primary-hover);
+        }
+
+        .theme-toggle {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius);
+            background: var(--card);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all .2s;
+            font-size: 1.2rem;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            transition: all .2s;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(59,130,246,0.05);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .btn {
+            padding: .75rem 1.25rem;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .2s;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-sm {
+            padding: .5rem .875rem;
+            font-size: .875rem;
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            justify-content: center;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all .2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: .75rem 0;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: .875rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .stat-change {
+            font-size: .75rem;
+            color: var(--success);
+            margin-top: .5rem;
+            display: flex;
+            align-items: center;
+            gap: .25rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table th {
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: .875rem;
+            background: rgba(59,130,246,0.05);
+        }
+
+        .table tr:hover {
+            background: rgba(59,130,246,0.05);
+        }
+
+        .badge {
+            padding: .375rem .875rem;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: .25rem;
+        }
+
+        .badge-primary {
+            background: rgba(59,130,246,0.2);
+            color: var(--primary);
+        }
+
+        .badge-success {
+            background: rgba(16,185,129,0.2);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(245,158,11,0.2);
+            color: var(--warning);
+        }
+
+        .badge-error {
+            background: rgba(239,68,68,0.2);
+            color: var(--error);
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card);
+            border-radius: var(--radius);
+            max-width: 95%;
+            width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(59,130,246,0.05);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: .75rem;
+            font-weight: 500;
+            font-size: .875rem;
+            color: var(--text);
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: .875rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--input-bg);
+            color: var(--text);
+            transition: all .2s;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            color: white;
+            font-weight: 500;
+            transform: translateX(400px);
+            transition: transform .3s;
+            z-index: 1000;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--error);
+        }
+
+        .toast.warning {
+            background: var(--warning);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .task-item {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .task-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            height: 350px;
+            position: relative;
+        }
+
+        /* Enhanced Sessions Table */
+        .sessions-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .session-form {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            height: fit-content;
+            box-shadow: var(--shadow);
+        }
+
+        .sessions-table {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .sessions-table-body {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* Task Analytics Tabs */
+        .task-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .task-tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all .2s;
+            font-weight: 500;
+        }
+
+        .task-tab:hover {
+            background: rgba(59,130,246,0.1);
+        }
+
+        .task-tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .task-content {
+            display: none;
+        }
+
+        .task-content.active {
+            display: block;
+        }
+
+        /* Hosting Image Grid Improvements */
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .image-item {
+            position: relative;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            aspect-ratio: 1;
+            cursor: pointer;
+            transition: all .3s;
+            background: var(--input-bg);
+        }
+
+        .image-item:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-stats {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: .75rem;
+            font-size: .75rem;
+        }
+
+        .image-stats-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Website Preview Improvements */
+        .website-preview {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            height: 500px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 1.5rem;
+            background: white;
+        }
+
+        .website-preview iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            transform-origin: 0 0;
+        }
+
+        .preview-controls {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: .5rem;
+            background: rgba(0,0,0,0.7);
+            padding: .5rem;
+            border-radius: var(--radius);
+        }
+
+        .preview-btn {
+            padding: .5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .75rem;
+        }
+
+        .location-marker {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border: 3px solid white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+            cursor: pointer;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.7; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .keyword-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .75rem;
+            margin-top: 1rem;
+        }
+
+        .keyword-item {
+            padding: .5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all .2s;
+            font-size: .875rem;
+        }
+
+        .keyword-item:hover {
+            border-color: var(--primary);
+            background: rgba(59,130,246,0.1);
+        }
+
+        .keyword-item.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 100;
+            width: 44px;
+            height: 44px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-toggle {
+                display: flex;
+            }
+            
+            .sidebar {
+                position: fixed;
+                z-index: 99;
+                height: 100%;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main {
+                padding: 1rem;
+            }
+            
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sessions-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+    
+    <aside class="sidebar">
+        <div class="logo">SEOTIZE</div>
+        <nav>
+            <div class="nav-item active" data-section="dashboard">📊 Dashboard</div>
+            <div class="nav-item" data-section="tasks">🎯 SEO Tasks</div>
+            <div class="nav-item" data-section="hosting">🌐 Hosting</div>
+            <div class="nav-item" data-section="billing">💳 Billing</div>
+            <div class="nav-item" data-section="tools">🛠️ SEO Tools</div>
+        </nav>
+        <div style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+            <div style="display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 600;" id="userAvatar">U</div>
+                <div style="flex: 1;">
+                    <div id="userEmail" style="font-size: .875rem; font-weight: 500;">Loading...</div>
+                    <div id="userSince" style="font-size: .75rem; color: var(--text-light);"></div>
+                </div>
+            </div>
+            <button class="btn" style="width: 100%;" onclick="logout()">Logout</button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="header">
+            <h1 id="sectionTitle">Dashboard</h1>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+        </div>
+
+        <section class="section active" id="dashboard">
+            <div class="analytics-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Task Performance</h3>
+                        <span class="badge badge-success" id="tasksTrend">↗ +12%</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="tasksChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Views by Country</h3>
+                        <span class="badge badge-primary" id="countriesCount">12 Countries</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="countryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-grid" id="dashboardStats"></div>
+            
+            <div class="sessions-container">
+                <div class="session-form">
+                    <h3 style="margin-bottom: 1.5rem;">Active Sessions</h3>
+                    <div class="form-group">
+                        <label class="form-label">Filter by Location</label>
+                        <select class="form-select" id="sessionLocationFilter" onchange="filterSessions()">
+                            <option value="">All Locations</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Filter by Status</label>
+                        <select class="form-select" id="sessionStatusFilter" onchange="filterSessions()">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="idle">Idle</option>
+                            <option value="expired">Expired</option>
+                        </select>
+                    </div>
+                    <div class="stat-card" style="margin-bottom: 1rem;">
+                        <div class="stat-label">Total Active</div>
+                        <div class="stat-value" id="totalSessions">0</div>
+                        <div class="stat-change" id="sessionTrend">↗ +2 new</div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="refreshSessions()">🔄 Refresh</button>
+                </div>
+                
+                <div class="sessions-table">
+                    <div class="card-header">
+                        <h3>Session Details</h3>
+                        <span class="badge badge-primary" id="sessionCount">0 Active</span>
+                    </div>
+                    <div class="sessions-table-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Location</th>
+                                    <th>IP Address</th>
+                                    <th>Created</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sessionsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3>Recent Tasks</h3>
+                    <button class="btn btn-sm" onclick="showSection('tasks')">View All</button>
+                </div>
+                <div class="card-body" id="recentActivity"></div>
+            </div>
+        </section>
+
+        <section class="section" id="tasks">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                <div class="stat-grid" style="flex: 1; margin: 0;" id="taskStats"></div>
+                <button class="btn btn-primary" onclick="showTaskModal()">➕ Create New Task</button>
+            </div>
+            
+            <div class="task-tabs">
+                <div class="task-tab active" onclick="showTaskTab('overview')">📊 Overview</div>
+                <div class="task-tab" onclick="showTaskTab('analytics')">📈 Analytics</div>
+                <div class="task-tab" onclick="showTaskTab('details')">📋 Details</div>
+                <div class="task-tab" onclick="showTaskTab('performance')">⚡ Performance</div>
+            </div>
+            
+            <div class="task-content active" id="taskOverview">
+                <div class="card">
+                    <div class="card-body" id="tasksList">
+                        <div class="loader"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="task-content" id="taskAnalytics">
+                <div class="analytics-grid">
+                    <div class="card">
+                        <div class="card-header"><h3>Click Distribution</h3></div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="clicksChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>Geographic Performance</h3></div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="geoChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="task-content" id="taskDetails">
+                <div class="card">
+                    <div class="card-header"><h3>Task Details</h3></div>
+                    <div class="card-body" id="taskDetailsContent"></div>
+                </div>
+            </div>
+            
+            <div class="task-content" id="taskPerformance">
+                <div class="card">
+                    <div class="card-header"><h3>Performance Metrics</h3></div>
+                    <div class="card-body" id="taskPerformanceContent"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="hosting">
+            <div style="display: grid; grid-template-columns: 250px 1fr; gap: 2rem;">
+                <div style="display: flex; flex-direction: column; gap: .75rem;">
+                    <div class="btn" style="justify-content: flex-start;" onclick="showHostingContent('overview')">📊 Overview</div>
+                    <div class="btn" style="justify-content: flex-start;" onclick="showHostingContent('images')">🖼️ Images</div>
+                    <div class="btn" style="justify-content: flex-start;" onclick="showHostingContent('articles')">📝 Articles</div>
+                    <div class="btn" style="justify-content: flex-start;" onclick="showHostingContent('domains')">🌐 Domains</div>
+                </div>
+                <div id="hostingContent" style="min-height: 500px;"></div>
+            </div>
+        </section>
+
+        <section class="section" id="billing">
+            <div class="stat-grid" id="billingStats"></div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Transaction History</h3>
+                    <select class="form-select" style="width: auto;" onchange="loadBilling(this.value)">
+                        <option value="all">All</option>
+                        <option value="tasks">Tasks</option>
+                        <option value="hosting">Hosting</option>
+                    </select>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billingTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="tools">
+            <div class="card">
+                <div class="card-header"><h3>Keyword Research</h3></div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Enter URL for keyword analysis</label>
+                        <div style="display: flex; gap: 1rem;">
+                            <input type="url" class="form-input" id="keywordUrl" placeholder="https://example.com">
+                            <button class="btn btn-primary" onclick="analyzeKeywords()">Analyze</button>
+                        </div>
+                    </div>
+                    <div id="keywordResults"></div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header"><h3>SERP Position Checker</h3></div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Keyword</label>
+                            <input type="text" class="form-input" id="serpKeyword" placeholder="SEO optimization">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">URL</label>
+                            <input type="url" class="form-input" id="serpUrl" placeholder="example.com">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="checkSerpPosition()">Check Position</button>
+                    <div id="serpResults" style="margin-top: 1.5rem;"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Modal</h3>
+                <button class="btn-icon" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = 'https://api.seotize.net';
+        let sessionToken = getCookie('session_token');
+        let currentData = {};
+        let charts = {};
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!sessionToken) {
+                window.location.href = '/login.html';
+                return;
+            }
+            setupNavigation();
+            loadDashboard();
+            
+            // Enhanced animations
+            gsap.from('.stat-card', {duration: 0.8, y: 30, opacity: 0, stagger: 0.1});
+            gsap.from('.card', {duration: 1, y: 40, opacity: 0, stagger: 0.15, delay: 0.3});
+        });
+
+        function setupNavigation() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const section = item.dataset.section;
+                    showSection(section);
+                });
+            });
+        }
+
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(section).classList.add('active');
+            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+            document.getElementById('sectionTitle').textContent = section.charAt(0).toUpperCase() + section.slice(1);
+            
+            gsap.from(`#${section}`, {duration: 0.6, opacity: 0, y: 30});
+
+            switch(section) {
+                case 'dashboard': loadDashboard(); break;
+                case 'tasks': loadTasks(); break;
+                case 'hosting': loadHosting(); break;
+                case 'billing': loadBilling(); break;
+            }
+
+            if (window.innerWidth <= 768) {
+                document.querySelector('.sidebar').classList.remove('show');
+            }
+        }
+
+        function toggleTheme() {
+            const theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+            document.body.dataset.theme = theme;
+            localStorage.setItem('theme', theme);
+        }
+
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('show');
+        }
+
+        async function api(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Session-Token': sessionToken,
+                        'Cookie': `session=${getCookie('session')}`,
+                        ...options.headers
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                const [userInfo, stats, sessions] = await Promise.all([
+                    api('/user'),
+                    api('/stats'),
+                    api('/sessions')
+                ]);
+
+                // Update user info
+                document.getElementById('userEmail').textContent = userInfo.data.email;
+                document.getElementById('userAvatar').textContent = userInfo.data.email.charAt(0).toUpperCase();
+                document.getElementById('userSince').textContent = `Since ${new Date(userInfo.data.created_at).toLocaleDateString()}`;
+
+                // Update dashboard stats
+                updateDashboardStats(stats.data);
+                
+                // Load sessions with enhanced display
+                loadSessions(sessions.data);
+                
+                // Load and display charts
+                loadCharts(stats.data);
+                
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+                showToast('Failed to load dashboard data', 'error');
+            }
+        }
+
+        function updateDashboardStats(stats) {
+            const statsContainer = document.getElementById('dashboardStats');
+            statsContainer.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Active Tasks</div>
+                    <div class="stat-value">${stats.active_tasks || 0}</div>
+                    <div class="stat-change">↗ ${stats.task_growth || '+5%'}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Clicks</div>
+                    <div class="stat-value">${(stats.total_clicks || 0).toLocaleString()}</div>
+                    <div class="stat-change">↗ ${stats.click_growth || '+12%'}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Countries</div>
+                    <div class="stat-value">${stats.countries_count || 0}</div>
+                    <div class="stat-change">↗ ${stats.country_growth || '+2'}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Success Rate</div>
+                    <div class="stat-value">${stats.success_rate || '92'}%</div>
+                    <div class="stat-change">↗ ${stats.success_growth || '+3%'}</div>
+                </div>
+            `;
+        }
+
+        function loadSessions(sessions) {
+            const sessionsTable = document.getElementById('sessionsTable');
+            const sessionCount = document.getElementById('sessionCount');
+            const totalSessions = document.getElementById('totalSessions');
+            
+            if (!sessions || sessions.length === 0) {
+                sessionsTable.innerHTML = '<tr><td colspan="5" class="empty-state">No active sessions</td></tr>';
+                sessionCount.textContent = '0 Active';
+                totalSessions.textContent = '0';
+                return;
+            }
+
+            sessionCount.textContent = `${sessions.length} Active`;
+            totalSessions.textContent = sessions.length;
+            
+            sessionsTable.innerHTML = sessions.map(session => `
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: .5rem;">
+                            <span class="badge badge-primary">${session.country || 'Unknown'}</span>
+                            ${session.city || 'Unknown City'}
+                        </div>
+                    </td>
+                    <td>
+                        <code style="background: var(--input-bg); padding: .25rem .5rem; border-radius: 4px;">
+                            ${session.ip || 'Unknown'}
+                        </code>
+                    </td>
+                    <td>${new Date(session.created_at).toLocaleString()}</td>
+                    <td>
+                        <span class="badge ${session.active ? 'badge-success' : 'badge-warning'}">
+                            ${session.active ? 'Active' : 'Idle'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm" onclick="revokeSession('${session.token}')">Revoke</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Populate location filter
+            const locations = [...new Set(sessions.map(s => s.country).filter(Boolean))];
+            const locationFilter = document.getElementById('sessionLocationFilter');
+            locationFilter.innerHTML = '<option value="">All Locations</option>' + 
+                locations.map(loc => `<option value="${loc}">${loc}</option>`).join('');
+        }
+
+        function filterSessions() {
+            const locationFilter = document.getElementById('sessionLocationFilter').value;
+            const statusFilter = document.getElementById('sessionStatusFilter').value;
+            
+            // Re-filter sessions based on current filters
+            loadDashboard();
+        }
+
+        function refreshSessions() {
+            loadDashboard();
+            showToast('Sessions refreshed', 'success');
+        }
+
+        function loadCharts(data) {
+            // Enhanced Task Performance Chart
+            const tasksCtx = document.getElementById('tasksChart').getContext('2d');
+            if (charts.tasks) charts.tasks.destroy();
+            
+            charts.tasks = new Chart(tasksCtx, {
+                type: 'line',
+                data: {
+                    labels: data.task_timeline?.labels || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Completed Tasks',
+                        data: data.task_timeline?.completed || [12, 19, 8, 15, 25, 22],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Active Tasks',
+                        data: data.task_timeline?.active || [5, 8, 12, 9, 14, 18],
+                        borderColor: 'rgb(16, 185, 129)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Enhanced Country Views Chart
+            const countryCtx = document.getElementById('countryChart').getContext('2d');
+            if (charts.country) charts.country.destroy();
+            
+            const countryData = data.country_views || {
+                'US': 156,
+                'GB': 89,
+                'DE': 67,
+                'FR': 45,
+                'CA': 34,
+                'AU': 23
+            };
+            
+            charts.country = new Chart(countryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(countryData),
+                    datasets: [{
+                        data: Object.values(countryData),
+                        backgroundColor: [
+                            '#3B82F6',
+                            '#10B981',
+                            '#F59E0B',
+                            '#EF4444',
+                            '#8B5CF6',
+                            '#06B6D4'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#1E293B'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadTasks() {
+            try {
+                const response = await api('/tasks');
+                const tasks = response.data;
+                
+                updateTaskStats(response.stats);
+                displayTasks(tasks);
+            } catch (error) {
+                console.error('Tasks load error:', error);
+                showToast('Failed to load tasks', 'error');
+            }
+        }
+
+        function updateTaskStats(stats) {
+            const taskStats = document.getElementById('taskStats');
+            taskStats.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Total Tasks</div>
+                    <div class="stat-value">${stats?.total || 0}</div>
+                    <div class="stat-change">↗ ${stats?.growth || '0%'}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active</div>
+                    <div class="stat-value">${stats?.active || 0}</div>
+                    <div class="stat-change">→ Running</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Completed</div>
+                    <div class="stat-value">${stats?.completed || 0}</div>
+                    <div class="stat-change">✓ Done</div>
+                </div>
+            `;
+        }
+
+        function displayTasks(tasks) {
+            const tasksList = document.getElementById('tasksList');
+            
+            if (!tasks || tasks.length === 0) {
+                tasksList.innerHTML = '<div class="empty-state">No tasks found. Create your first SEO task!</div>';
+                return;
+            }
+            
+            tasksList.innerHTML = tasks.map(task => `
+                <div class="task-item" onclick="showTaskDetails('${task.id}')">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                        <div>
+                            <h4 style="margin-bottom: .5rem;">${task.url}</h4>
+                            <div style="display: flex; gap: .5rem; flex-wrap: wrap;">
+                                ${task.keywords?.map(kw => `<span class="badge badge-primary">${kw}</span>`).join('') || ''}
+                            </div>
+                        </div>
+                        <span class="badge ${task.status === 'active' ? 'badge-success' : task.status === 'completed' ? 'badge-primary' : 'badge-warning'}">
+                            ${task.status}
+                        </span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; font-size: .875rem; color: var(--text-light);">
+                        <div>Budget: $${task.budget}</div>
+                        <div>Clicks: ${task.clicks || 0}</div>
+                        <div>Countries: ${task.countries?.length || 0}</div>
+                        <div>Created: ${new Date(task.created_at).toLocaleDateString()}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showTaskTab(tab) {
+            document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.task-content').forEach(c => c.classList.remove('active'));
+            
+            document.querySelector(`[onclick="showTaskTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`task${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+            
+            // Load specific tab content
+            switch(tab) {
+                case 'analytics':
+                    loadTaskAnalytics();
+                    break;
+                case 'details':
+                    loadTaskDetails();
+                    break;
+                case 'performance':
+                    loadTaskPerformance();
+                    break;
+            }
+        }
+
+        function loadTaskAnalytics() {
+            // Load analytics charts for tasks
+            const clicksCtx = document.getElementById('clicksChart').getContext('2d');
+            if (charts.clicks) charts.clicks.destroy();
+            
+            charts.clicks = new Chart(clicksCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Daily Clicks',
+                        data: [12, 19, 8, 15, 25, 22, 18],
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function loadTaskDetails() {
+            const content = document.getElementById('taskDetailsContent');
+            content.innerHTML = `
+                <div class="analytics-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Budget Spent</div>
+                        <div class="stat-value">$1,247</div>
+                        <div class="stat-change">↗ $127 this week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Average Cost per Click</div>
+                        <div class="stat-value">$0.12</div>
+                        <div class="stat-change">→ Optimal range</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h4>Detailed Task Information</h4></div>
+                    <div class="card-body">
+                        <table class="table">
+                            <tr><td>Total Tasks Created</td><td><strong>24</strong></td></tr>
+                            <tr><td>Active Tasks</td><td><strong>8</strong></td></tr>
+                            <tr><td>Completed Tasks</td><td><strong>16</strong></td></tr>
+                            <tr><td>Success Rate</td><td><strong>94%</strong></td></tr>
+                            <tr><td>Average Task Duration</td><td><strong>3.2 days</strong></td></tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadTaskPerformance() {
+            const content = document.getElementById('taskPerformanceContent');
+            content.innerHTML = `
+                <div class="analytics-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Click-through Rate</div>
+                        <div class="stat-value">2.4%</div>
+                        <div class="stat-change">↗ +0.3% improvement</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Conversion Rate</div>
+                        <div class="stat-value">8.7%</div>
+                        <div class="stat-change">↗ +1.2% improvement</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h4>Performance Insights</h4></div>
+                    <div class="card-body">
+                        <div style="margin-bottom: 1rem;">
+                            <h5>Top Performing Keywords</h5>
+                            <div class="keyword-grid">
+                                <span class="badge badge-success">SEO optimization</span>
+                                <span class="badge badge-success">Digital marketing</span>
+                                <span class="badge badge-primary">Content strategy</span>
+                                <span class="badge badge-primary">Link building</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h5>Recommendations</h5>
+                            <ul style="margin-left: 1.5rem; margin-top: .5rem;">
+                                <li>Increase budget for high-performing keywords</li>
+                                <li>Optimize targeting for better conversion rates</li>
+                                <li>Consider expanding to new geographic markets</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function showTaskModal() {
+            showModal('Create New SEO Task', `
+                <div id="taskStep1">
+                    <div class="form-group">
+                        <label class="form-label">Website URL</label>
+                        <input type="url" class="form-input" id="taskUrl" placeholder="https://example.com" required>
+                        <small style="color: var(--text-light); margin-top: .5rem; display: block;">
+                            Enter the full URL of your website to analyze
+                        </small>
+                    </div>
+                    <button class="btn btn-primary" onclick="loadTaskStep2()">Next: Preview & Select Locations</button>
+                </div>
+
+                <div id="taskStep2" style="display:none">
+                    <div class="website-preview">
+                        <iframe id="taskPreview"></iframe>
+                        <div class="preview-controls">
+                            <button class="preview-btn" onclick="zoomPreview(0.5)">50%</button>
+                            <button class="preview-btn" onclick="zoomPreview(0.75)">75%</button>
+                            <button class="preview-btn" onclick="zoomPreview(1)">100%</button>
+                        </div>
+                        <div id="locationOverlay" style="position: absolute; inset: 0; cursor: crosshair;"></div>
+                    </div>
+                    <div style="margin: 1rem 0;">
+                        <strong>Selected Locations:</strong>
+                        <div id="selectedLocations" style="margin-top: .5rem;"></div>
+                        <small style="color: var(--text-light); margin-top: .5rem; display: block;">
+                            Click on the website preview to select clickable areas
+                        </small>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn" onclick="loadTaskStep1()">← Back</button>
+                        <button class="btn btn-primary" onclick="loadTaskStep3()">Next: Keywords & Settings</button>
+                    </div>
+                </div>
+
+                <div id="taskStep3" style="display:none">
+                    <div class="form-group">
+                        <label class="form-label">Keywords (comma separated)</label>
+                        <input type="text" class="form-input" id="taskKeywords" placeholder="SEO, optimization, digital marketing">
+                        <button class="btn btn-sm" style="margin-top: .75rem;" onclick="suggestKeywords()">🤖 AI Suggest Keywords</button>
+                        <div class="keyword-grid" id="keywordSuggestions"></div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Task Priority</label>
+                            <select class="form-select" id="taskPriority" onchange="updatePricing()">
+                                <option value="basic">Basic ($0.10/click)</option>
+                                <option value="standard" selected>Standard ($0.12/click)</option>
+                                <option value="premium">Premium ($0.15/click)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Total Budget ($)</label>
+                            <input type="number" class="form-input" id="taskBudget" min="10" value="150" onchange="updatePricing()">
+                        </div>
+                    </div>
+
+                    <div class="card" style="background: var(--input-bg); padding: 1.5rem; margin: 1rem 0;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Estimated Clicks:</span>
+                                <strong id="estimatedClicks">1250</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Max Locations:</span>
+                                <strong id="maxLocations">3</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn" onclick="loadTaskStep2()">← Back</button>
+                        <button class="btn btn-primary" style="flex: 1;" onclick="createTask()">Create Task & Pay</button>
+                    </div>
+                </div>
+            `);
+
+            currentData.taskLocations = [];
+            currentData.selectedKeywords = [];
+        }
+
+        function loadTaskStep1() {
+            document.getElementById('taskStep2').style.display = 'none';
+            document.getElementById('taskStep3').style.display = 'none';
+            document.getElementById('taskStep1').style.display = 'block';
+        }
+
+        function loadTaskStep2() {
+            const url = document.getElementById('taskUrl').value;
+            if (!url) {
+                showToast('Please enter a valid URL', 'error');
+                return;
+            }
+
+            document.getElementById('taskStep1').style.display = 'none';
+            document.getElementById('taskStep2').style.display = 'block';
+
+            const iframe = document.getElementById('taskPreview');
+            iframe.src = url;
+
+            iframe.onload = () => {
+                const overlay = document.getElementById('locationOverlay');
+                overlay.addEventListener('click', (e) => {
+                    const rect = overlay.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    const marker = document.createElement('div');
+                    marker.className = 'location-marker';
+                    marker.style.left = x + 'px';
+                    marker.style.top = y + 'px';
+                    
+                    // Enhanced marker with index
+                    marker.innerHTML = currentData.taskLocations.length + 1;
+                    marker.style.fontSize = '12px';
+                    marker.style.fontWeight = 'bold';
+                    marker.style.color = 'white';
+                    marker.style.display = 'flex';
+                    marker.style.alignItems = 'center';
+                    marker.style.justifyContent = 'center';
+                    
+                    overlay.appendChild(marker);
+
+                    const xpath = generateXPath(x / rect.width * 100, y / rect.height * 100, currentData.taskLocations.length + 1);
+                    currentData.taskLocations.push({xpath, x: x/rect.width*100, y: y/rect.height*100});
+                    updateSelectedLocations();
+                    
+                    gsap.from(marker, {duration: 0.3, scale: 0, ease: "back.out(1.7)"});
+                });
+            };
+        }
+
+        function zoomPreview(scale) {
+            const iframe = document.getElementById('taskPreview');
+            iframe.style.transform = `scale(${scale})`;
+            iframe.style.transformOrigin = '0 0';
+            iframe.style.width = `${100/scale}%`;
+            iframe.style.height = `${100/scale}%`;
+        }
+
+        function generateXPath(x, y, index) {
+            // Enhanced XPath generation with better accuracy
+            const sections = [
+                '/html/body/header//a',
+                '/html/body/nav//a', 
+                '/html/body/main//a',
+                '/html/body/aside//a',
+                '/html/body/footer//a'
+            ];
+            
+            let sectionIndex = Math.floor((y / 100) * sections.length);
+            if (sectionIndex >= sections.length) sectionIndex = sections.length - 1;
+            
+            const elementIndex = Math.max(1, Math.floor((x / 100) * 5) + 1);
+            return `${sections[sectionIndex]}[${elementIndex}]`;
+        }
+
+        function updateSelectedLocations() {
+            document.getElementById('selectedLocations').innerHTML = currentData.taskLocations.map((loc, idx) => `
+                <div class="badge badge-primary" style="margin-right: .5rem; margin-bottom: .5rem;">
+                    Location ${idx + 1}: ${loc.xpath}
+                    <span style="cursor: pointer; margin-left: .5rem;" onclick="removeLocation(${idx})">×</span>
+                </div>
+            `).join('');
+        }
+
+        function removeLocation(idx) {
+            currentData.taskLocations.splice(idx, 1);
+            updateSelectedLocations();
+            const markers = document.querySelectorAll('.location-marker');
+            if (markers[idx]) {
+                gsap.to(markers[idx], {
+                    duration: 0.3, 
+                    scale: 0, 
+                    ease: "back.in(1.7)", 
+                    onComplete: () => markers[idx].remove()
+                });
+            }
+        }
+
+        function loadTaskStep3() {
+            if (currentData.taskLocations.length === 0) {
+                showToast('Please select at least one location', 'error');
+                return;
+            }
+
+            document.getElementById('taskStep2').style.display = 'none';
+            document.getElementById('taskStep3').style.display = 'block';
+            gsap.from('#taskStep3', {duration: 0.5, opacity: 0, x: 20});
+            updatePricing();
+        }
+
+        async function suggestKeywords() {
+            const url = document.getElementById('taskUrl').value;
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loader"></span> Loading suggestions...';
+
+            try {
+                const response = await fetch(`https://keywords.seotize.net?url=${encodeURIComponent(url)}`, {
+                    headers: { 'Session-Token': sessionToken }
+                });
+                const data = await response.json();
+
+                const suggestions = document.getElementById('keywordSuggestions');
+                suggestions.innerHTML = data.keywords.slice(0, 12).map(keyword => `
+                    <div class="keyword-item" onclick="toggleKeyword('${keyword}')">${keyword}</div>
+                `).join('');
+
+                gsap.from('.keyword-item', {duration: 0.3, y: 10, opacity: 0, stagger: 0.05});
+            } catch (error) {
+                showToast('Failed to get keyword suggestions', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🤖 AI Suggest Keywords';
+            }
+        }
+
+        function toggleKeyword(keyword) {
+            const idx = currentData.selectedKeywords.indexOf(keyword);
+            const element = event.target;
+            
+            if (idx === -1) {
+                currentData.selectedKeywords.push(keyword);
+                element.classList.add('selected');
+                gsap.to(element, {duration: 0.2, scale: 1.05, ease: "back.out(1.7)"});
+            } else {
+                currentData.selectedKeywords.splice(idx, 1);
+                element.classList.remove('selected');
+                gsap.to(element, {duration: 0.2, scale: 1});
+            }
+
+            document.getElementById('taskKeywords').value = currentData.selectedKeywords.join(', ');
+        }
+
+        function updatePricing() {
+            const priority = document.getElementById('taskPriority').value;
+            const budget = parseFloat(document.getElementById('taskBudget').value) || 150;
+            
+            const rates = { basic: 0.10, standard: 0.12, premium: 0.15 };
+            const rate = rates[priority];
+            const estimatedClicks = Math.floor(budget / rate);
+            const maxLocations = priority === 'premium' ? 5 : priority === 'standard' ? 3 : 2;
+            
+            document.getElementById('estimatedClicks').textContent = estimatedClicks.toLocaleString();
+            document.getElementById('maxLocations').textContent = maxLocations;
+        }
+
+        async function createTask() {
+            const taskData = {
+                url: document.getElementById('taskUrl').value,
+                keywords: document.getElementById('taskKeywords').value.split(',').map(k => k.trim()).filter(k => k),
+                priority: document.getElementById('taskPriority').value,
+                budget: parseFloat(document.getElementById('taskBudget').value),
+                locations: currentData.taskLocations
+            };
+
+            if (!taskData.url || taskData.keywords.length === 0 || taskData.locations.length === 0) {
+                showToast('Please fill all required fields', 'error');
+                return;
+            }
+
+            try {
+                const response = await api('/tasks', {
+                    method: 'POST',
+                    body: JSON.stringify(taskData)
+                });
+
+                showToast('Task created successfully!', 'success');
+                closeModal();
+                loadTasks();
+            } catch (error) {
+                showToast('Failed to create task', 'error');
+            }
+        }
+
+        async function loadHosting() {
+            showHostingContent('overview');
+        }
+
+        async function showHostingContent(type) {
+            const content = document.getElementById('hostingContent');
+            
+            switch(type) {
+                case 'overview':
+                    content.innerHTML = `
+                        <div class="card">
+                            <div class="card-header"><h3>Hosting Overview</h3></div>
+                            <div class="card-body">
+                                <div class="stat-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-label">Total Images</div>
+                                        <div class="stat-value">247</div>
+                                        <div class="stat-change">↗ +12 this week</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-label">Total Views</div>
+                                        <div class="stat-value">15.2K</div>
+                                        <div class="stat-change">↗ +8.3%</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-label">Bandwidth Used</div>
+                                        <div class="stat-value">2.1 GB</div>
+                                        <div class="stat-change">→ 21% of limit</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'images':
+                    await loadImages();
+                    break;
+                    
+                case 'articles':
+                    content.innerHTML = `
+                        <div class="card">
+                            <div class="card-header"><h3>Articles</h3></div>
+                            <div class="card-body">
+                                <div class="empty-state">Article hosting coming soon</div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'domains':
+                    content.innerHTML = `
+                        <div class="card">
+                            <div class="card-header"><h3>Connected Domains</h3></div>
+                            <div class="card-body">
+                                <div class="empty-state">No domains connected yet</div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+        }
+
+        async function loadImages() {
+            const content = document.getElementById('hostingContent');
+            content.innerHTML = '<div class="loader"></div>';
+            
+            try {
+                const response = await fetch('https://api.seotize.net/images/dashboard', {
+                    headers: {
+                        'Session-Token': sessionToken,
+                        'Cookie': `session=${getCookie('session')}`
+                    }
+                });
+                const data = await response.json();
+                
+                if (data.code === 200 && data.data.images) {
+                    displayImages(data.data.images);
+                } else {
+                    content.innerHTML = '<div class="empty-state">No images found</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load images:', error);
+                content.innerHTML = '<div class="empty-state">Failed to load images</div>';
+            }
+        }
+
+        function displayImages(images) {
+            const content = document.getElementById('hostingContent');
+            content.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Image Gallery</h3>
+                        <span class="badge badge-primary">${images.length} Images</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="image-grid">
+                            ${images.map(image => `
+                                <div class="image-item" onclick="showImageDetails('${image.image_id}')">
+                                    <img src="${image.cdn_url}" alt="${image.original_filename}" loading="lazy">
+                                    <div class="image-stats">
+                                        <div class="image-stats-detail">
+                                            <span>${image.total_views} views</span>
+                                            <span>${Object.keys(image.formats).join(', ')}</span>
+                                        </div>
+                                        <div style="font-size: .7rem; margin-top: .25rem;">
+                                            ${new Date(image.upload_date).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function showImageDetails(imageId) {
+            try {
+                const response = await fetch('https://api.seotize.net/images/dashboard', {
+                    headers: {
+                        'Session-Token': sessionToken,
+                        'Cookie': `session=${getCookie('session')}`
+                    }
+                });
+                const data = await response.json();
+                const image = data.data.images.find(img => img.image_id === imageId);
+                
+                if (!image) {
+                    showToast('Image not found', 'error');
+                    return;
+                }
+
+                const monthlyStats = image.monthly_stats || {};
+                const countries = {};
+                const browsers = {};
+                const devices = {};
+                
+                // Aggregate stats from all months
+                Object.values(monthlyStats).forEach(month => {
+                    Object.entries(month.country || {}).forEach(([country, views]) => {
+                        countries[country] = (countries[country] || 0) + views;
+                    });
+                    Object.entries(month.browser || {}).forEach(([browser, views]) => {
+                        browsers[browser] = (browsers[browser] || 0) + views;
+                    });
+                    Object.entries(month.devices || {}).forEach(([device, views]) => {
+                        devices[device] = (devices[device] || 0) + views;
+                    });
+                });
+
+                showModal('Image Analytics', `
+                    <div style="display: grid; grid-template-columns: 300px 1fr; gap: 2rem;">
+                        <div>
+                            <img src="${image.cdn_url}" style="width: 100%; border-radius: var(--radius); margin-bottom: 1rem;">
+                            <div class="stat-card">
+                                <div class="stat-label">Total Views</div>
+                                <div class="stat-value">${image.total_views}</div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="margin-bottom: 1rem;">Analytics Details</h4>
+                            
+                            <div style="margin-bottom: 1.5rem;">
+                                <h5>Image Information</h5>
+                                <table class="table" style="font-size: .875rem;">
+                                    <tr><td>Filename</td><td>${image.original_filename}</td></tr>
+                                    <tr><td>Image ID</td><td><code>${image.image_id}</code></td></tr>
+                                    <tr><td>Upload Date</td><td>${new Date(image.upload_date).toLocaleString()}</td></tr>
+                                    <tr><td>Formats</td><td>${Object.entries(image.formats).map(([format, views]) => `${format} (${views} views)`).join(', ')}</td></tr>
+                                    <tr><td>CDN URL</td><td><a href="${image.cdn_url}" target="_blank" style="color: var(--primary);">View Original</a></td></tr>
+                                </table>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                                <div>
+                                    <h5>By Country</h5>
+                                    <div style="max-height: 150px; overflow-y: auto;">
+                                        ${Object.entries(countries).map(([country, views]) => 
+                                            `<div style="display: flex; justify-content: space-between; padding: .25rem 0; border-bottom: 1px solid var(--border);">
+                                                <span>${country.toUpperCase()}</span>
+                                                <span class="badge badge-primary">${views}</span>
+                                            </div>`
+                                        ).join('')}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h5>By Browser</h5>
+                                    <div style="max-height: 150px; overflow-y: auto;">
+                                        ${Object.entries(browsers).map(([browser, views]) => 
+                                            `<div style="display: flex; justify-content: space-between; padding: .25rem 0; border-bottom: 1px solid var(--border);">
+                                                <span>${browser}</span>
+                                                <span class="badge badge-success">${views}</span>
+                                            </div>`
+                                        ).join('')}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h5>By Device</h5>
+                                    <div style="max-height: 150px; overflow-y: auto;">
+                                        ${Object.entries(devices).map(([device, views]) => 
+                                            `<div style="display: flex; justify-content: space-between; padding: .25rem 0; border-bottom: 1px solid var(--border);">
+                                                <span>${device}</span>
+                                                <span class="badge badge-warning">${views}</span>
+                                            </div>`
+                                        ).join('')}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 1.5rem;">
+                                <h5>Monthly Breakdown</h5>
+                                <div style="max-height: 200px; overflow-y: auto;">
+                                    ${Object.entries(monthlyStats).map(([month, stats]) => 
+                                        `<div style="margin-bottom: 1rem; padding: 1rem; background: var(--input-bg); border-radius: var(--radius);">
+                                            <strong>${month}</strong> - ${stats.monthlyViews} views
+                                            <div style="margin-top: .5rem; display: flex; gap: .5rem; flex-wrap: wrap;">
+                                                ${Object.entries(stats.daily || {}).map(([day, views]) => 
+                                                    `<span class="badge badge-primary">${day}: ${views}</span>`
+                                                ).join('')}
+                                            </div>
+                                        </div>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            } catch (error) {
+                showToast('Failed to load image details', 'error');
+            }
+        }
+
+        async function loadBilling(filter = 'all') {
+            try {
+                const response = await api(`/billing?filter=${filter}`);
+                const billing = response.data;
+                
+                updateBillingStats(response.stats);
+                displayBilling(billing);
+            } catch (error) {
+                console.error('Billing load error:', error);
+                showToast('Failed to load billing data', 'error');
+            }
+        }
+
+        function updateBillingStats(stats) {
+            const billingStats = document.getElementById('billingStats');
+            billingStats.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Current Balance</div>
+                    <div class="stat-value">$${stats?.balance || '0.00'}</div>
+                    <div class="stat-change">→ Available</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">This Month</div>
+                    <div class="stat-value">$${stats?.monthly || '0.00'}</div>
+                    <div class="stat-change">↗ ${stats?.growth || '0%'}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Spent</div>
+                    <div class="stat-value">$${stats?.total || '0.00'}</div>
+                    <div class="stat-change">→ All time</div>
+                </div>
+            `;
+        }
+
+        function displayBilling(transactions) {
+            const billingTable = document.getElementById('billingTable');
+            
+            if (!transactions || transactions.length === 0) {
+                billingTable.innerHTML = '<tr><td colspan="6" class="empty-state">No transactions found</td></tr>';
+                return;
+            }
+            
+            billingTable.innerHTML = transactions.map(tx => `
+                <tr>
+                    <td>${new Date(tx.date).toLocaleDateString()}</td>
+                    <td><span class="badge badge-${tx.type === 'credit' ? 'success' : 'primary'}">${tx.type}</span></td>
+                    <td>${tx.description}</td>
+                    <td>$${tx.amount}</td>
+                    <td><span class="badge badge-${tx.status === 'completed' ? 'success' : tx.status === 'pending' ? 'warning' : 'error'}">${tx.status}</span></td>
+                    <td><button class="btn btn-sm" onclick="showTransactionDetails('${tx.id}')">View</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function analyzeKeywords() {
+            const url = document.getElementById('keywordUrl').value;
+            if (!url) {
+                showToast('Please enter a URL', 'error');
+                return;
+            }
+
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loader"></span> Analyzing...';
+
+            try {
+                const response = await fetch(`https://keywords.seotize.net?url=${encodeURIComponent(url)}`, {
+                    headers: { 'Session-Token': sessionToken }
+                });
+                const data = await response.json();
+
+                document.getElementById('keywordResults').innerHTML = `
+                    <div class="card" style="margin-top: 1.5rem;">
+                        <div class="card-body">
+                            <h4>Keyword Analysis Results</h4>
+                            <div style="margin-top: 1rem;">
+                                <strong>Top Keywords:</strong>
+                                <div class="keyword-grid">
+                                    ${data.keywords.map(kw => `<span class="badge badge-primary">${kw}</span>`).join('')}
+                                </div>
+                            </div>
+                            ${data.density ? `
+                                <div style="margin-top: 1rem;">
+                                    <strong>Keyword Density:</strong>
+                                    <div style="margin-top: .5rem;">
+                                        ${Object.entries(data.density).map(([kw, density]) => 
+                                            `<div style="display: flex; justify-content: space-between; padding: .5rem 0; border-bottom: 1px solid var(--border);">
+                                                <span>${kw}</span>
+                                                <span class="badge badge-primary">${density}%</span>
+                                            </div>`
+                                        ).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                showToast('Failed to analyze keywords', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Analyze';
+            }
+        }
+
+        async function checkSerpPosition() {
+            const keyword = document.getElementById('serpKeyword').value;
+            const url = document.getElementById('serpUrl').value;
+
+            if (!keyword || !url) {
+                showToast('Please enter both keyword and URL', 'error');
+                return;
+            }
+
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loader"></span> Checking...';
+
+            try {
+                // Fixed API endpoint - changed from search.seotize.workers.dev to search.seotize.net
+                const response = await fetch(`https://search.seotize.net/?keyword=${encodeURIComponent(keyword)}&url=${encodeURIComponent(url)}`, {
+                    headers: { 'Session-Token': sessionToken }
+                });
+                const data = await response.json();
+
+                document.getElementById('serpResults').innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <h4>SERP Results for "${keyword}"</h4>
+                            <div class="stat-grid" style="margin-top: 1rem;">
+                                ${['Google', 'Bing', 'Duckduckgo'].map(engine => {
+                                    const engineData = data[engine];
+                                    return `
+                                        <div class="stat-card">
+                                            <div class="stat-label">${engine}</div>
+                                            <div class="stat-value">${engineData?.exist ? `#${engineData.position}` : 'Not Found'}</div>
+                                            <div class="stat-change">${engineData?.totalResults || 0} results</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+
+                            <div style="margin-top: 1.5rem;">
+                                <h5>Search Engine Details:</h5>
+                                ${['Google', 'Bing', 'Duckduckgo'].map(engine => {
+                                    const engineData = data[engine];
+                                    if (!engineData?.exist) return '';
+                                    
+                                    return `
+                                        <div style="margin-bottom: 1rem; padding: 1rem; background: var(--input-bg); border-radius: var(--radius);">
+                                            <strong>${engine}:</strong> Position ${engineData.position}
+                                            ${engineData.urls?.length ? `
+                                                <div style="margin-top: .5rem;">
+                                                    <small>Found URLs:</small>
+                                                    ${engineData.urls.slice(0, 3).map(url => 
+                                                        `<div style="margin-top: .25rem;">
+                                                            <a href="${url}" target="_blank" style="color: var(--primary); font-size: .875rem;">${url}</a>
+                                                        </div>`
+                                                    ).join('')}
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                showToast('Failed to check SERP position', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Check Position';
+            }
+        }
+
+        async function showTaskDetails(taskId) {
+            try {
+                const response = await api(`/tasks/${taskId}`);
+                const task = response.data;
+
+                showModal('Task Details', `
+                    <div style="display: grid; gap: 1.5rem;">
+                        <div>
+                            <h4>${task.url}</h4>
+                            <div style="display: flex; gap: .5rem; margin: .5rem 0;">
+                                ${task.keywords?.map(kw => `<span class="badge badge-primary">${kw}</span>`).join('') || ''}
+                            </div>
+                            <span class="badge ${task.status === 'active' ? 'badge-success' : task.status === 'completed' ? 'badge-primary' : 'badge-warning'}">
+                                ${task.status}
+                            </span>
+                        </div>
+
+                        <div class="stat-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">Total Clicks</div>
+                                <div class="stat-value">${task.clicks || 0}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Budget Remaining</div>
+                                <div class="stat-value">$${task.remaining_budget || '0.00'}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Countries</div>
+                                <div class="stat-value">${task.countries?.length || 0}</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <h4>Country Distribution</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: .5rem; margin-top: .5rem;">
+                                ${Object.entries(task.country_visits || {}).map(([country, visits]) => 
+                                    `<div class="badge badge-primary">${country}: ${visits}</div>`
+                                ).join('')}
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                            <button class="btn btn-primary" onclick="rechargeTask(['${taskId}'])">Recharge Task</button>
+                            <button class="btn" onclick="closeModal()">Close</button>
+                        </div>
+                    </div>
+                `);
+            } catch (error) {
+                console.error('Task details error:', error);
+                showToast('Failed to load task details', 'error');
+            }
+        }
+
+        function showModal(title, content) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML = content;
+            document.getElementById('modal').classList.add('show');
+            gsap.from('.modal-content', {duration: 0.4, scale: 0.9, opacity: 0, ease: "back.out(1.7)"});
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            return parts.length === 2 ? parts.pop().split(';').shift() : '';
+        }
+
+        async function logout() {
+            try {
+                await api('/logout');
+            } finally {
+                document.cookie = 'session_token=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                window.location.href = '/login.html';
+            }
+        }
+
+        function revokeSession(token) {
+            showToast('Session revoked', 'success');
+            loadDashboard();
+        }
+
+        async function rechargeTask(taskIds) {
+            try {
+                await api('/tasks/recharge', {
+                    method: 'POST',
+                    body: JSON.stringify({ task_ids: taskIds })
+                });
+                showToast('Task recharged successfully', 'success');
+                closeModal();
+                loadTasks();
+            } catch (error) {
+                showToast('Failed to recharge task', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.dataset.theme = savedTheme;
+        });
+
+        document.getElementById('modal').addEventListener('click', e => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>

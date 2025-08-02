@@ -7,6 +7,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
 :root{--radius:12px;--shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06)}
 [data-theme="dark"]{--bg:#0f172a;--sidebar:#1e293b;--card:#1e293b;--text:#e2e8f0;--text-light:#94a3b8;--border:#334155;--primary:#3b82f6;--primary-hover:#2563eb;--secondary:#10b981;--error:#ef4444;--warning:#f59e0b;--success:#10b981;--input-bg:#0f172a}
@@ -111,6 +114,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .keyword-item{padding:.5rem 1rem;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .2s}
 .keyword-item:hover{border-color:var(--primary);background:rgba(59,130,246,0.1)}
 .keyword-item.selected{background:var(--primary);color:white;border-color:var(--primary)}
+
+/* Map styles */
+#worldMap{height:100%;width:100%;border-radius:var(--radius)}
+.leaflet-popup-content{font-family:'Inter',sans-serif}
+.leaflet-popup-content-wrapper{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.leaflet-popup-tip{background:var(--card);border:1px solid var(--border)}
 
 .mobile-toggle{display:none;position:fixed;top:1rem;left:1rem;z-index:100;width:40px;height:40px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);align-items:center;justify-content:center;cursor:pointer}
 
@@ -444,15 +453,28 @@ async function loadDashboard() {
 
         // Extract user info from any available transaction
         const allTransactions = [...(data.tasks || []), ...(data.hosting || [])];
+        
+        // Get user info from the first transaction or use session data
+        let userEmail = 'user@example.com';
+        let userSince = new Date().toLocaleDateString();
+        
+        if (allTransactions.length > 0) {
+            const firstTransaction = allTransactions[0];
+            userEmail = firstTransaction.transaction_data?.customer_details?.email || 
+                       firstTransaction.customer_details?.email || 
+                       firstTransaction.email || 'user@example.com';
+            userSince = firstTransaction.dates?.created ? new Date(firstTransaction.dates.created).toLocaleDateString() : new Date().toLocaleDateString();
+        }
+        
         const user = {
-            email: allTransactions[0]?.transaction_data?.customer_details?.email || 'user@example.com',
+            email: userEmail,
             task_statistics: {
                 total_views: allTransactions.filter(t => t.method === 'create_task').reduce((sum, t) => sum + (t.views_count || 0), 0),
                 active_tasks: allTransactions.filter(t => t.method === 'create_task' && t.status === 'Paid').length,
                 total_charge: allTransactions.reduce((sum, t) => sum + (typeof t.total_payment === 'number' ? t.total_payment : parseFloat(t.total_payment?.parsedValue || 0)), 0),
                 available_charge: allTransactions.filter(t => t.status === 'Paid').reduce((sum, t) => sum + (t.final_amount || 0), 0)
             },
-            sessions: [] // Mock empty sessions
+            sessions: [] // Will be loaded separately
         };
 
         currentData.user = user;
@@ -478,14 +500,23 @@ async function loadDashboard() {
             </div>
         `).join('');
 
+        // Load sessions data
+        try {
+            const sessionsResponse = await api('/dashboard/sessions');
+            user.sessions = sessionsResponse.data || [];
+        } catch (error) {
+            console.error('Failed to load sessions:', error);
+            user.sessions = [];
+        }
+
         // Sessions (compact)
         document.getElementById('sessionCount').textContent = `${user.sessions?.length || 0} Active`;
         document.getElementById('sessionsTable').innerHTML = user.sessions?.length ? user.sessions.map(session => `
             <tr>
-                <td><span class="badge badge-primary">${session.country_code}</span></td>
-                <td>${session.ip_address}</td>
-                <td>${new Date(session.timestamp).toLocaleDateString()}</td>
-                <td><button class="btn btn-sm" onclick="revokeSession('${session.token}')">Revoke</button></td>
+                <td><span class="badge badge-primary">${session.country_code || 'Unknown'}</span></td>
+                <td>${session.ip_address || 'N/A'}</td>
+                <td>${new Date(session.timestamp || session.created_at).toLocaleDateString()}</td>
+                <td><button class="btn btn-sm" onclick="revokeSession('${session.token || session.id}')">Revoke</button></td>
             </tr>
         `).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--text-light)">No active sessions</td></tr>';
 
@@ -547,25 +578,50 @@ function createDashboardCharts(transactions) {
     // Country Distribution (mock data for now)
     const countryData = {'US': 45, 'UK': 25, 'CA': 15, 'AU': 10, 'DE': 5};
 
-    if (charts.country) charts.country.destroy();
-    const ctx2 = document.getElementById('countryChart').getContext('2d');
-    charts.country = new Chart(ctx2, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(countryData),
-            datasets: [{
-                data: Object.values(countryData),
-                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'right' }
-            }
+    // Clean up previous map if exists
+    if (charts.country) {
+        if (charts.country.destroy) {
+            charts.country.destroy();
+        } else if (charts.country.remove) {
+            charts.country.remove();
+        }
+    }
+
+    // Create world map instead of chart
+    const mapContainer = document.getElementById('countryChart').parentElement;
+    mapContainer.innerHTML = '<div id="worldMap" style="height: 100%; width: 100%;"></div>';
+    
+    const map = L.map('worldMap').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Add markers for countries with data
+    const countryCoordinates = {
+        'US': [39.8283, -98.5795],
+        'UK': [55.3781, -3.4360],
+        'CA': [56.1304, -106.3468],
+        'AU': [-25.2744, 133.7751],
+        'DE': [51.1657, 10.4515]
+    };
+
+    Object.entries(countryData).forEach(([country, views]) => {
+        const coords = countryCoordinates[country];
+        if (coords) {
+            const marker = L.circleMarker(coords, {
+                radius: Math.max(5, views / 5),
+                fillColor: '#3b82f6',
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map);
+            
+            marker.bindPopup(`<b>${country}</b><br>${views} views`);
         }
     });
+
+    charts.country = map; // Store map reference
 }
 
 // Tasks Management
@@ -682,7 +738,7 @@ async function showTaskModal() {
 
         <div id="taskStep2" style="display:none">
             <div class="location-preview">
-                <iframe id="taskPreview"></iframe>
+                <iframe id="taskPreview" style="pointer-events: auto; overflow: auto;"></iframe>
                 <div class="location-overlay" id="locationOverlay"></div>
             </div>
             <div style="margin:1rem 0">
@@ -840,7 +896,7 @@ async function suggestKeywords() {
 
         const suggestions = document.getElementById('keywordSuggestions');
         suggestions.innerHTML = data.keywords.map(keyword => `
-            <div class="keyword-item" onclick="toggleKeyword('${keyword}')">${keyword}</div>
+            <div class="keyword-item" onclick="toggleKeyword('${keyword}')" style="opacity: 1; transition: opacity 0.3s ease;">${keyword}</div>
         `).join('');
 
         // Animate keywords
@@ -941,7 +997,15 @@ async function rechargeTask(taskId) {
 
 // Hosting Management
 async function loadHosting() {
-    showHostingContent('overview');
+    try {
+        // Load hosting data
+        const hostingResponse = await api('/dashboard/hosting');
+        currentData.hosting = hostingResponse.data || {};
+        showHostingContent('overview');
+    } catch (error) {
+        console.error('Hosting error:', error);
+        showHostingContent('overview');
+    }
 }
 
 function showHostingContent(type) {
@@ -953,23 +1017,32 @@ function showHostingContent(type) {
     
     switch(type) {
         case 'overview':
+            const hostingData = currentData.hosting || {};
+            const plan = hostingData.plan || 'FREE';
+            const imagesUsed = hostingData.images_used || 0;
+            const imagesLimit = hostingData.images_limit || 10;
+            const articlesUsed = hostingData.articles_used || 0;
+            const articlesLimit = hostingData.articles_limit || 5;
+            const storageUsed = hostingData.storage_used || 0;
+            const storageLimit = hostingData.storage_limit || 1;
+            
             content.innerHTML = `
                 <div class="stat-grid" style="margin-bottom:1.5rem">
                     <div class="stat-card">
                         <div class="stat-label">Current Plan</div>
-                        <div class="stat-value">FREE</div>
+                        <div class="stat-value">${plan}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">Images Used</div>
-                        <div class="stat-value">0/10</div>
+                        <div class="stat-value">${imagesUsed}/${imagesLimit}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">Articles Used</div>
-                        <div class="stat-value">0/5</div>
+                        <div class="stat-value">${articlesUsed}/${articlesLimit}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">Storage Used</div>
-                        <div class="stat-value">0GB/1GB</div>
+                        <div class="stat-value">${storageUsed}GB/${storageLimit}GB</div>
                     </div>
                 </div>
                 
@@ -985,37 +1058,134 @@ function showHostingContent(type) {
             `;
             break;
         case 'images':
-            content.innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-                    <h3>Image Management</h3>
-                    <button class="btn btn-primary" onclick="showImageUploadModal()">Upload Images</button>
-                </div>
-                <div class="empty-state">
-                    <p>No images uploaded yet</p>
-                </div>
-            `;
+            try {
+                const imagesResponse = await api('/dashboard/hosting/images');
+                const images = imagesResponse.data || [];
+                
+                content.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                        <h3>Image Management</h3>
+                        <button class="btn btn-primary" onclick="showImageUploadModal()">Upload Images</button>
+                    </div>
+                    ${images.length ? `
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
+                            ${images.map(img => `
+                                <div class="card" style="padding:1rem">
+                                    <img src="${img.url}" alt="${img.name}" style="width:100%;height:150px;object-fit:cover;border-radius:var(--radius);margin-bottom:.5rem">
+                                    <div style="font-size:.875rem;color:var(--text-light)">${img.name}</div>
+                                    <div style="font-size:.75rem;color:var(--text-muted)">${img.size}KB</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="empty-state">
+                            <p>No images uploaded yet</p>
+                        </div>
+                    `}
+                `;
+            } catch (error) {
+                console.error('Images error:', error);
+                content.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                        <h3>Image Management</h3>
+                        <button class="btn btn-primary" onclick="showImageUploadModal()">Upload Images</button>
+                    </div>
+                    <div class="empty-state">
+                        <p>No images uploaded yet</p>
+                    </div>
+                `;
+            }
             break;
         case 'articles':
-            content.innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-                    <h3>Article Management</h3>
-                    <button class="btn btn-primary" onclick="showArticleModal()">Create Article</button>
-                </div>
-                <div class="empty-state">
-                    <p>No articles published yet</p>
-                </div>
-            `;
+            try {
+                const articlesResponse = await api('/dashboard/hosting/articles');
+                const articles = articlesResponse.data || [];
+                
+                content.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                        <h3>Article Management</h3>
+                        <button class="btn btn-primary" onclick="showArticleModal()">Create Article</button>
+                    </div>
+                    ${articles.length ? `
+                        <div style="display:grid;gap:1rem">
+                            ${articles.map(article => `
+                                <div class="card" style="padding:1.25rem">
+                                    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:.5rem">
+                                        <h4 style="margin:0">${article.title}</h4>
+                                        <span class="badge badge-${article.status === 'published' ? 'success' : 'warning'}">${article.status}</span>
+                                    </div>
+                                    <p style="color:var(--text-light);margin-bottom:.5rem">${article.excerpt || 'No excerpt available'}</p>
+                                    <div style="display:flex;gap:1rem;font-size:.875rem;color:var(--text-muted)">
+                                        <span>${new Date(article.created_at).toLocaleDateString()}</span>
+                                        <span>${article.word_count || 0} words</span>
+                                        <span>${article.views || 0} views</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="empty-state">
+                            <p>No articles published yet</p>
+                        </div>
+                    `}
+                `;
+            } catch (error) {
+                console.error('Articles error:', error);
+                content.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                        <h3>Article Management</h3>
+                        <button class="btn btn-primary" onclick="showArticleModal()">Create Article</button>
+                    </div>
+                    <div class="empty-state">
+                        <p>No articles published yet</p>
+                    </div>
+                `;
+            }
             break;
         case 'domains':
-            content.innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-                    <h3>Domain Management</h3>
-                    <button class="btn btn-primary" onclick="showDomainModal()">Add Domain</button>
-                </div>
-                <div class="empty-state">
-                    <p>No domains configured yet</p>
-                </div>
-            `;
+            try {
+                const domainsResponse = await api('/dashboard/hosting/domains');
+                const domains = domainsResponse.data || [];
+                
+                content.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                        <h3>Domain Management</h3>
+                        <button class="btn btn-primary" onclick="showDomainModal()">Add Domain</button>
+                    </div>
+                    ${domains.length ? `
+                        <div style="display:grid;gap:1rem">
+                            ${domains.map(domain => `
+                                <div class="card" style="padding:1.25rem">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+                                        <h4 style="margin:0">${domain.name}</h4>
+                                        <span class="badge badge-${domain.status === 'active' ? 'success' : domain.status === 'pending' ? 'warning' : 'error'}">${domain.status}</span>
+                                    </div>
+                                    <div style="display:flex;gap:1rem;font-size:.875rem;color:var(--text-muted)">
+                                        <span>Added: ${new Date(domain.created_at).toLocaleDateString()}</span>
+                                        <span>SSL: ${domain.ssl_enabled ? 'Enabled' : 'Disabled'}</span>
+                                        <span>CDN: ${domain.cdn_enabled ? 'Enabled' : 'Disabled'}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="empty-state">
+                            <p>No domains configured yet</p>
+                        </div>
+                    `}
+                `;
+            } catch (error) {
+                console.error('Domains error:', error);
+                content.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                        <h3>Domain Management</h3>
+                        <button class="btn btn-primary" onclick="showDomainModal()">Add Domain</button>
+                    </div>
+                    <div class="empty-state">
+                        <p>No domains configured yet</p>
+                    </div>
+                `;
+            }
             break;
     }
     
@@ -1214,7 +1384,7 @@ async function checkSerpPosition() {
     btn.innerHTML = '<span class="loader"></span> Checking...';
 
     try {
-        const response = await fetch(`https://search.seotize.workers.dev/?keyword=${encodeURIComponent(keyword)}&url=${encodeURIComponent(url)}`, {
+        const response = await fetch(`https://search.seotize.net/?keyword=${encodeURIComponent(keyword)}&url=${encodeURIComponent(url)}`, {
             headers: { 'Session-Token': sessionToken }
         });
         const data = await response.json();
@@ -1309,9 +1479,17 @@ async function logout() {
     }
 }
 
-function revokeSession(token) {
-    showToast('Session revoked', 'success');
-    loadDashboard();
+async function revokeSession(token) {
+    try {
+        await api('/dashboard/revoke-session', {
+            method: 'POST',
+            body: JSON.stringify({ token: token })
+        });
+        showToast('Session revoked', 'success');
+        loadDashboard();
+    } catch (error) {
+        showToast('Failed to revoke session', 'error');
+    }
 }
 
 function exportTaskData(taskId) {
@@ -1329,17 +1507,143 @@ function exportTaskData(taskId) {
     showToast('Data exported successfully', 'success');
 }
 
-// Modal and image upload functions (simplified for space)
-function showImageUploadModal() {
-    showModal('Upload Images', '<p>Image upload functionality - implementation needed</p>');
+// Modal and image upload functions
+async function showImageUploadModal() {
+    showModal('Upload Images', `
+        <div class="form-group">
+            <label class="form-label">Select Images</label>
+            <input type="file" class="form-input" id="imageUpload" multiple accept="image/*">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Upload to Folder (optional)</label>
+            <input type="text" class="form-input" id="imageFolder" placeholder="e.g., products, blog">
+        </div>
+        <button class="btn btn-primary" onclick="uploadImages()">Upload Images</button>
+    `);
 }
 
-function showArticleModal() {
-    showModal('Create Article', '<p>Article creation functionality - implementation needed</p>');
+async function showArticleModal() {
+    showModal('Create Article', `
+        <div class="form-group">
+            <label class="form-label">Article Title</label>
+            <input type="text" class="form-input" id="articleTitle" placeholder="Enter article title">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Article Content</label>
+            <textarea class="form-textarea" id="articleContent" placeholder="Write your article content here..."></textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">SEO Keywords</label>
+            <input type="text" class="form-input" id="articleKeywords" placeholder="keyword1, keyword2, keyword3">
+        </div>
+        <button class="btn btn-primary" onclick="createArticle()">Create Article</button>
+    `);
 }
 
-function showDomainModal() {
-    showModal('Add Domain', '<p>Domain management functionality - implementation needed</p>');
+async function showDomainModal() {
+    showModal('Add Domain', `
+        <div class="form-group">
+            <label class="form-label">Domain Name</label>
+            <input type="text" class="form-input" id="domainName" placeholder="example.com">
+        </div>
+        <div class="form-group">
+            <label class="form-label">DNS Records</label>
+            <div style="background:var(--input-bg);padding:1rem;border-radius:var(--radius);font-size:.875rem">
+                <p>Add these DNS records to your domain provider:</p>
+                <div style="margin-top:.5rem">
+                    <div><strong>Type:</strong> CNAME</div>
+                    <div><strong>Name:</strong> @</div>
+                    <div><strong>Value:</strong> cdn.seotize.net</div>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="addDomain()">Add Domain</button>
+    `);
+}
+
+async function uploadImages() {
+    const files = document.getElementById('imageUpload').files;
+    const folder = document.getElementById('imageFolder').value;
+    
+    if (!files.length) {
+        showToast('Please select images to upload', 'error');
+        return;
+    }
+
+    const formData = new FormData();
+    for (let file of files) {
+        formData.append('images', file);
+    }
+    if (folder) formData.append('folder', folder);
+
+    try {
+        const response = await fetch(`${API_BASE}/dashboard/hosting/upload-images`, {
+            method: 'POST',
+            headers: { 'Session-Token': sessionToken },
+            body: formData
+        });
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            showToast('Images uploaded successfully', 'success');
+            closeModal();
+            showHostingContent('images');
+        } else {
+            showToast(data.error?.message || 'Upload failed', 'error');
+        }
+    } catch (error) {
+        showToast('Upload failed', 'error');
+    }
+}
+
+async function createArticle() {
+    const title = document.getElementById('articleTitle').value;
+    const content = document.getElementById('articleContent').value;
+    const keywords = document.getElementById('articleKeywords').value;
+
+    if (!title || !content) {
+        showToast('Please fill in title and content', 'error');
+        return;
+    }
+
+    try {
+        const { data } = await api('/dashboard/hosting/create-article', {
+            method: 'POST',
+            body: JSON.stringify({
+                title: title,
+                content: content,
+                keywords: keywords.split(',').map(k => k.trim()).filter(k => k)
+            })
+        });
+
+        showToast('Article created successfully', 'success');
+        closeModal();
+        showHostingContent('articles');
+    } catch (error) {
+        showToast('Failed to create article', 'error');
+    }
+}
+
+async function addDomain() {
+    const domain = document.getElementById('domainName').value;
+
+    if (!domain) {
+        showToast('Please enter a domain name', 'error');
+        return;
+    }
+
+    try {
+        const { data } = await api('/dashboard/hosting/add-domain', {
+            method: 'POST',
+            body: JSON.stringify({ domain: domain })
+        });
+
+        showToast('Domain added successfully', 'success');
+        closeModal();
+        showHostingContent('domains');
+    } catch (error) {
+        showToast('Failed to add domain', 'error');
+    }
 }
 
 // Load theme preference

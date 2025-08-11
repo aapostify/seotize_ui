@@ -43,7 +43,7 @@
         .form-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1);background:var(--card-bg)}
         .form-input.error{border-color:var(--error);background:rgba(220,38,38,.05)}
         .form-input.success{border-color:var(--success);background:rgba(5,150,105,.05)}
-        .input-icon{position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.9rem}
+        .input-icon{position:absolute;right:.8rem;top:20%;transform:translateY(-50%);color:var(--text-muted);font-size:.9rem}
         .input-icon.success{color:var(--success)}
         .input-icon.error{color:var(--error)}
         .captcha-container{margin:1rem 0;display:flex;justify-content:center}
@@ -57,7 +57,7 @@
         .login-btn{width:100%;padding:.9rem 1.5rem;background:var(--primary);color:white;border:none;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .3s ease}
         .login-btn:hover{background:#1e40af;transform:translateY(-1px)}
         .login-btn.loading{pointer-events:none;opacity:.8}
-        .spinner{width:14px;height:14px;border:2px solid transparent;border-top:2px solid white;border-radius:50%;animation:spin 1s linear infinite;margin-right:.5rem}
+        .spinner{width:14px;height:14px;border:2px solid transparent;border-top:2px solid white;border-radius:50%;animation:spin 1s linear infinite;}
         @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
         .divider{display:flex;align-items:center;margin:1.5rem 0;color:var(--text-muted);font-size:.85rem}
         .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
@@ -124,13 +124,17 @@
                 <form id="loginForm">
                     <div class="form-group">
                         <label class="form-label" for="email">Email Address</label>
-                        <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
-                        <div class="input-icon" id="emailIcon"></div>
+                        <div>
+                            <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
+                            <div class="input-icon" id="emailIcon"></div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="password">Password</label>
-                        <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
-                        <div class="input-icon" id="passwordIcon"></div>
+                        <div>
+                            <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+                            <div class="input-icon" id="passwordIcon"></div>
+                        </div>
                     </div>
                     <div class="captcha-container">
                         <div class="cf-turnstile" data-sitekey="0x4AAAAAABi0oSEk-fxks-xg" data-callback="onCaptchaSuccess"></div>

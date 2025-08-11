@@ -39,7 +39,7 @@
 
         .form-btn{width:100%;padding:.9rem 1.5rem;border:none;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .3s ease;margin-bottom:1rem}.form-btn:disabled{cursor:not-allowed;opacity:.6}.form-btn.primary{background:var(--primary);color:white}.form-btn.primary:hover:not(:disabled){background:#1e40af;transform:translateY(-1px)}.form-btn.primary:disabled{background:var(--text-muted)}.form-btn.secondary{background:var(--bg-light);color:var(--text);border:1px solid var(--border)}.form-btn.secondary:hover{background:var(--card-bg);border-color:var(--primary)}
 
-        .spinner{width:14px;height:14px;border:2px solid transparent;border-top:2px solid white;border-radius:50%;animation:spin 1s linear infinite;margin-right:.5rem}@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+        .spinner{width:14px;height:14px;border:2px solid transparent;border-top:2px solid white;border-radius:50%;animation:spin 1s linear infinite;margin-right:.5rem; float: left}@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 
         .divider{display:flex;align-items:center;margin:1.5rem 0;color:var(--text-muted);font-size:.85rem}.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}.divider span{padding:0 1rem}
 
@@ -112,8 +112,10 @@
                     <div class="form-step" id="formStep1">
                         <div class="form-group">
                             <label class="form-label" for="email">Email Address</label>
-                            <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
-                            <div class="input-icon" id="emailIcon"></div>
+                            <div style="position:relative">
+                                <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
+                                <div class="input-icon" id="emailIcon"></div>
+                            </div>
                         </div>
                         <div class="captcha-container">
                             <div class="cf-turnstile" data-sitekey="0x4AAAAAABi0oSEk-fxks-xg" data-callback="onCaptchaSuccess" style="display:none"></div>
@@ -161,8 +163,10 @@
                     <div class="form-step hidden" id="formStep2">
                         <div class="form-group">
                             <label class="form-label" for="password">Password</label>
-                            <input type="password" id="password" class="form-input" placeholder="Create password" required>
-                            <div class="input-icon" id="passwordIcon"></div>
+                            <div style="position: relative">
+                                <input type="password" id="password" class="form-input" placeholder="Create password" required>
+                                <div class="input-icon" id="passwordIcon"></div>
+                            </div>
                             <div class="password-requirements" id="passwordRequirements">
                                 <div class="requirement" id="lengthReq">
                                     <span class="requirement-icon">•</span>
@@ -233,8 +237,8 @@
         const ca = document.cookie.split(';');
         for(let i=0; i < ca.length; i++) {
             let c = ca[i];
-            while (c.charAt(0)==' ') c = c.substring(1,c.length);
-            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+            while (c.charAt(0)===' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
         }
         return null;
     }

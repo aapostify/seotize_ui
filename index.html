@@ -83,12 +83,12 @@ nav>div{max-width:1200px;margin:0 auto;display:flex;justify-content:space-betwee
 .hero img{width:100%;border-radius:12px;box-shadow:0 20px 25px rgba(0,0,0,.1)}
 .hero-controls{
     position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
-    display:flex;align-items:center;gap:1rem;
+    display:flex;align-items:center;gap:1rem;flex-direction: row;
     background:var(--card-bg);padding:.75rem 1.5rem;border-radius:50px;
     box-shadow:0 10px 15px rgba(0,0,0,.1);border:1px solid var(--border);
     transition:all .3s ease;z-index:10
 }
-.hero-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .2s}
+.hero-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .2s;margin: 0 4.5px}
 .hero-dot.active{background:var(--primary);transform:scale(1.25)}
 .hero-arrow{
     width:32px;height:32px;border:none;border-radius:50%;
@@ -219,7 +219,7 @@ nav>div{max-width:1200px;margin:0 auto;display:flex;justify-content:space-betwee
     -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text
 }
 .story-subtitle{font-size:1.2rem;color:var(--secondary);margin-bottom:1.5rem;font-weight:600}
-.story-text{font-size:1.125rem;color:var(--text-light);margin-bottom:2rem;line-height:1.7}
+.story-text{min-height:92px;font-size:1.125rem;color:var(--text-light);margin-bottom:2rem;line-height:1.7}
 .story-features{list-style:none;margin-bottom:2rem}
 .story-features li{
     padding:.5rem 0;color:var(--text-light);display:flex;align-items:center;gap:.75rem;font-size:1.1rem
@@ -1299,7 +1299,7 @@ function createHero() {
     });
     const controls = document.createElement('div');
     controls.className = 'hero-controls';
-    controls.innerHTML = '<button class="hero-arrow" onclick="prevHero()" aria-label="Previous slide">‹</button><div id="hero-dots"></div><button class="hero-arrow" onclick="nextHero()" aria-label="Next slide">›</button>';
+    controls.innerHTML = '<button class="hero-arrow" onclick="prevHero()" aria-label="Previous slide">‹</button><div id="hero-dots" style="display: flex;flex-direction: row"></div><button class="hero-arrow" onclick="nextHero()" aria-label="Next slide">›</button>';
     hero.appendChild(controls);
     const dots = document.getElementById('hero-dots');
     data.hero.slides.forEach((slide, i) => {

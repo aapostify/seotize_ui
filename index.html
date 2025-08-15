@@ -83,12 +83,12 @@ nav>div{max-width:1200px;margin:0 auto;display:flex;justify-content:space-betwee
 .hero img{width:100%;border-radius:12px;box-shadow:0 20px 25px rgba(0,0,0,.1)}
 .hero-controls{
     position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
-    display:flex;align-items:center;gap:1rem;
+    display:flex;align-items:center;gap:1rem;flex-direction: row;
     background:var(--card-bg);padding:.75rem 1.5rem;border-radius:50px;
     box-shadow:0 10px 15px rgba(0,0,0,.1);border:1px solid var(--border);
     transition:all .3s ease;z-index:10
 }
-.hero-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .2s}
+.hero-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .2s;margin: 0 4.5px}
 .hero-dot.active{background:var(--primary);transform:scale(1.25)}
 .hero-arrow{
     width:32px;height:32px;border:none;border-radius:50%;
@@ -164,6 +164,7 @@ nav>div{max-width:1200px;margin:0 auto;display:flex;justify-content:space-betwee
     transition: color 0.3s ease;
 }
 
+.social-logo{width:24px;height: 24px}
 .mobile-menu-links a:hover {
     color: var(--primary);
 }
@@ -219,7 +220,7 @@ nav>div{max-width:1200px;margin:0 auto;display:flex;justify-content:space-betwee
     -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text
 }
 .story-subtitle{font-size:1.2rem;color:var(--secondary);margin-bottom:1.5rem;font-weight:600}
-.story-text{font-size:1.125rem;color:var(--text-light);margin-bottom:2rem;line-height:1.7}
+.story-text{min-height:92px;font-size:1.125rem;color:var(--text-light);margin-bottom:2rem;line-height:1.7}
 .story-features{list-style:none;margin-bottom:2rem}
 .story-features li{
     padding:.5rem 0;color:var(--text-light);display:flex;align-items:center;gap:.75rem;font-size:1.1rem
@@ -679,10 +680,28 @@ body:not(.dark) .nav-btn {
             <div class="footer-bottom">
                 <p>© 2024 Seotize. All rights reserved.</p>
                 <div class="social-links">
-                    <a href="#" aria-label="Email">📧</a>
-                    <a href="#" aria-label="Twitter">🐦</a>
-                    <a href="#" aria-label="LinkedIn">💼</a>
-                    <a href="#" aria-label="Discord">📱</a>
+                    <a href="#" aria-label="Email"><svg class="social-logo" viewBox="0 0 32 32" id="svg5" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+
+                        <defs id="defs2"/>
+
+                        <g id="layer1" transform="translate(-396,-52)">
+
+                            <path d="m 357,54 c -1.6447,0 -3,1.355301 -3,3 v 3 h -2 a 1,1 0 0 0 -1,1 1,1 0 0 0 1,1 h 2 v 5 h -2 a 1,1 0 0 0 -1,1 1,1 0 0 0 1,1 h 2 v 4.999997 h -2 a 1,1 0 0 0 -1,1 1,1 0 0 0 1,1 h 2 v 3 c 0,1.6447 1.3553,3 3,3 h 17 c 1.6447,0 3,-1.3553 3,-3 V 57 c 0,-1.644699 -1.3553,-3 -3,-3 z m 48,0 c -1.6447,0 -3,1.355301 -3,3 v 3 h -2 a 1,1 0 0 0 -1,1 1,1 0 0 0 1,1 h 2 v 5 h -2 a 1,1 0 0 0 -1,1 1,1 0 0 0 1,1 h 2 v 4.999997 h -2 a 1,1 0 0 0 -1,1 1,1 0 0 0 1,1 h 2 v 3 c 0,1.6447 1.3553,3 3,3 h 17 c 1.6447,0 3,-1.3553 3,-3 V 57 c 0,-1.644699 -1.3553,-3 -3,-3 z m -48,2 h 17 c 0.5713,0 1,0.428704 1,1 v 21.999997 c 0,0.5713 -0.4287,1 -1,1 h -17 c -0.5713,0 -1,-0.4287 -1,-1 v -3 h 1 a 1,1 0 0 0 1,-1 1,1 0 0 0 -1,-1 h -1 V 69 h 1 a 1,1 0 0 0 1,-1 1,1 0 0 0 -1,-1 h -1 v -5 h 1 a 1,1 0 0 0 1,-1 1,1 0 0 0 -1,-1 h -1 v -3 c 0,-0.571296 0.4287,-1 1,-1 z m 48,0 h 17 c 0.5713,0 1,0.428704 1,1 v 21.999997 c 0,0.5713 -0.4287,1 -1,1 h -17 c -0.5713,0 -1,-0.4287 -1,-1 v -3 h 1 a 1,1 0 0 0 1,-1 1,1 0 0 0 -1,-1 h -1 V 69 h 1 a 1,1 0 0 0 1,-1 1,1 0 0 0 -1,-1 h -1 v -5 h 1 a 1,1 0 0 0 1,-1 1,1 0 0 0 -1,-1 h -1 v -3 c 0,-0.571296 0.4287,-1 1,-1 z m -40,3 c -2.19729,0 -4,1.802713 -4,4 0,2.197287 1.80271,4 4,4 2.19729,0 4,-1.802713 4,-4 0,-2.197287 -1.80271,-4 -4,-4 z m 0,2 c 1.11642,0 2,0.883586 2,2 0,1.116414 -0.88358,2 -2,2 -1.11642,0 -2,-0.883586 -2,-2 0,-1.116414 0.88358,-2 2,-2 z m 49,0 c -3.85414,-10e-7 -7,3.145863 -7,7 0,3.854137 3.14586,6.999997 7,6.999997 a 0.99999499,0.99999499 0 0 0 1,-1 0.99999499,0.99999499 0 0 0 -1,-1 c -2.77327,0 -5,-2.22673 -5,-4.999997 0,-2.773265 2.22673,-5.000001 5,-5 2.77327,-10e-7 5.00002,2.226743 5,5 v 2 c 0,0.564133 -0.43587,0.999997 -1,0.999997 -0.56413,0 -1,-0.435866 -1,-0.999997 v -2 c 0,-1.645003 -1.35499,-2.999997 -3,-3 -1.64501,3e-6 -3,1.354997 -3,3 0,1.645003 1.35499,2.999997 3,2.999997 0.39113,0 0.76536,-0.0779 1.10938,-0.21679 0.34849,1.27043 1.51634,2.21679 2.89062,2.21679 1.64501,1e-5 3,-1.35499 3,-2.999997 v -2 c 2e-5,-3.854137 -3.14586,-7.000001 -7,-7 z m 0,6 c 0.56413,10e-7 1,0.435868 1,1 0,0.564132 -0.43587,0.999999 -1,1 -0.56413,-10e-7 -1,-0.435868 -1,-1 0,-0.564132 0.43587,-0.999999 1,-1 z m -51,1 c -2.1987,0 -4,1.801301 -4,3.999997 0,2.1987 1.8013,4 4,4 h 4 c 2.1987,0 4,-1.8013 4,-4 C 371,69.801301 369.1987,68 367,68 Z m 0,2 h 4 c 1.1253,0 2,0.874707 2,1.999997 0,1.1253 -0.8747,2 -2,2 h -4 c -1.1253,0 -2,-0.8747 -2,-2 C 361,70.874707 361.8747,70 363,70 Z" id="rect35136" style="color:#000000;fill:#000000;fill-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4.1;-inkscape-stroke:none"/>
+
+                        </g>
+
+                    </svg></a>
+                    <a href="#" aria-label="Twitter"><svg class="social-logo" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 248 204">
+  <path fill="#1d9bf0" d="M221.95 51.29c.15 2.17.15 4.34.15 6.53 0 66.73-50.8 143.69-143.69 143.69v-.04c-27.44.04-54.31-7.82-77.41-22.64 3.99.48 8 .72 12.02.73 22.74.02 44.83-7.61 62.72-21.66-21.61-.41-40.56-14.5-47.18-35.07 7.57 1.46 15.37 1.16 22.8-.87-23.56-4.76-40.51-25.46-40.51-49.5v-.64c7.02 3.91 14.88 6.08 22.92 6.32C11.58 63.31 4.74 33.79 18.14 10.71c25.64 31.55 63.47 50.73 104.08 52.76-4.07-17.54 1.49-35.92 14.61-48.25 20.34-19.12 52.33-18.14 71.45 2.19 11.31-2.23 22.15-6.38 32.07-12.26-3.77 11.69-11.66 21.62-22.2 27.93 10.01-1.18 19.79-3.86 29-7.95-6.78 10.16-15.32 19.01-25.2 26.16z"/>
+</svg></a>
+                    <a href="#" aria-label="LinkedIn"><svg class="social-logo" viewBox="0 0 72 72" width="72" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path d="M8,72 L64,72 C68.418278,72 72,68.418278 72,64 L72,8 C72,3.581722 68.418278,-8.11624501e-16 64,0 L8,0 C3.581722,8.11624501e-16 -5.41083001e-16,3.581722 0,8 L0,64 C5.41083001e-16,68.418278 3.581722,72 8,72 Z" fill="#007EBB"/><path d="M62,62 L51.315625,62 L51.315625,43.8021149 C51.315625,38.8127542 49.4197917,36.0245323 45.4707031,36.0245323 C41.1746094,36.0245323 38.9300781,38.9261103 38.9300781,43.8021149 L38.9300781,62 L28.6333333,62 L28.6333333,27.3333333 L38.9300781,27.3333333 L38.9300781,32.0029283 C38.9300781,32.0029283 42.0260417,26.2742151 49.3825521,26.2742151 C56.7356771,26.2742151 62,30.7644705 62,40.051212 L62,62 Z M16.349349,22.7940133 C12.8420573,22.7940133 10,19.9296567 10,16.3970067 C10,12.8643566 12.8420573,10 16.349349,10 C19.8566406,10 22.6970052,12.8643566 22.6970052,16.3970067 C22.6970052,19.9296567 19.8566406,22.7940133 16.349349,22.7940133 Z M11.0325521,62 L21.769401,62 L21.769401,27.3333333 L11.0325521,27.3333333 L11.0325521,62 Z" fill="#FFF"/></g></svg></a>
+                    <a href="#" aria-label="Discord"><svg class="social-logo" viewBox="0 -28.5 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid">
+                        <g>
+                            <path d="M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.1925838,4.11318106 91.8971895,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971126 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.7209612,163.310589 61.5131304,161.891452 63.2445898,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z" fill="#5865F2" fill-rule="nonzero">
+
+                            </path>
+                        </g>
+                    </svg></a>
                 </div>
             </div>
         </div>
@@ -1299,7 +1318,7 @@ function createHero() {
     });
     const controls = document.createElement('div');
     controls.className = 'hero-controls';
-    controls.innerHTML = '<button class="hero-arrow" onclick="prevHero()" aria-label="Previous slide">‹</button><div id="hero-dots"></div><button class="hero-arrow" onclick="nextHero()" aria-label="Next slide">›</button>';
+    controls.innerHTML = '<button class="hero-arrow" onclick="prevHero()" aria-label="Previous slide">‹</button><div id="hero-dots" style="display: flex;flex-direction: row"></div><button class="hero-arrow" onclick="nextHero()" aria-label="Next slide">›</button>';
     hero.appendChild(controls);
     const dots = document.getElementById('hero-dots');
     data.hero.slides.forEach((slide, i) => {

@@ -13,9 +13,9 @@
 
         nav{position:fixed;top:0;width:100%;padding:.75rem 1.5rem;background:var(--nav-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);z-index:100;transition:all .3s ease}nav>div{max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}.logo{font-size:1.3rem;font-weight:800;color:var(--primary);text-decoration:none}.nav-links{display:flex;list-style:none;gap:1.5rem}.nav-links a{text-decoration:none;color:var(--text);font-weight:500;transition:color .2s ease;font-size:.9rem}.nav-links a:hover{color:var(--primary)}.nav-actions{display:flex;gap:.75rem;align-items:center}.theme-toggle{background:var(--bg-light);border:1px solid var(--border);padding:.4rem;border-radius:6px;cursor:pointer;transition:all .2s ease;color:var(--text);font-size:.9rem}.theme-toggle:hover{transform:scale(1.05)}.mobile-menu-toggle{display:none;background:var(--bg-light);border:1px solid var(--border);padding:.4rem;border-radius:6px;cursor:pointer;color:var(--text);font-size:1rem}
 
-        .main-container{height:100vh;display:flex;padding-top:60px}.content-pane{flex:1;background:linear-gradient(135deg,var(--bg-light),var(--bg));display:flex;flex-direction:column;justify-content:center;align-items:center;padding:1rem;position:relative;overflow:hidden}.register-pane{flex:1;background:var(--card-bg);display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;overflow-y:auto}
+        .main-container{height:100%;display:flex;padding-top:60px}.content-pane{height:100%;flex:1;background:linear-gradient(135deg,var(--bg-light),var(--bg));display:flex;flex-direction:column;justify-content:center;align-items:center;padding:1rem;position:relative;overflow:hidden}.register-pane{height:100%;flex:1;background:var(--card-bg);display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;overflow-y:auto}
 
-        .content-showcase{text-align:center;max-width:450px;position:relative;z-index:10}.showcase-image{width:clamp(200px,25vw,280px);height:clamp(200px,25vw,280px);border-radius:20px;margin-bottom:1.5rem;box-shadow:0 15px 30px rgba(37,99,235,.15);transition:all .4s ease;object-fit:cover}.showcase-title{font-size:clamp(1.8rem,4vw,2.2rem);font-weight:800;color:var(--text);margin-bottom:1rem;line-height:1.2}.showcase-text{font-size:clamp(1rem,2.5vw,1.1rem);color:var(--text-light);margin-bottom:1.5rem;min-height:50px;display:flex;align-items:center;justify-content:center}.typewriter-cursor{display:inline-block;width:2px;height:1.2em;background:var(--primary);margin-left:2px;animation:blink 1s infinite}@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+        .content-showcase{text-align:center;max-width:450px;position:relative;z-index:10}.showcase-image{width:clamp(200px,25vw,280px);height:clamp(200px,25vw,280px);border-radius:20px;margin-bottom:1.5rem;box-shadow:0 15px 30px rgba(37,99,235,.15);transition:all .4s ease;object-fit:cover;}.showcase-title{font-size:clamp(1.8rem,4vw,2.2rem);font-weight:800;color:var(--text);margin-bottom:1rem;line-height:1.2}.showcase-text{font-size:clamp(1rem,2.5vw,1.1rem);color:var(--text-light);margin-bottom:1.5rem;min-height:50px;display:flex;align-items:center;justify-content:center}.typewriter-cursor{display:inline-block;width:2px;height:1.2em;background:var(--primary);margin-left:2px;animation:blink 1s infinite}@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
 
         .register-card{background:var(--card-bg);padding:clamp(1.5rem,4vw,2.5rem);border-radius:16px;border:1px solid var(--border);box-shadow:0 15px 25px rgba(0,0,0,.1);width:100%;max-width:400px;position:relative;margin:auto}
 
@@ -39,7 +39,7 @@
 
         .form-btn{width:100%;padding:.9rem 1.5rem;border:none;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .3s ease;margin-bottom:1rem}.form-btn:disabled{cursor:not-allowed;opacity:.6}.form-btn.primary{background:var(--primary);color:white}.form-btn.primary:hover:not(:disabled){background:#1e40af;transform:translateY(-1px)}.form-btn.primary:disabled{background:var(--text-muted)}.form-btn.secondary{background:var(--bg-light);color:var(--text);border:1px solid var(--border)}.form-btn.secondary:hover{background:var(--card-bg);border-color:var(--primary)}
 
-        .spinner{width:14px;height:14px;border:2px solid transparent;border-top:2px solid white;border-radius:50%;animation:spin 1s linear infinite;margin-right:.5rem}@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+        .spinner{width:14px;height:14px;border:2px solid transparent;border-top:2px solid white;border-radius:50%;animation:spin 1s linear infinite;margin-right:.5rem; float: left}@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 
         .divider{display:flex;align-items:center;margin:1.5rem 0;color:var(--text-muted);font-size:.85rem}.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}.divider span{padding:0 1rem}
 
@@ -51,7 +51,7 @@
 
         .notification{position:fixed;top:80px;right:1rem;padding:.8rem 1.2rem;border-radius:8px;color:white;font-weight:500;transform:translateX(100%);transition:transform .3s ease;z-index:1000;font-size:.9rem;opacity:0;visibility:hidden}.notification.success{background:var(--success)}.notification.error{background:var(--error)}.notification.show{transform:translateX(0);opacity:1;visibility:visible}
 
-        @media(max-width:1200px){.main-container{flex-direction:column}.content-pane{flex:none;height:40vh;padding:.5rem}.register-pane{flex:1;height:60vh;padding:4rem}.register-card{max-width:350px}}@media(max-width:768px){.nav-links{display:none}.mobile-menu-toggle{display:block}.content-pane{display:none}.register-pane{height:100vh}.register-card{padding:1.5rem;margin-top:0}.otp-input{width:35px;height:35px;font-size:1rem}}@media(max-width:480px){nav{padding:1.5rem 1rem}.register-card{padding:4.7rem;max-width:90vw}.register-header h1{font-size:1.5rem}.otp-input{width:32px;height:32px;font-size:.9rem}.mobile-menu{width:90%;max-width:280px;padding:1.5rem}}@media(max-height:700px){.main-container{padding-top:50px}.content-pane{height:35vh}.register-pane{height:65vh}}@media(max-height:600px){.content-pane{display:none}.register-pane{height:100vh;padding-top:60px}}
+        @media(max-width:1200px){.content-pane{display:none}.main-container{flex-direction:column}.content-pane{flex:none;padding:.5rem}.register-pane{flex:1;padding:4rem}.register-card{max-width:350px}}@media(max-width:768px){.nav-links{display:none}.mobile-menu-toggle{display:block}.register-pane{height:100vh}.register-card{padding:1.5rem;margin-top:0}.otp-input{width:35px;height:35px;font-size:1rem}}@media(max-width:480px){nav{padding:1.5rem 1rem}.register-card{padding:4.7rem;max-width:90vw}.register-header h1{font-size:1.5rem}.otp-input{width:32px;height:32px;font-size:.9rem}.mobile-menu{width:90%;max-width:280px;padding:1.5rem}}@media(max-height:700px){.main-container{padding-top:50px}}@media(max-height:600px){.content-pane{display:none}.register-pane{height:100vh;padding-top:60px}}
     </style>
 </head>
 <body>
@@ -112,8 +112,10 @@
                     <div class="form-step" id="formStep1">
                         <div class="form-group">
                             <label class="form-label" for="email">Email Address</label>
-                            <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
-                            <div class="input-icon" id="emailIcon"></div>
+                            <div style="position:relative">
+                                <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
+                                <div class="input-icon" id="emailIcon"></div>
+                            </div>
                         </div>
                         <div class="captcha-container">
                             <div class="cf-turnstile" data-sitekey="0x4AAAAAABi0oSEk-fxks-xg" data-callback="onCaptchaSuccess" style="display:none"></div>
@@ -123,7 +125,37 @@
                         </div>
                         <button type="submit" class="form-btn primary" id="emailBtn" disabled>Send Verification Code</button>
                         <div class="divider"><span>or continue with</span></div>
-                        <a href="https://api.seotize.net/login/google" class="social-btn"><span>🌐</span> Google</a>
+                        <a href="https://api.seotize.net/login/google" class="social-btn"><span><svg
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                        >
+      <g clip-path="url(#clip0_320_591)">
+        <path
+                d="M11.9998 9.81812V14.4654H18.458C18.1744 15.9599 17.3234 17.2254 16.047 18.0763L19.9416 21.0982C22.2107 19.0037 23.5198 15.9273 23.5198 12.2728C23.5198 11.4219 23.4434 10.6036 23.3015 9.81825L11.9998 9.81812Z"
+                fill="#4285F4"
+        />
+        <path
+                d="M5.27468 14.2841L4.39631 14.9564L1.28717 17.3782C3.26171 21.2945 7.30868 24 11.9996 24C15.2395 24 17.9558 22.9309 19.9413 21.0983L16.0468 18.0764C14.9777 18.7964 13.614 19.2328 11.9996 19.2328C8.87957 19.2328 6.22874 17.1274 5.27958 14.291L5.27468 14.2841Z"
+                fill="#34A853"
+        />
+        <path
+                d="M1.28718 6.62183C0.469042 8.23631 0 10.0581 0 11.9999C0 13.9417 0.469042 15.7636 1.28718 17.378C1.28718 17.3889 5.27997 14.2799 5.27997 14.2799C5.03998 13.5599 4.89812 12.7963 4.89812 11.9998C4.89812 11.2033 5.03998 10.4398 5.27997 9.71976L1.28718 6.62183Z"
+                fill="#FBBC05"
+        />
+        <path
+                d="M11.9998 4.77818C13.7671 4.77818 15.338 5.38907 16.5925 6.56727L20.0289 3.13095C17.9452 1.18917 15.2398 0 11.9998 0C7.30893 0 3.26171 2.69454 1.28717 6.62183L5.27984 9.72001C6.22888 6.88362 8.87982 4.77818 11.9998 4.77818Z"
+                fill="#EA4335"
+        />
+      </g>
+      <defs>
+        <clipPath id="clip0_320_591">
+          <rect width="24" height="24" fill="white" />
+        </clipPath>
+      </defs>
+    </svg></span>Sign Up with Google</a>
                         <div class="login-link">Have an account? <a href="login.html">Sign in</a></div>
                     </div>
 
@@ -131,8 +163,10 @@
                     <div class="form-step hidden" id="formStep2">
                         <div class="form-group">
                             <label class="form-label" for="password">Password</label>
-                            <input type="password" id="password" class="form-input" placeholder="Create password" required>
-                            <div class="input-icon" id="passwordIcon"></div>
+                            <div style="position: relative">
+                                <input type="password" id="password" class="form-input" placeholder="Create password" required>
+                                <div class="input-icon" id="passwordIcon"></div>
+                            </div>
                             <div class="password-requirements" id="passwordRequirements">
                                 <div class="requirement" id="lengthReq">
                                     <span class="requirement-icon">•</span>
@@ -203,8 +237,8 @@
         const ca = document.cookie.split(';');
         for(let i=0; i < ca.length; i++) {
             let c = ca[i];
-            while (c.charAt(0)==' ') c = c.substring(1,c.length);
-            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+            while (c.charAt(0)===' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
         }
         return null;
     }

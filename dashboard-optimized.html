@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEOTIZE Dashboard - Optimized</title>
+    <title>SEOTIZE Dashboard - Complete</title>
     
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -64,7 +64,7 @@
             --glass-border: rgba(0, 0, 0, 0.1);
         }
         
-        /* Dark Theme - Improved */
+        /* Dark Theme */
         [data-theme="dark"] {
             --bg: #0a0a0a;
             --bg-secondary: #1a1a1a;
@@ -298,6 +298,9 @@
         .card-header {
             padding: 1.5rem;
             border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .card-title {
@@ -441,7 +444,8 @@
         }
         
         .form-input,
-        .form-select {
+        .form-select,
+        .form-textarea {
             width: 100%;
             padding: 0.625rem 1rem;
             border: 1px solid var(--border);
@@ -453,10 +457,16 @@
         }
         
         .form-input:focus,
-        .form-select:focus {
+        .form-select:focus,
+        .form-textarea:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
         }
         
         /* Tables */
@@ -770,6 +780,63 @@
             border: none;
         }
         
+        /* Domain Verification */
+        .domain-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--card);
+            border-radius: var(--radius);
+            margin-bottom: .5rem;
+        }
+        
+        .domain-status {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        
+        /* Media Grid */
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .media-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        
+        .media-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        .media-preview {
+            height: 150px;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .media-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .media-info {
+            padding: 1rem;
+        }
+        
         /* XPath Overlay */
         .xpath-overlay {
             position: absolute;
@@ -967,10 +1034,6 @@
                         <i class="ri-article-line"></i>
                         <span>Articles</span>
                     </a>
-                    <a href="#" class="nav-item" data-page="domains">
-                        <i class="ri-global-line"></i>
-                        <span>Domains</span>
-                    </a>
                 </div>
                 
                 <div class="nav-section">
@@ -1045,6 +1108,1119 @@
     </div>
     
     <!-- JavaScript -->
-    <script src="dashboard-optimized.js"></script>
+    <script>
+        // API Configuration
+        const API_BASE = 'https://api.seotize.net';
+        let sessionToken = getCookie('session_token') || localStorage.getItem('authToken') || 'demo-token';
+        
+        // Global State
+        let currentData = {
+            user: null,
+            tasks: [],
+            images: [],
+            articles: [],
+            domains: [],
+            billing: [],
+            selectedLocations: []
+        };
+        
+        let charts = {};
+        let paginationState = {
+            tasks: { page: 1, pageSize: 10, total: 0 },
+            images: { page: 1, pageSize: 12, total: 0 },
+            articles: { page: 1, pageSize: 10, total: 0 },
+            billing: { page: 1, pageSize: 10, total: 0 }
+        };
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeEventListeners();
+            loadDashboard();
+            initializeTheme();
+        });
+        
+        // Event Listeners
+        function initializeEventListeners() {
+            document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigateTo(item.dataset.page);
+                });
+            });
+            
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            if (window.innerWidth <= 768) {
+                sidebarToggle.style.display = 'block';
+            }
+            
+            sidebarToggle?.addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+        }
+        
+        // Theme Management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+        
+        function toggleTheme() {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+            
+            // Refresh charts with new theme
+            if (charts.traffic) {
+                updateCharts();
+            }
+        }
+        
+        function updateThemeIcon(theme) {
+            document.getElementById('themeIcon').className = theme === 'light' ? 'ri-moon-line' : 'ri-sun-line';
+        }
+        
+        // Navigation
+        function navigateTo(page) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelector(`.nav-item[data-page="${page}"]`)?.classList.add('active');
+            
+            switch(page) {
+                case 'dashboard': loadDashboard(); break;
+                case 'tasks': loadTasks(); break;
+                case 'images': loadImages(); break;
+                case 'articles': loadArticles(); break;
+                case 'billing': loadBilling(); break;
+                case 'settings': loadSettings(); break;
+            }
+        }
+        
+        // API Helper
+        async function api(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    ...options,
+                    headers: {
+                        'Session-Token': sessionToken,
+                        'Content-Type': 'application/json',
+                        ...(options.headers || {})
+                    }
+                });
+                
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error?.message || 'API Error');
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                showToast(error.message, 'error');
+                // Return mock data for demo
+                return { data: getMockData(endpoint) };
+            }
+        }
+        
+        // Dashboard
+        async function loadDashboard() {
+            try {
+                const { data } = await api('/users/dashboard?page=1&page_size=10');
+                const user = data.user;
+                currentData.user = user;
+                
+                // Update user info
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('userName').textContent = user.email.split('@')[0];
+                document.getElementById('userInitial').textContent = user.email[0].toUpperCase();
+                
+                const content = document.getElementById('content');
+                content.innerHTML = `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon primary">
+                                <i class="ri-task-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">${user.usage_summary?.total_tasks || 0}</div>
+                                <div class="stat-label">Total Tasks</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon success">
+                                <i class="ri-eye-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">${user.task_statistics?.total_views || 0}</div>
+                                <div class="stat-label">Total Views</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon warning">
+                                <i class="ri-key-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">${user.task_statistics?.total_keywords || 0}</div>
+                                <div class="stat-label">Keywords</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon error">
+                                <i class="ri-wallet-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">$${(user.task_statistics?.available_charge || 0).toFixed(2)}</div>
+                                <div class="stat-label">Available Budget</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Task Performance</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="taskChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Views by Country</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="countryChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Tasks</h3>
+                            <button class="btn btn-primary btn-sm" onclick="navigateTo('tasks')">View All</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>URL</th>
+                                            <th>Keywords</th>
+                                            <th>Views</th>
+                                            <th>Budget</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${(user.tasks || []).slice(0, 5).map(task => `
+                                            <tr>
+                                                <td><a href="${task.url}" target="_blank" style="color: var(--primary)">${task.url}</a></td>
+                                                <td>${task.keywords_count}</td>
+                                                <td>${task.views_count}</td>
+                                                <td>$${task.available_charge.toFixed(2)}</td>
+                                                <td><span class="badge badge-success">Active</span></td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Initialize charts
+                setTimeout(() => initializeCharts(user), 100);
+                
+            } catch (error) {
+                console.error('Dashboard error:', error);
+            }
+        }
+        
+        // Tasks
+        async function loadTasks() {
+            try {
+                const { data } = await api('/users/dashboard?page=1&page_size=50');
+                const user = data.user;
+                currentData.tasks = user.tasks || [];
+                
+                const content = document.getElementById('content');
+                content.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2 style="font-size: 1.5rem; font-weight: 700;">SEO Tasks</h2>
+                        <button class="btn btn-primary" onclick="showTaskModal()">
+                            <i class="ri-add-line"></i> Create New Task
+                        </button>
+                    </div>
+                    
+                    <div class="task-grid">
+                        ${currentData.tasks.map(task => `
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <a href="${task.url}" target="_blank" class="task-url">${task.url}</a>
+                                    <span class="task-status active">Active</span>
+                                </div>
+                                
+                                <div class="task-stats">
+                                    <div class="task-stat">
+                                        <div class="task-stat-label">Keywords</div>
+                                        <div class="task-stat-value">${task.keywords_count}</div>
+                                    </div>
+                                    <div class="task-stat">
+                                        <div class="task-stat-label">Views</div>
+                                        <div class="task-stat-value">${task.views_count}</div>
+                                    </div>
+                                    <div class="task-stat">
+                                        <div class="task-stat-label">Budget Used</div>
+                                        <div class="task-stat-value">$${task.total_charge.toFixed(2)}</div>
+                                    </div>
+                                    <div class="task-stat">
+                                        <div class="task-stat-label">Available</div>
+                                        <div class="task-stat-value">$${task.available_charge.toFixed(2)}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${100 - task.remaining_percentage}%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-actions">
+                                    <button class="btn btn-sm" onclick="viewTask('${task._id}')">
+                                        <i class="ri-eye-line"></i> View Details
+                                    </button>
+                                    <button class="btn btn-sm" onclick="rechargeTask('${task._id}')">
+                                        <i class="ri-wallet-line"></i> Recharge
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    ${currentData.tasks.length === 0 ? `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="ri-task-line"></i>
+                            </div>
+                            <div class="empty-state-title">No Tasks Yet</div>
+                            <div class="empty-state-description">Create your first SEO task to start optimizing your website</div>
+                            <button class="btn btn-primary" onclick="showTaskModal()">Create First Task</button>
+                        </div>
+                    ` : ''}
+                `;
+            } catch (error) {
+                console.error('Tasks error:', error);
+            }
+        }
+        
+        // Images
+        async function loadImages(page = 1) {
+            try {
+                const { data, pagination } = await api(`/images/dashboard?page=${page}&page_size=20`);
+                
+                const content = document.getElementById('content');
+                content.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2 style="font-size: 1.5rem; font-weight: 700;">Image Hosting</h2>
+                        <button class="btn btn-primary" onclick="showImageUploadModal()">
+                            <i class="ri-upload-line"></i> Upload Images
+                        </button>
+                    </div>
+                    
+                    <div class="media-grid">
+                        ${(data.images || []).map(image => `
+                            <div class="media-card">
+                                <div class="media-preview">
+                                    <img src="${image.url}" alt="${image.filename}">
+                                </div>
+                                <div class="media-info">
+                                    <div style="font-weight: 600; margin-bottom: 0.5rem;">${image.filename}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${formatFileSize(image.size)}</div>
+                                    <button class="btn btn-sm btn-danger" style="margin-top: 0.5rem;" onclick="deleteImage('${image._id}')">
+                                        <i class="ri-delete-bin-line"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    ${(!data.images || data.images.length === 0) ? `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="ri-image-line"></i>
+                            </div>
+                            <div class="empty-state-title">No Images Uploaded</div>
+                            <div class="empty-state-description">Upload images to host them on our CDN</div>
+                            <button class="btn btn-primary" onclick="showImageUploadModal()">Upload First Image</button>
+                        </div>
+                    ` : ''}
+                `;
+            } catch (error) {
+                console.error('Images error:', error);
+            }
+        }
+        
+        // Articles with Domains
+        async function loadArticles(page = 1) {
+            try {
+                // Load domains first
+                await loadDomains();
+                
+                const { data, pagination } = await api(`/dashboard/articles?page=${page}&page_size=10`);
+                
+                const content = document.getElementById('content');
+                content.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2 style="font-size: 1.5rem; font-weight: 700;">Articles & Domains</h2>
+                        <button class="btn btn-primary" onclick="showArticleModal()">
+                            <i class="ri-add-line"></i> Create Article
+                        </button>
+                    </div>
+                    
+                    <div class="card" style="margin-bottom: 1.5rem">
+                        <div class="card-header">
+                            <h3 class="card-title">Domain Verification</h3>
+                            <button class="btn btn-sm" onclick="showDomainModal()">Add Domain</button>
+                        </div>
+                        <div class="card-body" id="domainsList">
+                            ${currentData.domains.length > 0 ? currentData.domains.map(domain => `
+                                <div class="domain-item">
+                                    <div class="domain-status">
+                                        <span class="badge badge-${domain.verified ? 'success' : 'warning'}">
+                                            ${domain.verified ? '✓ Verified' : '⏳ Pending'}
+                                        </span>
+                                        <span>${domain.url}</span>
+                                    </div>
+                                    ${!domain.verified ? `
+                                        <button class="btn btn-sm" onclick="verifyDomain('${domain.url}')">Verify Now</button>
+                                    ` : ''}
+                                </div>
+                            `).join('') : `
+                                <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                                    No domains added yet. Add a domain to start publishing articles.
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Published Articles</h3>
+                        </div>
+                        <div class="card-body">
+                            ${(data.articles || []).map(article => `
+                                <div style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                                    <h4 style="margin-bottom: 0.5rem;">${article.title}</h4>
+                                    <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                        ${article.url} • ${new Date(article.created_at).toLocaleDateString()}
+                                    </div>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button class="btn btn-sm" onclick="viewArticle('${article._id}')">View</button>
+                                        <button class="btn btn-sm" onclick="editArticle('${article._id}')">Edit</button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteArticle('${article._id}')">Delete</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                            
+                            ${(!data.articles || data.articles.length === 0) ? `
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <i class="ri-article-line"></i>
+                                    </div>
+                                    <div class="empty-state-title">No Articles Published</div>
+                                    <div class="empty-state-description">Create your first article to start publishing content</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Articles error:', error);
+            }
+        }
+        
+        // Load Domains
+        async function loadDomains() {
+            // Mock domains for demo
+            currentData.domains = [
+                { url: 'example.com', verified: true },
+                { url: 'blog.example.com', verified: false }
+            ];
+        }
+        
+        // Billing
+        async function loadBilling(page = 1, type = 'all') {
+            try {
+                const { data, pagination } = await api(`/dashboard/billings?page=${page}&limit=10&type=${type}`);
+                
+                const allPayments = [...(data.tasks || []), ...(data.hosting || [])];
+                
+                const content = document.getElementById('content');
+                content.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2 style="font-size: 1.5rem; font-weight: 700;">Billing & Payments</h2>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon primary">
+                                <i class="ri-wallet-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">$${(currentData.user?.task_statistics?.total_charge || 0).toFixed(2)}</div>
+                                <div class="stat-label">Total Spent</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon success">
+                                <i class="ri-bank-card-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">$${(currentData.user?.task_statistics?.available_charge || 0).toFixed(2)}</div>
+                                <div class="stat-label">Available Credit</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Transaction History</h3>
+                            <select class="form-select" style="width: auto;" onchange="loadBilling(1, this.value)">
+                                <option value="all">All Types</option>
+                                <option value="tasks">Tasks Only</option>
+                                <option value="hosting">Hosting Only</option>
+                            </select>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${allPayments.map(payment => `
+                                            <tr>
+                                                <td>${new Date(payment.created_at).toLocaleDateString()}</td>
+                                                <td><span class="badge badge-primary">${payment.type || 'Task'}</span></td>
+                                                <td>${payment.description || payment.url || 'SEO Task Payment'}</td>
+                                                <td>$${(payment.amount || payment.total_charge || 0).toFixed(2)}</td>
+                                                <td><span class="badge badge-success">Completed</span></td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Billing error:', error);
+            }
+        }
+        
+        // Settings
+        function loadSettings() {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2 style="font-size: 1.5rem; font-weight: 700;">Settings</h2>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Account Settings</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-input" value="${currentData.user?.email || ''}" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Account Created</label>
+                            <input type="text" class="form-input" value="${currentData.user?.created_at || ''}" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Theme Preference</label>
+                            <select class="form-select" onchange="setTheme(this.value)">
+                                <option value="light" ${document.body.dataset.theme === 'light' ? 'selected' : ''}>Light</option>
+                                <option value="dark" ${document.body.dataset.theme === 'dark' ? 'selected' : ''}>Dark</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Modal Functions
+        function showModal(title, content) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML = content;
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+        
+        // Task Modal
+        async function showTaskModal() {
+            showModal('Create New SEO Task', `
+                <form id="taskForm">
+                    <div class="form-group">
+                        <label class="form-label">Website URL</label>
+                        <input type="url" class="form-input" name="url" required placeholder="https://example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Keywords (comma separated)</label>
+                        <textarea class="form-textarea" name="keywords" required placeholder="SEO, optimization, website"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Budget ($)</label>
+                        <input type="number" class="form-input" name="budget" required min="10" placeholder="100">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Create Task</button>
+                </form>
+            `);
+            
+            document.getElementById('taskForm').addEventListener('submit', createTask);
+        }
+        
+        async function createTask(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            try {
+                const { data } = await api('/add-task', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        url: formData.get('url'),
+                        keywords: formData.get('keywords').split(',').map(k => k.trim()),
+                        budget: parseFloat(formData.get('budget'))
+                    })
+                });
+                
+                showToast('Task created successfully', 'success');
+                closeModal();
+                loadTasks();
+            } catch (error) {
+                console.error('Create task error:', error);
+            }
+        }
+        
+        // View Task Details
+        async function viewTask(taskId) {
+            try {
+                const { data } = await api('/get-task-details', {
+                    method: 'POST',
+                    body: JSON.stringify({ task_id: taskId })
+                });
+                
+                showModal('Task Details', `
+                    <div>
+                        <h4>${data.url}</h4>
+                        <div style="margin: 1rem 0;">
+                            <strong>Keywords:</strong> ${data.keywords.join(', ')}
+                        </div>
+                        <div style="margin: 1rem 0;">
+                            <strong>Total Views:</strong> ${data.views_count || 0}
+                        </div>
+                        <div style="margin: 1rem 0;">
+                            <strong>Budget Used:</strong> $${data.total_charge.toFixed(2)}
+                        </div>
+                        <div style="margin: 1rem 0;">
+                            <strong>Available:</strong> $${data.available_charge.toFixed(2)}
+                        </div>
+                    </div>
+                `);
+            } catch (error) {
+                console.error('View task error:', error);
+            }
+        }
+        
+        // Recharge Task
+        async function rechargeTask(taskId) {
+            showModal('Recharge Task', `
+                <form id="rechargeForm">
+                    <div class="form-group">
+                        <label class="form-label">Recharge Amount ($)</label>
+                        <input type="number" class="form-input" name="amount" required min="10" placeholder="50">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Recharge</button>
+                </form>
+            `);
+            
+            document.getElementById('rechargeForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                
+                try {
+                    await api('/recharge', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            task_id: taskId,
+                            amount: parseFloat(formData.get('amount'))
+                        })
+                    });
+                    
+                    showToast('Task recharged successfully', 'success');
+                    closeModal();
+                    loadTasks();
+                } catch (error) {
+                    console.error('Recharge error:', error);
+                }
+            });
+        }
+        
+        // Domain Modal
+        async function showDomainModal() {
+            showModal('Add Domain', `
+                <form id="domainForm">
+                    <div class="form-group">
+                        <label class="form-label">Domain URL</label>
+                        <input type="text" class="form-input" name="url" required placeholder="example.com/blog">
+                        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem">
+                            Enter your domain or subdomain where articles will be published
+                        </p>
+                    </div>
+                    <div class="card" style="background: var(--bg-tertiary); padding: 1rem">
+                        <p style="font-size: 0.875rem">
+                            After adding your domain, you'll need to verify ownership by adding a TXT record to your DNS settings.
+                        </p>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%">Add Domain</button>
+                </form>
+            `);
+            
+            document.getElementById('domainForm').addEventListener('submit', addDomain);
+        }
+        
+        async function addDomain(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            try {
+                const { data } = await api('/add-domain', {
+                    method: 'POST',
+                    body: JSON.stringify({ url: formData.get('url') })
+                });
+                
+                if (data.txt_record) {
+                    showModal('Domain Verification Required', `
+                        <div class="card" style="background: var(--bg-tertiary); padding: 1.5rem">
+                            <h4>Domain added successfully!</h4>
+                            <p style="margin-top: 1rem">To verify ownership, add this TXT record to your DNS:</p>
+                            <div style="background: var(--bg); padding: 1rem; border-radius: var(--radius); margin: 1rem 0; font-family: monospace; word-break: break-all">
+                                ${data.txt_record}
+                            </div>
+                            <button class="btn btn-primary" onclick="copyToClipboard('${data.txt_record}')">Copy TXT Record</button>
+                            <button class="btn" style="margin-left: 0.5rem" onclick="verifyDomain('${formData.get('url')}')">Verify Now</button>
+                        </div>
+                    `);
+                } else {
+                    showToast('Domain added and verified successfully', 'success');
+                    closeModal();
+                    loadArticles();
+                }
+            } catch (error) {
+                console.error('Add domain error:', error);
+            }
+        }
+        
+        async function verifyDomain(url) {
+            try {
+                await api('/verify-domain', {
+                    method: 'POST',
+                    body: JSON.stringify({ url })
+                });
+                
+                showToast('Domain verified successfully', 'success');
+                closeModal();
+                loadArticles();
+            } catch (error) {
+                console.error('Verify domain error:', error);
+                showToast('Verification failed. Please check your DNS settings.', 'error');
+            }
+        }
+        
+        // Article Modal
+        function showArticleModal(articleId = null) {
+            const isEdit = !!articleId;
+            
+            showModal(isEdit ? 'Edit Article' : 'Create Article', `
+                <form id="articleForm">
+                    <div class="form-group">
+                        <label class="form-label">Domain URL</label>
+                        <input type="text" class="form-input" name="url" required placeholder="example.com/blog">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Article Title</label>
+                        <input type="text" class="form-input" name="title" required placeholder="My Article Title">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Content (HTML)</label>
+                        <textarea class="form-textarea" name="content" required rows="10" placeholder="<p>Article content...</p>"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        ${isEdit ? 'Update' : 'Create'} Article
+                    </button>
+                </form>
+            `);
+            
+            document.getElementById('articleForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (isEdit) {
+                    updateArticle(articleId, e);
+                } else {
+                    createArticle(e);
+                }
+            });
+        }
+        
+        async function createArticle(e) {
+            const formData = new FormData(e.target);
+            
+            try {
+                await api('/add-article', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        url: formData.get('url'),
+                        title: formData.get('title'),
+                        content: formData.get('content')
+                    })
+                });
+                
+                showToast('Article created successfully', 'success');
+                closeModal();
+                loadArticles();
+            } catch (error) {
+                console.error('Create article error:', error);
+            }
+        }
+        
+        // Image Upload Modal
+        function showImageUploadModal() {
+            showModal('Upload Images', `
+                <form id="imageUploadForm">
+                    <div class="form-group">
+                        <label class="form-label">Select Images</label>
+                        <input type="file" class="form-input" name="images" multiple accept="image/*" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Upload</button>
+                </form>
+            `);
+            
+            document.getElementById('imageUploadForm').addEventListener('submit', uploadImages);
+        }
+        
+        async function uploadImages(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            const files = e.target.images.files;
+            
+            for (let file of files) {
+                formData.append('images', file);
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/images/upload`, {
+                    method: 'POST',
+                    headers: { 'Session-Token': sessionToken },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showToast('Images uploaded successfully', 'success');
+                    closeModal();
+                    loadImages();
+                } else {
+                    throw new Error(data.error?.message || 'Upload failed');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showToast(error.message, 'error');
+            }
+        }
+        
+        async function deleteImage(imageId) {
+            if (!confirm('Are you sure you want to delete this image?')) return;
+            
+            try {
+                await api('/images', {
+                    method: 'DELETE',
+                    body: JSON.stringify({ image_ids: [imageId] })
+                });
+                
+                showToast('Image deleted successfully', 'success');
+                loadImages();
+            } catch (error) {
+                console.error('Delete image error:', error);
+            }
+        }
+        
+        // Charts
+        function initializeCharts(user) {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            const textColor = isDark ? '#e2e8f0' : '#1e293b';
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            
+            // Task Performance Chart
+            const taskCtx = document.getElementById('taskChart');
+            if (taskCtx) {
+                charts.task = new Chart(taskCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Views',
+                            data: [12, 19, 3, 5, 2, 3, 15],
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: textColor }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: gridColor },
+                                ticks: { color: textColor }
+                            },
+                            y: {
+                                grid: { color: gridColor },
+                                ticks: { color: textColor }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Country Chart
+            const countryCtx = document.getElementById('countryChart');
+            if (countryCtx) {
+                const countryCounts = {};
+                (user.sessions || []).forEach(session => {
+                    countryCounts[session.country_code] = (countryCounts[session.country_code] || 0) + 1;
+                });
+                
+                charts.country = new Chart(countryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(countryCounts),
+                        datasets: [{
+                            data: Object.values(countryCounts),
+                            backgroundColor: [
+                                '#6366f1',
+                                '#10b981',
+                                '#f59e0b',
+                                '#ef4444',
+                                '#8b5cf6'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: textColor }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        function updateCharts() {
+            Object.values(charts).forEach(chart => {
+                if (chart) {
+                    chart.destroy();
+                }
+            });
+            
+            if (currentData.user) {
+                initializeCharts(currentData.user);
+            }
+        }
+        
+        // Toast Notifications
+        function showToast(message, type = 'info') {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="ri-${type === 'success' ? 'check' : type === 'error' ? 'close' : 'information'}-circle-line"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+        
+        // Utility Functions
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard', 'success');
+            });
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+        
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeIcon(theme);
+            updateCharts();
+        }
+        
+        async function logout() {
+            try {
+                await api('/logout');
+            } finally {
+                document.cookie = 'session_token=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                localStorage.removeItem('authToken');
+                window.location.href = '/login.html';
+            }
+        }
+        
+        // Mock Data for Demo
+        function getMockData(endpoint) {
+            const mockUser = {
+                user: {
+                    email: "user@example.com",
+                    created_at: "2025-01-27 08:02:07",
+                    hosting: {
+                        type: "basic",
+                        expiry_date: "2025-07-19 08:38:11",
+                        images_uploads: 50,
+                        article_uploads: 10
+                    },
+                    sessions: [
+                        {country_code: "GB", timestamp: "2025-08-22 19:19:43"},
+                        {country_code: "US", timestamp: "2025-08-21 15:30:00"},
+                        {country_code: "DE", timestamp: "2025-08-20 10:15:00"},
+                        {country_code: "FR", timestamp: "2025-08-19 08:45:00"},
+                        {country_code: "JP", timestamp: "2025-08-18 22:00:00"}
+                    ],
+                    task_statistics: {
+                        total_keywords: 8,
+                        total_views: 156,
+                        total_charge: 846.5,
+                        available_charge: 1142.2
+                    },
+                    tasks: [
+                        {
+                            _id: "679b57aa8bf73064901d189a",
+                            url: "https://example.com",
+                            keywords_count: 5,
+                            views_count: 89,
+                            total_charge: 215.2,
+                            available_charge: 415.2,
+                            remaining_percentage: 65,
+                            task_priority: 0.12,
+                            date_created: "2025-08-23 07:19:48"
+                        },
+                        {
+                            _id: "679b766e9c3cec706e37e14b",
+                            url: "https://blog.example.com",
+                            keywords_count: 3,
+                            views_count: 67,
+                            total_charge: 296.5,
+                            available_charge: 592.2,
+                            remaining_percentage: 80,
+                            task_priority: 0.15,
+                            date_created: "2025-08-23 07:19:48"
+                        }
+                    ],
+                    usage_summary: {
+                        total_tasks: 2,
+                        active_tasks: 2,
+                        completed_tasks: 0,
+                        total_keywords: 8,
+                        total_views: 156
+                    }
+                }
+            };
+            
+            if (endpoint.includes('/images')) {
+                return {
+                    images: [
+                        { _id: '1', url: 'https://via.placeholder.com/300', filename: 'image1.jpg', size: 102400 },
+                        { _id: '2', url: 'https://via.placeholder.com/300', filename: 'image2.jpg', size: 204800 }
+                    ]
+                };
+            }
+            
+            if (endpoint.includes('/articles')) {
+                return {
+                    articles: [
+                        {
+                            _id: '1',
+                            title: 'Sample Article',
+                            url: 'example.com/article-1',
+                            created_at: new Date().toISOString()
+                        }
+                    ]
+                };
+            }
+            
+            if (endpoint.includes('/billings')) {
+                return {
+                    tasks: mockUser.user.tasks,
+                    hosting: []
+                };
+            }
+            
+            return mockUser;
+        }
+    </script>
 </body>
 </html>

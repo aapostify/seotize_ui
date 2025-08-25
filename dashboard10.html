@@ -1422,7 +1422,7 @@ async function loadDashboard(page = 1) {
         };
 
         // Sort tasks by date (newest first)
-        const sortedTasks = (user.tasks || []).sort((a, b) =>
+        const sortedTasks = (user.tasks || []).sort((a, b) => 
             new Date(b.date_created) - new Date(a.date_created)
         );
 
@@ -1508,7 +1508,7 @@ async function loadDashboard(page = 1) {
         <th>Created</th>
         <th>Keywords</th>
         <th>Views</th>
-        <th>Budget Progress</th>
+        <th>Budget Status</th>
         <th>Available</th>
         <th>Status</th>
         <th>Actions</th>
@@ -1522,10 +1522,21 @@ async function loadDashboard(page = 1) {
                 hour: '2-digit',
                 minute: '2-digit'
             });
-            const usedBudget = task.total_charge - task.available_charge;
-            const budgetPercent = task.total_charge > 0 ? Math.round((usedBudget / task.total_charge) * 100) : 0;
-            const remainingPercent = task.remaining_percentage || 0;
-
+            
+            // Fix budget calculation logic
+            const originalBudget = task.total_charge;
+            const currentAvailable = task.available_charge;
+            const remainingPercent = Math.max(0, task.remaining_percentage || 0);
+            
+            // Calculate used amount based on remaining percentage
+            // If remaining is 100%, nothing used. If remaining is 0%, all used.
+            const usedPercent = Math.max(0, 100 - remainingPercent);
+            const usedAmount = (originalBudget * usedPercent) / 100;
+            
+            // Handle recharged tasks (when available > original)
+            const isRecharged = currentAvailable > originalBudget;
+            const totalBudgetWithRecharges = isRecharged ? currentAvailable : originalBudget;
+            
             return `
             <tr>
             <td>
@@ -1543,21 +1554,21 @@ async function loadDashboard(page = 1) {
             <td>
             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
             <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
-            <span>Used: $${usedBudget.toFixed(2)}</span>
-            <span>${budgetPercent}%</span>
+            <span>Used: $${usedAmount.toFixed(2)}</span>
+            <span>${usedPercent.toFixed(0)}%</span>
             </div>
             <div class="progress-bar" style="height: 4px; background: var(--bg-tertiary); border-radius: 2px;">
-            <div class="progress-fill" style="width: ${budgetPercent}%; height: 100%; background: var(--primary); border-radius: 2px;"></div>
+            <div class="progress-fill" style="width: ${usedPercent}%; height: 100%; background: var(--primary); border-radius: 2px;"></div>
             </div>
             <div style="font-size: 0.75rem; color: var(--text-tertiary);">
-            Remaining: ${remainingPercent}%
+            ${isRecharged ? `Recharged: $${(currentAvailable - originalBudget).toFixed(2)}` : `Remaining: ${remainingPercent.toFixed(0)}%`}
             </div>
             </div>
             </td>
-            <td style="font-weight: 600;">$${task.available_charge.toFixed(2)}</td>
+            <td style="font-weight: 600;">$${currentAvailable.toFixed(2)}</td>
             <td>
-            <span class="badge badge-${task.available_charge > 0 ? 'success' : 'warning'}">
-            ${task.available_charge > 0 ? 'Active' : 'Low Budget'}
+            <span class="badge badge-${currentAvailable > 0 ? 'success' : 'warning'}">
+            ${currentAvailable > 0 ? 'Active' : 'Depleted'}
             </span>
             </td>
             <td>
@@ -1572,50 +1583,50 @@ async function loadDashboard(page = 1) {
         </table>
         </div>
 
-        ${pagination.pages > 1 ? `
+        ${sortedTasks.length > 0 && pagination.total > pagination.size ? `
             <div class="pagination">
             <button class="pagination-btn" ${pagination.current <= 1 ? 'disabled' : ''} onclick="loadDashboard(${pagination.current - 1})">
             <i class="ri-arrow-left-s-line"></i> Previous
             </button>
-
+            
             ${(() => {
                 let paginationButtons = '';
                 const totalPages = pagination.pages;
                 const currentPage = pagination.current;
-
-                // Always show first page
+                
+                // Show first page if not in range
                 if (currentPage > 3) {
                     paginationButtons += `<button class="pagination-btn" onclick="loadDashboard(1)">1</button>`;
                     if (currentPage > 4) {
                         paginationButtons += '<span class="pagination-info">...</span>';
                     }
                 }
-
+                
                 // Show pages around current page
-                const startPage = Math.max(1, currentPage - 2);
-                const endPage = Math.min(totalPages, currentPage + 2);
-
+                const startPage = Math.max(1, currentPage - 1);
+                const endPage = Math.min(totalPages, currentPage + 1);
+                
                 for (let i = startPage; i <= endPage; i++) {
                     paginationButtons += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="loadDashboard(${i})">${i}</button>`;
                 }
-
-                // Always show last page
+                
+                // Show last page if not in range
                 if (currentPage < totalPages - 2) {
                     if (currentPage < totalPages - 3) {
                         paginationButtons += '<span class="pagination-info">...</span>';
                     }
                     paginationButtons += `<button class="pagination-btn" onclick="loadDashboard(${totalPages})">${totalPages}</button>`;
                 }
-
+                
                 return paginationButtons;
             })()}
-
+            
             <button class="pagination-btn" ${!pagination.has_next ? 'disabled' : ''} onclick="loadDashboard(${pagination.current + 1})">
             Next <i class="ri-arrow-right-s-line"></i>
             </button>
-
+            
             <div class="pagination-info">
-            Showing ${((pagination.current - 1) * pagination.size) + 1} to ${Math.min(pagination.current * pagination.size, pagination.total)} of ${pagination.total} tasks
+            Page ${pagination.current} of ${pagination.pages} - Showing ${sortedTasks.length} of ${pagination.total} tasks
             </div>
             </div>
             ` : ''}

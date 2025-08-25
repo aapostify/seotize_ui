@@ -3861,30 +3861,19 @@ function generateTaskChartData(user) {
     return { labels: last7Days, views, tasks: taskCounts };
 }
 
-// amCharts v5 World Map — hover shows views by country (theme-aware, Rocket Loader safe)
+// amCharts v5 World Map — only the map, green→indigo theme
 function initializeCountryMap(user) {
   const container = document.getElementById('countryMap');
   if (!container) return;
   if (!container.style.height) container.style.height = '420px';
 
-  // Dispose previous map
+  // dispose previous map if exists
   if (container.__am5root && !container.__am5root.isDisposed()) {
     try { container.__am5root.dispose(); } catch (_) {}
     container.__am5root = null;
   }
 
-  // --- Theme vars with fallbacks
-  const cs = getComputedStyle(document.documentElement);
-  const getVar = (v, fb) => (cs.getPropertyValue(v) || fb).trim();
-  const cPrimary      = getVar('--primary', '#6366f1');
-  const cPrimaryLight = getVar('--primary-light', '#a5b4fc');
-  const cBg           = getVar('--bg-secondary', '#0f172a');
-  const cCard         = getVar('--card', '#111827');
-  const cBorder       = getVar('--border', 'rgba(148,163,184,0.25)');
-  const cText         = getVar('--text', '#e5e7eb');
-  const cTextMut      = getVar('--text-secondary', '#9ca3af');
-
-  // --- Aggregate analytics -> { id, name, value }
+  // --- aggregate analytics data
   const src = user?.data?.data?.user ?? user?.data?.user ?? user?.user ?? user;
   const counts = {};
   const monthly = src?.analytics?.monthly_stats || {};
@@ -3903,57 +3892,24 @@ function initializeCountryMap(user) {
   }
 
   if (Object.keys(counts).length === 0) {
-    container.innerHTML = `
-      <div style="height:100%;display:flex;align-items:center;justify-content:center;
-        background:${cCard};border:1px solid ${cBorder};border-radius:12px;flex-direction:column;
-        padding:2rem;text-align:center;">
-        <div style="font-size:3rem;">🌍</div>
-        <h4 style="margin:.5rem 0;color:${cText}">No Country Data Yet</h4>
-        <p style="color:${cTextMut};font-size:.9rem">Country analytics will appear here as views arrive.</p>
-      </div>`;
+    container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;
+      height:100%;color:#9ca3af;text-align:center;">
+      🌍 No Country Data Yet</div>`;
     return;
   }
 
-  const NAME = {
-    US:'United States', GB:'United Kingdom', CN:'China', IN:'India', AU:'Australia', CA:'Canada',
-    BR:'Brazil', ZA:'South Africa', DE:'Germany', FR:'France', IT:'Italy', ES:'Spain', NL:'Netherlands',
-    SE:'Sweden', NO:'Norway', DK:'Denmark', FI:'Finland', PL:'Poland', CZ:'Czech Republic', AT:'Austria',
-    MX:'Mexico', AR:'Argentina', EG:'Egypt', NG:'Nigeria', KE:'Kenya', JP:'Japan', KR:'South Korea',
-    ID:'Indonesia', MY:'Malaysia', SG:'Singapore', PH:'Philippines', VN:'Vietnam', RU:'Russia'
-  };
-
   const data = Object.entries(counts).map(([id, value]) => ({
-    id, name: NAME[id] || id, value: Number(value) || 0
+    id, name: id, value: Number(value) || 0
   }));
-  const totalViews = data.reduce((s, d) => s + d.value, 0);
-  const maxViews = Math.max(...data.map(d => d.value), 1);
 
-  // Shell header
-  container.innerHTML = `
-    <div style="height:100%;background:${cCard};border:1px solid ${cBorder};
-      border-radius:12px;display:flex;flex-direction:column;overflow:hidden;">
-      <div style="display:flex;justify-content:space-between;align-items:center;
-        padding:12px 14px;border-bottom:1px solid ${cBorder};background:${cBg}">
-        <div>
-          <div style="font-weight:600;color:${cText};font-size:14px">Global Audience</div>
-          <div style="color:${cTextMut};font-size:12px">${totalViews.toLocaleString()} total views</div>
-        </div>
-        <div style="background:${cPrimary};color:#fff;padding:6px 10px;border-radius:8px;
-          font-size:12px;font-weight:700">🌍 ${data.length} Countries</div>
-      </div>
-      <div id="countryMapCanvas" style="flex:1;min-height:320px;"></div>
-    </div>
-  `;
-
-  // --- Wait for libs (Rocket Loader friendly)
+  // ready check
   const ready = () => typeof window.am5 !== 'undefined'
                  && typeof window.am5map !== 'undefined'
                  && typeof window.am5geodata_worldLow !== 'undefined';
 
   const boot = () => {
-    const root = am5.Root.new("countryMapCanvas");
+    const root = am5.Root.new("countryMap");
     container.__am5root = root;
-
     root.setThemes([ am5themes_Animated.new(root) ]);
 
     const chart = root.container.children.push(am5map.MapChart.new(root, {}));
@@ -3970,17 +3926,17 @@ function initializeCountryMap(user) {
     const polyTpl = polygonSeries.mapPolygons.template;
     polyTpl.setAll({
       tooltipText: "{name}: [bold]{value}[/]",
-      strokeOpacity: 0.6,
-      stroke: am5.color(hexToNumber(cBorder)),
+      strokeOpacity: 0.5,
+      stroke: am5.color(0xffffff),
       fillOpacity: 1
     });
 
-    // Heat gradient using safe color conversion
+    // heat gradient: emerald → indigo
     polygonSeries.set("heatRules", [{
       target: polyTpl,
       dataField: "value",
-      min: am5.color(hexToNumber(cPrimaryLight)),
-      max: am5.color(hexToNumber(cPrimary)),
+      min: am5.color(0x10b981), // emerald
+      max: am5.color(0x6366f1), // indigo
       key: "fill"
     }]);
 
@@ -3992,9 +3948,6 @@ function initializeCountryMap(user) {
     const ro = new ResizeObserver(() => root.resize());
     ro.observe(container);
     root.__ro = ro;
-
-    // Optional: center/zoom a bit
-    // chart.zoomToGeoPoint({ longitude: 10, latitude: 20 }, 1.1, true);
   };
 
   if (ready()) {
@@ -4002,7 +3955,6 @@ function initializeCountryMap(user) {
     return;
   }
 
-  // Inject scripts with data-cfasync="false" to reduce Rocket Loader issues
   const add = (id, src) => new Promise((res, rej) => {
     if (document.getElementById(id)) return res();
     const s = document.createElement('script');
@@ -4022,40 +3974,9 @@ function initializeCountryMap(user) {
         if (ready() || tries++ > 40) {
           clearInterval(t);
           if (ready()) boot();
-          else console.error('amCharts libs not ready (possible Rocket Loader interference).');
         }
       }, 100);
-    })
-    .catch(err => {
-      console.error('Map libs failed to load:', err);
-      container.innerHTML = `
-        <div style="height:100%;display:flex;align-items:center;justify-content:center;
-          background:${cCard};border:1px solid ${cBorder};border-radius:12px;flex-direction:column;
-          padding:2rem;text-align:center;">
-          <h4 style="margin:.5rem 0;color:${cText}">Map failed to load</h4>
-          <p style="color:${cTextMut};font-size:.9rem">Please check your network and try again.</p>
-        </div>`;
     });
-
-  // --- Utilities ---
-  function hexToNumber(input) {
-    const s = String(input || '').trim();
-    if (!s) return 0x000000;
-
-    // rgb/rgba
-    const m = s.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
-    if (m) {
-      const r = (+m[1] & 255), g = (+m[2] & 255), b = (+m[3] & 255);
-      return (r << 16) + (g << 8) + b;
-    }
-
-    // hex #rgb or #rrggbb
-    let h = s.replace('#', '');
-    if (h.length === 3) h = h.split('').map(x => x + x).join('');
-    if (h.length !== 6 || /[^0-9a-f]/i.test(h)) return 0x000000;
-
-    return parseInt(h, 16);
-  }
 }
 
 

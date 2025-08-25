@@ -1490,98 +1490,25 @@
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
-                                    // Fix the table row generation in loadBilling function
-                                    // Replace the table body section with this:
                                     <tbody>
-                                    ${allPayments.map(payment => {
-                                        // Use the correct ID field based on the payment source
-                                        const paymentId = payment.billing_id || payment.invoice_number || payment.transaction_id;
-
-                                        // Determine payment type and description
-                                        let paymentType = '';
-                                        let description = '';
-                                        let badgeClass = '';
-
-                                        if (payment.method === 'create_task' || payment.type === 'create_task') {
-                                            paymentType = 'SEO Task';
-                                            badgeClass = 'primary';
-                                            description = payment.details?.url || payment.task_url || 'Task Creation';
-                                            if (payment.details?.keywords && payment.details.keywords.length > 0) {
-                                                const keywordCount = payment.details.keywords.length;
-                                                const firstKeywords = payment.details.keywords.slice(0, 2);
-                                                description += ` - ${firstKeywords.join(', ')}${keywordCount > 2 ? ` +${keywordCount - 2} more` : ''}`;
-                                            }
-                                        } else if (payment.method === 'recharge' || payment.type === 'recharge') {
-                                            paymentType = 'Recharge';
-                                            badgeClass = 'success';
-                                            description = `Task Budget Recharge`;
-                                        } else if (payment.method === 'buy_package' || payment.type === 'buy_package') {
-                                            paymentType = 'Hosting';
-                                            badgeClass = 'warning';
-                                            const pkg = payment.details?.package || 'Package';
-                                            const duration = payment.details?.duration || '';
-                                            description = `${pkg.charAt(0).toUpperCase() + pkg.slice(1)} Package${duration ? ` - ${duration}` : ''}`;
-                                        } else {
-                                            paymentType = payment.method || payment.type || 'Payment';
-                                            badgeClass = 'primary';
-                                            description = 'Payment';
-                                        }
-
-                                        // Determine status badge
-                                        let statusClass = 'warning';
-                                        let statusText = payment.status || payment.payment_status || 'Unknown';
-
-                                        switch (statusText.toLowerCase()) {
-                                            case 'paid':
-                                                statusClass = 'success';
-                                                statusText = 'Paid';
-                                                break;
-                                            case 'pending':
-                                                statusClass = 'warning';
-                                                statusText = 'Pending';
-                                                break;
-                                            case 'cancelled':
-                                                statusClass = 'danger';
-                                                statusText = 'Cancelled';
-                                                break;
-                                            case 'expired':
-                                                statusClass = 'error';
-                                                statusText = 'Expired';
-                                                break;
-                                            default:
-                                                statusClass = 'warning';
-                                        }
-
-                                        // Use correct amount field
-                                        const amount = payment.total_payment || payment.amount || 0;
-
-                                        // Use correct date field
-                                        const createdDate = payment.dates?.created || payment.date_created || Date.now();
-
-                                        return `
-                                        <tr>
-                                        <td>${new Date(createdDate).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric'
-                                        })}</td>
-                                        <td><span class="badge badge-${badgeClass}">${paymentType}</span></td>
-                                        <td style="max-width: 300px; word-break: break-word;">${description}</td>
-                                        <td style="font-weight: 600;">$${amount.toFixed(2)}</td>
-                                        <td><span class="badge badge-${statusClass}">${statusText}</span></td>
-                                        <td>
-                                        <button class="btn btn-sm" onclick="viewPaymentDetails('${paymentId}')">
-                                        <i class="ri-eye-line"></i> Details
-                                        </button>
-                                        ${payment.payment_url ? `
-                                            <button class="btn btn-sm btn-primary" onclick="window.open('${payment.payment_url}', '_blank')" style="margin-left: 0.25rem;">
-                                            <i class="ri-external-link-line"></i> Pay
-                                            </button>
-                                            ` : ''}
-                                            </td>
+                                        ${(user.tasks || []).slice(0, 5).map(task => `
+                                            <tr>
+                                                <td>
+                                                    <a href="${task.url}" target="_blank" style="color: var(--primary); text-decoration: none;">
+                                                        ${task.url.length > 25 ? task.url.substring(0, 25) + '...' : task.url}
+                                                    </a>
+                                                </td>
+                                                <td>${task.keywords_count}</td>
+                                                <td>${task.views_count}</td>
+                                                <td>$${task.available_charge.toFixed(2)}</td>
+                                                <td><span class="badge badge-success">Active</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm" onclick="viewTaskDetails('${task._id}')">
+                                                        <i class="ri-eye-line"></i>
+                                                    </button>
+                                                </td>
                                             </tr>
-                                            `;
-                                    }).join('')}
+                                        `).join('')}
                                     </tbody>
                                 </table>
                             </div>

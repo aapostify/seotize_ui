@@ -3861,435 +3861,355 @@ function generateTaskChartData(user) {
     return { labels: last7Days, views, tasks: taskCounts };
 }
 
-// Enhanced Country Map with Theme Support
-// Modern Country Statistics Display (replaces Leaflet map)
+// Country Views Chart (replaces map with Chart.js visualization)
 function initializeCountryMap(user) {
     const mapContainer = document.getElementById('countryMap');
     if (!mapContainer) return;
 
-    // Clean up any existing map
-    if (globalMap) {
+    // Clean up any existing chart
+    if (globalMap && typeof globalMap.destroy === 'function') {
+        globalMap.destroy();
         globalMap = null;
     }
 
     const isDark = document.body.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#e2e8f0' : '#1e293b';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
 
-    // Get country data from various possible sources
+    // Extract country data from analytics
     const countryData = {};
+    const monthlyData = {};
 
-    // Try multiple data sources for country information
-    if (user.sessions && Array.isArray(user.sessions)) {
-        user.sessions.forEach(session => {
-            const country = session.country_code || session.country;
-            if (country) {
-                countryData[country.toUpperCase()] = (countryData[country.toUpperCase()] || 0) + 1;
-            }
-        });
-    }
-
-    // Fallback: extract from task statistics if available
-    if (user.task_statistics?.country_visits) {
-        Object.entries(user.task_statistics.country_visits).forEach(([country, count]) => {
-            countryData[country.toUpperCase()] = (countryData[country.toUpperCase()] || 0) + count;
-        });
-    }
-
-    // Another fallback: check tasks for country data
-    if (user.tasks && Array.isArray(user.tasks)) {
-        user.tasks.forEach(task => {
-            if (task.country_visits) {
-                Object.entries(task.country_visits).forEach(([country, count]) => {
-                    countryData[country.toUpperCase()] = (countryData[country.toUpperCase()] || 0) + count;
+    if (user.analytics && user.analytics.monthly_stats) {
+        Object.entries(user.analytics.monthly_stats).forEach(([month, stats]) => {
+            if (stats.country) {
+                monthlyData[month] = stats.country;
+                Object.entries(stats.country).forEach(([country, views]) => {
+                    countryData[country.toUpperCase()] = (countryData[country.toUpperCase()] || 0) + views;
                 });
             }
         });
     }
 
-    // If no real data, add some sample data for demonstration
+    // If no analytics data, try fallback sources
     if (Object.keys(countryData).length === 0) {
-        countryData['US'] = 25;
-        countryData['GB'] = 18;
-        countryData['DE'] = 12;
-        countryData['FR'] = 8;
-        countryData['CA'] = 6;
-        countryData['AU'] = 4;
-        countryData['JP'] = 3;
+        // Try task statistics
+        if (user.task_statistics?.country_visits) {
+            Object.entries(user.task_statistics.country_visits).forEach(([country, count]) => {
+                countryData[country.toUpperCase()] = (countryData[country.toUpperCase()] || 0) + count;
+            });
+        }
+
+        // Try individual tasks
+        if (user.tasks && Array.isArray(user.tasks)) {
+            user.tasks.forEach(task => {
+                if (task.country_visits) {
+                    Object.entries(task.country_visits).forEach(([country, count]) => {
+                        countryData[country.toUpperCase()] = (countryData[country.toUpperCase()] || 0) + count;
+                    });
+                }
+            });
+        }
+
+        // Sample data for demo if still empty
+        if (Object.keys(countryData).length === 0) {
+            countryData['GB'] = 4;
+            countryData['US'] = 2;
+            countryData['DE'] = 1;
+        }
     }
 
     // Enhanced country information mapping
     const countryInfo = {
-        'US': { name: 'United States', flag: '🇺🇸', region: 'North America' },
-        'USA': { name: 'United States', flag: '🇺🇸', region: 'North America' },
-        'GB': { name: 'United Kingdom', flag: '🇬🇧', region: 'Europe' },
-        'UK': { name: 'United Kingdom', flag: '🇬🇧', region: 'Europe' },
-        'DE': { name: 'Germany', flag: '🇩🇪', region: 'Europe' },
-        'DEU': { name: 'Germany', flag: '🇩🇪', region: 'Europe' },
-        'FR': { name: 'France', flag: '🇫🇷', region: 'Europe' },
-        'FRA': { name: 'France', flag: '🇫🇷', region: 'Europe' },
-        'CA': { name: 'Canada', flag: '🇨🇦', region: 'North America' },
-        'CAN': { name: 'Canada', flag: '🇨🇦', region: 'North America' },
-        'AU': { name: 'Australia', flag: '🇦🇺', region: 'Oceania' },
-        'AUS': { name: 'Australia', flag: '🇦🇺', region: 'Oceania' },
-        'JP': { name: 'Japan', flag: '🇯🇵', region: 'Asia' },
-        'JPN': { name: 'Japan', flag: '🇯🇵', region: 'Asia' },
-        'IN': { name: 'India', flag: '🇮🇳', region: 'Asia' },
-        'IND': { name: 'India', flag: '🇮🇳', region: 'Asia' },
-        'BR': { name: 'Brazil', flag: '🇧🇷', region: 'South America' },
-        'BRA': { name: 'Brazil', flag: '🇧🇷', region: 'South America' },
-        'RU': { name: 'Russia', flag: '🇷🇺', region: 'Europe/Asia' },
-        'RUS': { name: 'Russia', flag: '🇷🇺', region: 'Europe/Asia' },
-        'IT': { name: 'Italy', flag: '🇮🇹', region: 'Europe' },
-        'ITA': { name: 'Italy', flag: '🇮🇹', region: 'Europe' },
-        'ES': { name: 'Spain', flag: '🇪🇸', region: 'Europe' },
-        'ESP': { name: 'Spain', flag: '🇪🇸', region: 'Europe' },
-        'NL': { name: 'Netherlands', flag: '🇳🇱', region: 'Europe' },
-        'NLD': { name: 'Netherlands', flag: '🇳🇱', region: 'Europe' },
-        'SE': { name: 'Sweden', flag: '🇸🇪', region: 'Europe' },
-        'SWE': { name: 'Sweden', flag: '🇸🇪', region: 'Europe' },
-        'NO': { name: 'Norway', flag: '🇳🇴', region: 'Europe' },
-        'NOR': { name: 'Norway', flag: '🇳🇴', region: 'Europe' },
-        'DK': { name: 'Denmark', flag: '🇩🇰', region: 'Europe' },
-        'DNK': { name: 'Denmark', flag: '🇩🇰', region: 'Europe' },
-        'FI': { name: 'Finland', flag: '🇫🇮', region: 'Europe' },
-        'FIN': { name: 'Finland', flag: '🇫🇮', region: 'Europe' },
-        'PL': { name: 'Poland', flag: '🇵🇱', region: 'Europe' },
-        'POL': { name: 'Poland', flag: '🇵🇱', region: 'Europe' },
-        'CZ': { name: 'Czech Republic', flag: '🇨🇿', region: 'Europe' },
-        'CZE': { name: 'Czech Republic', flag: '🇨🇿', region: 'Europe' },
-        'AT': { name: 'Austria', flag: '🇦🇹', region: 'Europe' },
-        'AUT': { name: 'Austria', flag: '🇦🇹', region: 'Europe' },
-        'CN': { name: 'China', flag: '🇨🇳', region: 'Asia' },
-        'CHN': { name: 'China', flag: '🇨🇳', region: 'Asia' },
-        'MX': { name: 'Mexico', flag: '🇲🇽', region: 'North America' },
-        'MEX': { name: 'Mexico', flag: '🇲🇽', region: 'North America' },
-        'AR': { name: 'Argentina', flag: '🇦🇷', region: 'South America' },
-        'ARG': { name: 'Argentina', flag: '🇦🇷', region: 'South America' },
-        'ZA': { name: 'South Africa', flag: '🇿🇦', region: 'Africa' },
-        'ZAF': { name: 'South Africa', flag: '🇿🇦', region: 'Africa' },
-        'EG': { name: 'Egypt', flag: '🇪🇬', region: 'Africa' },
-        'EGY': { name: 'Egypt', flag: '🇪🇬', region: 'Africa' },
-        'NG': { name: 'Nigeria', flag: '🇳🇬', region: 'Africa' },
-        'NGA': { name: 'Nigeria', flag: '🇳🇬', region: 'Africa' },
-        'KE': { name: 'Kenya', flag: '🇰🇪', region: 'Africa' },
-        'KEN': { name: 'Kenya', flag: '🇰🇪', region: 'Africa' },
-        'TH': { name: 'Thailand', flag: '🇹🇭', region: 'Asia' },
-        'THA': { name: 'Thailand', flag: '🇹🇭', region: 'Asia' },
-        'KR': { name: 'South Korea', flag: '🇰🇷', region: 'Asia' },
-        'KOR': { name: 'South Korea', flag: '🇰🇷', region: 'Asia' },
-        'ID': { name: 'Indonesia', flag: '🇮🇩', region: 'Asia' },
-        'IDN': { name: 'Indonesia', flag: '🇮🇩', region: 'Asia' },
-        'MY': { name: 'Malaysia', flag: '🇲🇾', region: 'Asia' },
-        'MYS': { name: 'Malaysia', flag: '🇲🇾', region: 'Asia' },
-        'SG': { name: 'Singapore', flag: '🇸🇬', region: 'Asia' },
-        'SGP': { name: 'Singapore', flag: '🇸🇬', region: 'Asia' },
-        'PH': { name: 'Philippines', flag: '🇵🇭', region: 'Asia' },
-        'PHL': { name: 'Philippines', flag: '🇵🇭', region: 'Asia' },
-        'VN': { name: 'Vietnam', flag: '🇻🇳', region: 'Asia' },
-        'VNM': { name: 'Vietnam', flag: '🇻🇳', region: 'Asia' }
+        'US': { name: 'United States', flag: '🇺🇸', color: '#3b82f6' },
+        'GB': { name: 'United Kingdom', flag: '🇬🇧', color: '#ef4444' },
+        'DE': { name: 'Germany', flag: '🇩🇪', color: '#f59e0b' },
+        'FR': { name: 'France', flag: '🇫🇷', color: '#10b981' },
+        'CA': { name: 'Canada', flag: '🇨🇦', color: '#8b5cf6' },
+        'AU': { name: 'Australia', flag: '🇦🇺', color: '#f97316' },
+        'JP': { name: 'Japan', flag: '🇯🇵', color: '#06b6d4' },
+        'IN': { name: 'India', flag: '🇮🇳', color: '#84cc16' },
+        'BR': { name: 'Brazil', flag: '🇧🇷', color: '#ec4899' },
+        'RU': { name: 'Russia', flag: '🇷🇺', color: '#6366f1' },
+        'IT': { name: 'Italy', flag: '🇮🇹', color: '#14b8a6' },
+        'ES': { name: 'Spain', flag: '🇪🇸', color: '#f43f5e' },
+        'NL': { name: 'Netherlands', flag: '🇳🇱', color: '#a855f7' },
+        'SE': { name: 'Sweden', flag: '🇸🇪', color: '#0ea5e9' },
+        'NO': { name: 'Norway', flag: '🇳🇴', color: '#22c55e' },
+        'DK': { name: 'Denmark', flag: '🇩🇰', color: '#eab308' },
+        'FI': { name: 'Finland', flag: '🇫🇮', color: '#dc2626' },
+        'PL': { name: 'Poland', flag: '🇵🇱', color: '#9333ea' },
+        'CZ': { name: 'Czech Republic', flag: '🇨🇿', color: '#059669' },
+        'AT': { name: 'Austria', flag: '🇦🇹', color: '#db2777' },
+        'CN': { name: 'China', flag: '🇨🇳', color: '#dc2626' },
+        'MX': { name: 'Mexico', flag: '🇲🇽', color: '#16a34a' },
+        'AR': { name: 'Argentina', flag: '🇦🇷', color: '#0284c7' },
+        'ZA': { name: 'South Africa', flag: '🇿🇦', color: '#7c3aed' }
     };
 
-    // Sort countries by view count
+    // Prepare chart data
     const sortedCountries = Object.entries(countryData)
-    .sort(([,a], [,b]) => b - a)
-    .slice(0, 12); // Show top 12 countries
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 8); // Show top 8 countries
 
-    // Calculate total views for percentage calculations
-    const totalViews = sortedCountries.reduce((sum, [,views]) => sum + views, 0);
+    const labels = sortedCountries.map(([countryCode]) => {
+        const info = countryInfo[countryCode.toUpperCase()];
+        return info ? `${info.flag} ${info.name}` : countryCode;
+    });
 
-    // Create the country statistics display
+    const dataValues = sortedCountries.map(([,views]) => views);
+    const backgroundColors = sortedCountries.map(([countryCode]) => {
+        const info = countryInfo[countryCode.toUpperCase()];
+        return info ? info.color : '#6b7280';
+    });
+
+    // Create chart container
     mapContainer.innerHTML = `
-    <div style="
-    height: 100%;
-    background: var(--bg-secondary);
-    border-radius: var(--radius);
-    padding: 1rem;
-    overflow-y: auto;
-    position: relative;
-    ">
-    <!-- Header -->
-    <div style="
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border);
-    ">
-    <div>
-    <h4 style="
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text);
-    margin: 0 0 0.25rem 0;
-    ">Global Audience</h4>
-    <p style="
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin: 0;
-    ">${totalViews.toLocaleString()} total views</p>
-    </div>
-    <div style="
-    background: var(--primary);
-    color: white;
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.875rem;
-    font-weight: 600;
-    ">
-    🌍 ${sortedCountries.length} Countries
-    </div>
-    </div>
-
-    <!-- Country List -->
-    <div style="
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    max-height: 280px;
-    overflow-y: auto;
-    padding-right: 0.5rem;
-    ">
-    ${sortedCountries.map(([countryCode, views], index) => {
-        const info = countryInfo[countryCode.toUpperCase()] || {
-            name: countryCode,
-            flag: '🌐',
-            region: 'Unknown'
-        };
-        const percentage = ((views / totalViews) * 100).toFixed(1);
-        const isTop3 = index < 3;
-
-        return `
-        <div style="
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 0.75rem;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        transition: all 0.3s ease;
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-        ${isTop3 ? `border-left: 4px solid ${index === 0 ? '#fbbf24' : index === 1 ? '#94a3b8' : '#f97316'};` : ''}
-        " class="country-item" onmouseover="this.style.transform='translateX(4px)'; this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='none'">
-
-        <!-- Rank Badge -->
-        <div style="
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 24px;
-        height: 24px;
-        background: ${isTop3 ? (index === 0 ? '#fbbf24' : index === 1 ? '#94a3b8' : '#f97316') : 'var(--bg-tertiary)'};
-        color: ${isTop3 ? 'white' : 'var(--text-secondary)'};
-        border-radius: 50%;
-        font-size: 0.75rem;
-        font-weight: 700;
-        flex-shrink: 0;
-        ">
-        ${index + 1}
+        <div style="position: relative; height: 100%; width: 100%; display: flex; flex-direction: column;">
+            <canvas id="countryChart" style="flex: 1;"></canvas>
+            <div id="countryLegend" style="
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                margin-top: 1rem;
+                padding: 1rem;
+                background: var(--bg-tertiary);
+                border-radius: var(--radius-sm);
+                justify-content: center;
+            "></div>
         </div>
+    `;
 
-        <!-- Flag -->
-        <div style="
-        font-size: 1.5rem;
-        flex-shrink: 0;
-        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
-        ">
-        ${info.flag}
-        </div>
-
-        <!-- Country Info -->
-        <div style="flex: 1; min-width: 0;">
-        <div style="
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.25rem;
-        ">
-        <div style="
-        font-weight: 600;
-        color: var(--text);
-        font-size: 0.875rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        ">
-        ${info.name}
-        </div>
-        <div style="
-        font-weight: 700;
-        color: var(--primary);
-        font-size: 0.875rem;
-        margin-left: 0.5rem;
-        ">
-        ${views.toLocaleString()}
-        </div>
-        </div>
-
-        <div style="
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        margin-bottom: 0.5rem;
-        ">
-        <span>${info.region}</span>
-        <span>${percentage}%</span>
-        </div>
-
-        <!-- Progress Bar -->
-        <div style="
-        width: 100%;
-        height: 4px;
-        background: var(--bg-tertiary);
-        border-radius: 2px;
-        overflow: hidden;
-        ">
-        <div style="
-        width: ${percentage}%;
-        height: 100%;
-        background: linear-gradient(90deg, var(--primary), var(--primary-light));
-        border-radius: 2px;
-        transition: width 0.8s ease;
-        animation: progressLoad 1s ease-out ${index * 0.1}s both;
-        "></div>
-        </div>
-        </div>
-
-        ${isTop3 ? `
-            <div style="
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            font-size: 0.75rem;
-            ">
-            ${index === 0 ? '👑' : index === 1 ? '🥈' : '🥉'}
-            </div>
-            ` : ''}
-            </div>
-            `;
-    }).join('')}
-    </div>
-
-    ${sortedCountries.length === 0 ? `
-        <div style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 200px;
-        color: var(--text-secondary);
-        text-align: center;
-        ">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">🌍</div>
-        <h4 style="margin-bottom: 0.5rem; color: var(--text);">No Country Data Yet</h4>
-        <p style="font-size: 0.875rem;">Country statistics will appear here once you start receiving views</p>
-        </div>
-        ` : ''}
-
-        <!-- Summary Stats -->
-        ${sortedCountries.length > 0 ? `
-            <div style="
-            margin-top: 1rem;
-            padding: 1rem;
-            background: var(--bg-tertiary);
-            border-radius: var(--radius-sm);
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            text-align: center;
-            ">
-            <div>
-            <div style="
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 0.25rem;
-            ">${sortedCountries[0][1]}</div>
-            <div style="
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            ">Top Country</div>
-            </div>
-            <div>
-            <div style="
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--success);
-            margin-bottom: 0.25rem;
-            ">${((sortedCountries[0][1] / totalViews) * 100).toFixed(0)}%</div>
-            <div style="
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            ">Market Share</div>
-            </div>
-            <div>
-            <div style="
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--warning);
-            margin-bottom: 0.25rem;
-            ">${Math.round(totalViews / sortedCountries.length)}</div>
-            <div style="
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            ">Avg. per Country</div>
-            </div>
-            </div>
-            ` : ''}
-            </div>
-            `;
-
-            // Add custom animations and styling
-            if (!document.getElementById('country-stats-styles')) {
-                const style = document.createElement('style');
-                style.id = 'country-stats-styles';
-                style.innerHTML = `
-                @keyframes progressLoad {
-                    from {
-                        width: 0%;
-                        opacity: 0;
+    // Create the chart
+    const ctx = document.getElementById('countryChart');
+    if (ctx) {
+        globalMap = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: dataValues,
+                    backgroundColor: backgroundColors,
+                    borderColor: isDark ? '#374151' : '#ffffff',
+                    borderWidth: 2,
+                    hoverBorderWidth: 3,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false // We'll create custom legend
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                        titleColor: textColor,
+                        bodyColor: textColor,
+                        borderColor: isDark ? '#374151' : '#e5e7eb',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.raw / total) * 100).toFixed(1);
+                                return `${context.label}: ${context.raw} views (${percentage}%)`;
+                            },
+                            title: function(context) {
+                                return 'Country Views';
+                            }
+                        }
                     }
-                    to {
-                        width: var(--target-width);
-                        opacity: 1;
+                },
+                cutout: '50%',
+                elements: {
+                    arc: {
+                        borderRadius: 4
                     }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 1000,
+                    easing: 'easeOutCubic'
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'point'
                 }
-
-                .country-item:hover {
-                    background: var(--card-hover) !important;
-                }
-
-                .country-item:hover .progress-bar {
-                    box-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
-                }
-
-                /* Custom scrollbar */
-                .country-stats-scroll::-webkit-scrollbar {
-                    width: 4px;
-                }
-
-                .country-stats-scroll::-webkit-scrollbar-track {
-                    background: var(--bg-tertiary);
-                    border-radius: 2px;
-                }
-
-                .country-stats-scroll::-webkit-scrollbar-thumb {
-                    background: var(--primary);
-                    border-radius: 2px;
-                }
-
-                .country-stats-scroll::-webkit-scrollbar-thumb:hover {
-                    background: var(--primary-dark);
-                }
-                `;
-                document.head.appendChild(style);
             }
+        });
 
-            console.log('Country statistics display initialized with theme:', isDark ? 'dark' : 'light', 'Countries:', sortedCountries.length);
+        // Create custom legend with statistics
+        const legendContainer = document.getElementById('countryLegend');
+        const totalViews = dataValues.reduce((sum, value) => sum + value, 0);
+
+        if (sortedCountries.length > 0) {
+            legendContainer.innerHTML = `
+                ${sortedCountries.map(([countryCode, views], index) => {
+                    const info = countryInfo[countryCode.toUpperCase()];
+                    const percentage = ((views / totalViews) * 100).toFixed(1);
+                    const color = backgroundColors[index];
+
+                    return `
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                            padding: 0.5rem 0.75rem;
+                            background: var(--card);
+                            border: 1px solid var(--border);
+                            border-radius: var(--radius-sm);
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            min-width: 140px;
+                        "
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='var(--shadow)'"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+                        onclick="toggleCountrySegment(${index})">
+                            <div style="
+                                width: 12px;
+                                height: 12px;
+                                border-radius: 50%;
+                                background: ${color};
+                                flex-shrink: 0;
+                            "></div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="
+                                    font-size: 0.875rem;
+                                    font-weight: 600;
+                                    color: var(--text);
+                                    white-space: nowrap;
+                                    overflow: hidden;
+                                    text-overflow: ellipsis;
+                                ">
+                                    ${info ? `${info.flag} ${info.name}` : countryCode}
+                                </div>
+                                <div style="
+                                    font-size: 0.75rem;
+                                    color: var(--text-secondary);
+                                    display: flex;
+                                    justify-content: space-between;
+                                    align-items: center;
+                                ">
+                                    <span>${views} views</span>
+                                    <span>${percentage}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+
+                <!-- Summary Stats -->
+                <div style="
+                    width: 100%;
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 0.75rem;
+                    margin-top: 0.75rem;
+                    padding-top: 0.75rem;
+                    border-top: 1px solid var(--border);
+                ">
+                    <div style="text-align: center;">
+                        <div style="
+                            font-size: 1.25rem;
+                            font-weight: 700;
+                            color: var(--primary);
+                        ">${totalViews}</div>
+                        <div style="
+                            font-size: 0.75rem;
+                            color: var(--text-secondary);
+                        ">Total Views</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="
+                            font-size: 1.25rem;
+                            font-weight: 700;
+                            color: var(--success);
+                        ">${sortedCountries.length}</div>
+                        <div style="
+                            font-size: 0.75rem;
+                            color: var(--text-secondary);
+                        ">Countries</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="
+                            font-size: 1.25rem;
+                            font-weight: 700;
+                            color: var(--warning);
+                        ">${Math.round(totalViews / sortedCountries.length)}</div>
+                        <div style="
+                            font-size: 0.75rem;
+                            color: var(--text-secondary);
+                        ">Avg. per Country</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            legendContainer.innerHTML = `
+                <div style="
+                    width: 100%;
+                    text-align: center;
+                    padding: 2rem;
+                    color: var(--text-secondary);
+                ">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">🌍</div>
+                    <div style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">
+                        No Country Data Yet
+                    </div>
+                    <div style="font-size: 0.875rem;">
+                        Country analytics will appear here once you receive views
+                    </div>
+                </div>
+            `;
+        }
+
+        // Add chart segment toggle functionality
+        window.toggleCountrySegment = function(index) {
+            const chart = globalMap;
+            if (chart) {
+                const meta = chart.getDatasetMeta(0);
+                const segment = meta.data[index];
+                segment.hidden = !segment.hidden;
+                chart.update();
+            }
+        };
+
+        // Add center text showing total
+        const centerTextPlugin = {
+            id: 'centerText',
+            afterDatasetsDraw: function(chart) {
+                if (sortedCountries.length === 0) return;
+
+                const ctx = chart.ctx;
+                const centerX = chart.width / 2;
+                const centerY = chart.height / 2;
+
+                ctx.restore();
+                ctx.font = `600 24px Inter, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = textColor;
+                ctx.fillText(totalViews.toLocaleString(), centerX, centerY - 10);
+
+                ctx.font = `400 12px Inter, sans-serif`;
+                ctx.fillStyle = isDark ? '#9ca3af' : '#6b7280';
+                ctx.fillText('Total Views', centerX, centerY + 15);
+                ctx.save();
+            }
+        };
+
+        // Register the plugin
+        Chart.register(centerTextPlugin);
+    }
+
+    console.log('Country views chart initialized with analytics data:', {
+        theme: isDark ? 'dark' : 'light',
+        countries: Object.keys(countryData),
+        totalViews: dataValues.reduce((sum, val) => sum + val, 0)
+    });
 }
 
 function updateCharts() {

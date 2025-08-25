@@ -3861,18 +3861,18 @@ function generateTaskChartData(user) {
     return { labels: last7Days, views, tasks: taskCounts };
 }
 
-// World Map Analytics (theme-aware, hover shows views)
+// World Map Analytics (theme-aware, hover shows views) — uses GeoJSON + registerMap
 function initializeCountryMap(user) {
   const container = document.getElementById('countryMap');
   if (!container) return;
 
-  // ---- Clean up any existing chart instance ----
+  // Clean any previous instance
   if (window.globalMap && typeof window.globalMap.dispose === 'function') {
     try { window.globalMap.dispose(); } catch (_) {}
     window.globalMap = null;
   }
 
-  // ---- Helper: load a script if not present ----
+  // ---------- Helpers ----------
   function loadScript(id, src) {
     return new Promise((resolve, reject) => {
       if (document.getElementById(id)) return resolve();
@@ -3883,7 +3883,18 @@ function initializeCountryMap(user) {
     });
   }
 
-  // ---- Colors from your CSS variables (with fallbacks) ----
+  async function fetchWithFallback(urls) {
+    let lastErr;
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, { cache: 'force-cache' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+      } catch (e) { lastErr = e; }
+    }
+    throw lastErr || new Error('Failed to load GeoJSON');
+  }
+
   const cs = getComputedStyle(document.documentElement);
   const cPrimary = cs.getPropertyValue('--primary')?.trim() || '#6366f1';
   const cPrimaryLight = cs.getPropertyValue('--primary-light')?.trim() || '#a5b4fc';
@@ -3893,47 +3904,40 @@ function initializeCountryMap(user) {
   const cText = cs.getPropertyValue('--text')?.trim() || '#e5e7eb';
   const cTextMut = cs.getPropertyValue('--text-secondary')?.trim() || '#9ca3af';
 
-  // ---- Build country counts from your new analytics shape + fallbacks ----
-  // Accepts either user.analytics or user.data.user.analytics
+  // ---------- Build country counts from your analytics shape ----------
   const u = user?.data?.data?.user ?? user?.data?.user ?? user?.user ?? user;
   const countryCounts = {};
 
-  // 1) monthly_stats.country
+  // 1) monthly_stats.country (preferred)
   const monthlyStats = u?.analytics?.monthly_stats || {};
   Object.values(monthlyStats).forEach(m => {
     const cc = m?.country || {};
     Object.entries(cc).forEach(([iso2, count]) => {
-      const key = String(iso2).toUpperCase();
-      countryCounts[key] = (countryCounts[key] || 0) + (Number(count) || 0);
+      const k = String(iso2).toUpperCase();
+      countryCounts[k] = (countryCounts[k] || 0) + (Number(count) || 0);
     });
   });
 
-  // 2) sessions (fallback: treat as 1 view per session if no monthly data)
+  // 2) sessions fallback (count sessions as views)
   if (Object.keys(countryCounts).length === 0 && Array.isArray(u?.sessions)) {
     u.sessions.forEach(s => {
-      const iso2 = (s.country_code || s.country)?.toUpperCase?.();
-      if (iso2) countryCounts[iso2] = (countryCounts[iso2] || 0) + 1;
+      const k = (s.country_code || s.country || '').toUpperCase();
+      if (k) countryCounts[k] = (countryCounts[k] || 0) + 1;
     });
   }
 
-  // If still empty, show a friendly empty state
   if (Object.keys(countryCounts).length === 0) {
     container.innerHTML = `
-      <div style="
-        height:100%;display:flex;align-items:center;justify-content:center;
+      <div style="height:100%;display:flex;align-items:center;justify-content:center;
         background:${cCard};border:1px solid ${cBorder};border-radius:12px;flex-direction:column;
         padding:2rem;text-align:center;">
-        <div style="font-size:3rem;filter:drop-shadow(0 1px 2px rgba(0,0,0,.2))">🌍</div>
+        <div style="font-size:3rem;">🌍</div>
         <h4 style="margin:.5rem 0;color:${cText}">No Country Data Yet</h4>
-        <p style="color:${cTextMut};font-size:.9rem;max-width:420px">
-          Country analytics will appear here as views arrive.
-        </p>
-      </div>
-    `;
+        <p style="color:${cTextMut};font-size:.9rem">Country analytics will appear here as views arrive.</p>
+      </div>`;
     return;
   }
 
-  // ---- ISO2 -> Display Name (for tooltip matching) ----
   const ISO2_TO_NAME = {
     US:'United States', GB:'United Kingdom', DE:'Germany', FR:'France', CA:'Canada',
     AU:'Australia', JP:'Japan', IN:'India', BR:'Brazil', RU:'Russia', IT:'Italy',
@@ -3944,146 +3948,143 @@ function initializeCountryMap(user) {
     PH:'Philippines', VN:'Vietnam'
   };
 
-  // ---- Convert to ECharts data array {name, value} ----
   const data = Object.entries(countryCounts).map(([iso2, value]) => ({
     name: ISO2_TO_NAME[iso2] || iso2,
     value: Number(value) || 0,
     _iso2: iso2
   }));
 
-  // Compute totals
   const totalViews = data.reduce((s, d) => s + d.value, 0);
   const maxViews = Math.max(...data.map(d => d.value), 1);
 
-  // ---- Ensure ECharts + world map are loaded, then render ----
-  Promise.resolve()
-    .then(() => loadScript('echarts-core', 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'))
-    .then(() => loadScript('echarts-world', 'https://cdn.jsdelivr.net/npm/echarts@5/map/js/world.js'))
-    .then(() => {
-      // Header + map shell (keeps your theme look)
-      container.innerHTML = `
-        <div style="
-          height:100%;background:${cCard};border:1px solid ${cBorder};
-          border-radius:12px;display:flex;flex-direction:column;overflow:hidden;">
-          <div style="
-            display:flex;justify-content:space-between;align-items:center;
-            padding:12px 14px;border-bottom:1px solid ${cBorder};background:${cBg}">
-            <div>
-              <div style="font-weight:600;color:${cText};font-size:14px">Global Audience</div>
-              <div style="color:${cTextMut};font-size:12px">${totalViews.toLocaleString()} total views</div>
-            </div>
-            <div style="
-              background:${cPrimary};color:#fff;padding:6px 10px;border-radius:8px;
-              font-size:12px;font-weight:700">
-              🌍 ${data.length} Countries
-            </div>
-          </div>
-          <div id="countryMapCanvas" style="flex:1;min-height:300px;"></div>
+  // ---------- Render shell ----------
+  container.innerHTML = `
+    <div style="height:100%;background:${cCard};border:1px solid ${cBorder};
+      border-radius:12px;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="display:flex;justify-content:space-between;align-items:center;
+        padding:12px 14px;border-bottom:1px solid ${cBorder};background:${cBg}">
+        <div>
+          <div style="font-weight:600;color:${cText};font-size:14px">Global Audience</div>
+          <div style="color:${cTextMut};font-size:12px">${totalViews.toLocaleString()} total views</div>
         </div>
-      `;
+        <div style="background:${cPrimary};color:#fff;padding:6px 10px;border-radius:8px;
+          font-size:12px;font-weight:700">🌍 ${data.length} Countries</div>
+      </div>
+      <div id="countryMapCanvas" style="flex:1;min-height:300px;"></div>
+    </div>
+  `;
 
-      const el = document.getElementById('countryMapCanvas');
-      const chart = window.echarts.init(el, null, { renderer: 'canvas' });
-      window.globalMap = chart;
+  const el = document.getElementById('countryMapCanvas');
 
-      const option = {
-        backgroundColor: 'transparent',
-        tooltip: {
-          trigger: 'item',
-          formatter: (params) => {
-            const d = params.data || {};
-            const name = params.name || d.name || 'Unknown';
-            const val = Number(params.value || 0).toLocaleString();
-            const iso2 = d._iso2 || '';
-            const flag = iso2 ? iso2ToFlag(iso2) : '🌐';
-            return `
-              <div style="min-width:160px">
-                <div style="font-weight:700;margin-bottom:4px">${flag} ${name}</div>
-                <div style="color:${cTextMut}">Views: <b style="color:${cText}">${val}</b></div>
-              </div>
-            `;
-          },
-          backgroundColor: cCard,
-          borderColor: cBorder,
-          borderWidth: 1,
-          textStyle: { color: cText, fontSize: 12 },
-          padding: 8
+  // ---------- Load ECharts, load world GeoJSON, register and draw ----------
+  (async () => {
+    await loadScript('echarts-core', 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js');
+
+    // Cache GeoJSON across inits
+    if (!window.__WORLD_GEOJSON__) {
+      window.__WORLD_GEOJSON__ = await fetchWithFallback([
+        // Official examples CDN
+        'https://echarts.apache.org/examples/data/asset/geo/world.json',
+        // Fallback mirrors (kept as backups)
+        'https://unpkg.com/echarts@5/examples/data/asset/geo/world.json',
+        'https://fastly.jsdelivr.net/npm/echarts@5/examples/data/asset/geo/world.json'
+      ]);
+    }
+
+    // Register and init
+    window.echarts.registerMap('world', window.__WORLD_GEOJSON__);
+
+    const chart = window.echarts.init(el, null, { renderer: 'canvas' });
+    window.globalMap = chart;
+
+    const option = {
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'item',
+        formatter: (params) => {
+          const d = params.data || {};
+          const name = params.name || d.name || 'Unknown';
+          const val = Number(params.value || 0).toLocaleString();
+          const iso2 = d._iso2 || '';
+          const flag = iso2 ? iso2ToFlag(iso2) : '🌐';
+          return `
+            <div style="min-width:160px">
+              <div style="font-weight:700;margin-bottom:4px">${flag} ${name}</div>
+              <div style="color:${cTextMut}">Views: <b style="color:${cText}">${val}</b></div>
+            </div>
+          `;
         },
-        visualMap: {
-          min: 0,
-          max: maxViews,
-          calculable: true,
-          orient: 'horizontal',
-          left: 'center',
-          bottom: 10,
-          inRange: {
-            color: [hexWithAlpha(cPrimaryLight || cPrimary, 0.15), cPrimary]
-          },
-          textStyle: { color: cText },
-          backgroundColor: cBg,
-          borderColor: cBorder,
-          borderWidth: 1
+        backgroundColor: cCard,
+        borderColor: cBorder,
+        borderWidth: 1,
+        textStyle: { color: cText, fontSize: 12 },
+        padding: 8
+      },
+      visualMap: {
+        min: 0,
+        max: maxViews,
+        calculable: true,
+        orient: 'horizontal',
+        left: 'center',
+        bottom: 10,
+        inRange: {
+          color: [hexWithAlpha(cPrimaryLight || cPrimary, 0.15), cPrimary]
         },
-        series: [{
-          name: 'Views',
-          type: 'map',
-          map: 'world',
-          roam: true,
-          zoom: 1.15,
-          top: 10,
-          emphasis: {
-            label: { show: false },
-            itemStyle: {
-              areaColor: mixColors(cPrimary, '#ffffff', 0.15),
-              borderColor: cPrimary,
-              borderWidth: 1
-            }
-          },
+        textStyle: { color: cText },
+        backgroundColor: cBg,
+        borderColor: cBorder,
+        borderWidth: 1
+      },
+      series: [{
+        name: 'Views',
+        type: 'map',
+        map: 'world',
+        roam: true,
+        zoom: 1.15,
+        top: 10,
+        emphasis: {
+          label: { show: false },
           itemStyle: {
-            areaColor: mixColors(cPrimary, '#000000', 0.06),
-            borderColor: mixColors(cBorder, '#000000', 0.2),
-            borderWidth: 0.6
-          },
-          data
-        }]
-      };
+            areaColor: mixColors(cPrimary, '#ffffff', 0.15),
+            borderColor: cPrimary,
+            borderWidth: 1
+          }
+        },
+        itemStyle: {
+          areaColor: mixColors(cPrimary, '#000000', 0.06),
+          borderColor: mixColors(cBorder, '#000000', 0.2),
+          borderWidth: 0.6
+        },
+        data
+      }]
+    };
 
-      chart.setOption(option);
+    chart.setOption(option);
+    const ro = new ResizeObserver(() => chart.resize());
+    ro.observe(container);
+    chart.__ro = ro;
 
-      // Responsive
-      const ro = new ResizeObserver(() => chart.resize());
-      ro.observe(container);
-      // Keep a reference for cleanup if needed
-      chart.__ro = ro;
+    console.log('World map analytics initialized', { countries: data.length, totalViews });
+  })().catch(err => {
+    console.error('Failed to initialize world map', err);
+    container.innerHTML = `
+      <div style="height:100%;display:flex;align-items:center;justify-content:center;
+        background:${cCard};border:1px solid ${cBorder};border-radius:12px;flex-direction:column;
+        padding:2rem;text-align:center;">
+        <h4 style="margin:.5rem 0;color:${cText}">Map failed to load</h4>
+        <p style="color:${cTextMut};font-size:.9rem">Please check your network and try again.</p>
+      </div>
+    `;
+  });
 
-      // Log
-      console.log('World map analytics initialized', { countries: data.length, totalViews });
-    })
-    .catch(err => {
-      console.error('Failed to initialize world map', err);
-      container.innerHTML = `
-        <div style="
-          height:100%;display:flex;align-items:center;justify-content:center;
-          background:${cCard};border:1px solid ${cBorder};border-radius:12px;flex-direction:column;
-          padding:2rem;text-align:center;">
-          <h4 style="margin:.5rem 0;color:${cText}">Map failed to load</h4>
-          <p style="color:${cTextMut};font-size:.9rem">Please check your network and try again.</p>
-        </div>
-      `;
-    });
-
-  // ---- Helpers ----
+  // ---------- Small utils ----------
   function iso2ToFlag(iso2) {
     const s = String(iso2 || '').toUpperCase();
     if (s.length !== 2) return '🌐';
-    // Regional indicator symbols
     return String.fromCodePoint(...[...s].map(c => 127397 + c.charCodeAt()));
   }
-
   function hexWithAlpha(hex, alpha) {
-    // Accept rgb/rgba already
     if (/^rgba?\(/i.test(hex)) return hex;
-    // Normalize: #rrggbb
     let h = hex.replace('#', '').trim();
     if (h.length === 3) h = h.split('').map(x => x + x).join('');
     const r = parseInt(h.slice(0, 2), 16);
@@ -4091,11 +4092,9 @@ function initializeCountryMap(user) {
     const b = parseInt(h.slice(4, 6), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
-
   function mixColors(hexA, hexB, t = 0.5) {
-    // Simple hex mix
     const toRGB = (hex) => {
-      if (/^rgba?\(/i.test(hex)) return hex; // already rgb/rgba
+      if (/^rgba?\(/i.test(hex)) return hex;
       let h = hex.replace('#', '').trim();
       if (h.length === 3) h = h.split('').map(x => x + x).join('');
       const r = parseInt(h.slice(0, 2), 16);
@@ -4104,7 +4103,7 @@ function initializeCountryMap(user) {
       return { r, g, b };
     };
     const A = toRGB(hexA), B = toRGB(hexB);
-    if (typeof A === 'string' || typeof B === 'string') return hexA; // fallback
+    if (typeof A === 'string' || typeof B === 'string') return hexA;
     const r = Math.round(A.r * (1 - t) + B.r * t);
     const g = Math.round(A.g * (1 - t) + B.g * t);
     const b = Math.round(A.b * (1 - t) + B.b * t);

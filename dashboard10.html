@@ -1421,6 +1421,11 @@ async function loadDashboard(page = 1) {
             hasNext: pagination.has_next
         };
 
+        // Sort tasks by date (newest first)
+        const sortedTasks = (user.tasks || []).sort((a, b) =>
+            new Date(b.date_created) - new Date(a.date_created)
+        );
+
         // Update user info
         document.getElementById('userEmail').textContent = user.email;
         document.getElementById('userName').textContent = user.email.split('@')[0];
@@ -1492,12 +1497,7 @@ async function loadDashboard(page = 1) {
         <div class="card">
         <div class="card-header">
         <h3 class="card-title">Recent Tasks</h3>
-        <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <span style="font-size: 0.875rem; color: var(--text-secondary);">
-        Page ${pagination.current} of ${pagination.pages} (${pagination.total} total)
-        </span>
         <button class="btn btn-primary btn-sm" onclick="navigateTo('tasks')">View All</button>
-        </div>
         </div>
         <div class="card-body">
         <div class="table-container">
@@ -1505,70 +1505,129 @@ async function loadDashboard(page = 1) {
         <thead>
         <tr>
         <th>URL</th>
+        <th>Created</th>
         <th>Keywords</th>
         <th>Views</th>
-        <th>Budget</th>
+        <th>Budget Progress</th>
+        <th>Available</th>
         <th>Status</th>
         <th>Actions</th>
         </tr>
         </thead>
         <tbody>
-        ${(user.tasks || []).map(task => `
+        ${sortedTasks.map(task => {
+            const createdDate = new Date(task.date_created).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            const usedBudget = task.total_charge - task.available_charge;
+            const budgetPercent = task.total_charge > 0 ? Math.round((usedBudget / task.total_charge) * 100) : 0;
+            const remainingPercent = task.remaining_percentage || 0;
+
+            return `
             <tr>
             <td>
             <a href="${task.url}" target="_blank" style="color: var(--primary); text-decoration: none;">
-            ${task.url.length > 25 ? task.url.substring(0, 25) + '...' : task.url}
+            ${task.url.length > 30 ? task.url.substring(0, 30) + '...' : task.url}
             </a>
             </td>
-            <td>${task.keywords_count}</td>
-            <td>${task.views_count}</td>
-            <td>$${task.available_charge.toFixed(2)}</td>
-            <td><span class="badge badge-success">Active</span></td>
+            <td style="font-size: 0.875rem; color: var(--text-secondary);">${createdDate}</td>
             <td>
-            <button class="btn btn-sm" onclick="viewTaskDetails('${task._id}')">
+            <span class="badge badge-primary">${task.keywords_count}</span>
+            </td>
+            <td>
+            <span class="badge badge-success">${task.views_count}</span>
+            </td>
+            <td>
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+            <span>Used: $${usedBudget.toFixed(2)}</span>
+            <span>${budgetPercent}%</span>
+            </div>
+            <div class="progress-bar" style="height: 4px; background: var(--bg-tertiary); border-radius: 2px;">
+            <div class="progress-fill" style="width: ${budgetPercent}%; height: 100%; background: var(--primary); border-radius: 2px;"></div>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-tertiary);">
+            Remaining: ${remainingPercent}%
+            </div>
+            </div>
+            </td>
+            <td style="font-weight: 600;">$${task.available_charge.toFixed(2)}</td>
+            <td>
+            <span class="badge badge-${task.available_charge > 0 ? 'success' : 'warning'}">
+            ${task.available_charge > 0 ? 'Active' : 'Low Budget'}
+            </span>
+            </td>
+            <td>
+            <button class="btn btn-sm" onclick="viewTaskDetails('${task._id}')" title="View Details">
             <i class="ri-eye-line"></i>
             </button>
             </td>
             </tr>
-            `).join('')}
-            </tbody>
-            </table>
+            `;
+        }).join('')}
+        </tbody>
+        </table>
+        </div>
+
+        ${pagination.pages > 1 ? `
+            <div class="pagination">
+            <button class="pagination-btn" ${pagination.current <= 1 ? 'disabled' : ''} onclick="loadDashboard(${pagination.current - 1})">
+            <i class="ri-arrow-left-s-line"></i> Previous
+            </button>
+
+            ${(() => {
+                let paginationButtons = '';
+                const totalPages = pagination.pages;
+                const currentPage = pagination.current;
+
+                // Always show first page
+                if (currentPage > 3) {
+                    paginationButtons += `<button class="pagination-btn" onclick="loadDashboard(1)">1</button>`;
+                    if (currentPage > 4) {
+                        paginationButtons += '<span class="pagination-info">...</span>';
+                    }
+                }
+
+                // Show pages around current page
+                const startPage = Math.max(1, currentPage - 2);
+                const endPage = Math.min(totalPages, currentPage + 2);
+
+                for (let i = startPage; i <= endPage; i++) {
+                    paginationButtons += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="loadDashboard(${i})">${i}</button>`;
+                }
+
+                // Always show last page
+                if (currentPage < totalPages - 2) {
+                    if (currentPage < totalPages - 3) {
+                        paginationButtons += '<span class="pagination-info">...</span>';
+                    }
+                    paginationButtons += `<button class="pagination-btn" onclick="loadDashboard(${totalPages})">${totalPages}</button>`;
+                }
+
+                return paginationButtons;
+            })()}
+
+            <button class="pagination-btn" ${!pagination.has_next ? 'disabled' : ''} onclick="loadDashboard(${pagination.current + 1})">
+            Next <i class="ri-arrow-right-s-line"></i>
+            </button>
+
+            <div class="pagination-info">
+            Showing ${((pagination.current - 1) * pagination.size) + 1} to ${Math.min(pagination.current * pagination.size, pagination.total)} of ${pagination.total} tasks
             </div>
+            </div>
+            ` : ''}
+            </div>
+            </div>
+            `;
 
-            ${pagination.pages > 1 ? `
-                <div class="pagination" style="margin-top: 1rem;">
-                <button class="pagination-btn" ${pagination.current <= 1 ? 'disabled' : ''} onclick="loadDashboard(${pagination.current - 1})">
-                <i class="ri-arrow-left-s-line"></i> Previous
-                </button>
-
-                ${pagination.current > 1 ? `<button class="pagination-btn" onclick="loadDashboard(1)">1</button>` : ''}
-
-                ${pagination.current > 2 ? `<span class="pagination-info">...</span>` : ''}
-
-                <button class="pagination-btn active">${pagination.current}</button>
-
-                ${pagination.current < pagination.pages - 1 ? `<span class="pagination-info">...</span>` : ''}
-
-                ${pagination.current < pagination.pages ? `<button class="pagination-btn" onclick="loadDashboard(${pagination.pages})">${pagination.pages}</button>` : ''}
-
-                <button class="pagination-btn" ${!pagination.has_next ? 'disabled' : ''} onclick="loadDashboard(${pagination.current + 1})">
-                Next <i class="ri-arrow-right-s-line"></i>
-                </button>
-
-                <div class="pagination-info">
-                Showing ${((pagination.current - 1) * pagination.size) + 1} to ${Math.min(pagination.current * pagination.size, pagination.total)} of ${pagination.total} tasks
-                </div>
-                </div>
-                ` : ''}
-                </div>
-                </div>
-                `;
-
-                // Initialize charts and map
-                setTimeout(() => {
-                    initializeCharts(user);
-                    initializeCountryMap(user);
-                }, 100);
+            // Initialize charts and map
+            setTimeout(() => {
+                initializeCharts(user);
+                initializeCountryMap(user);
+            }, 100);
 
     } catch (error) {
         console.error('Dashboard error:', error);

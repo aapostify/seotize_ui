@@ -3861,61 +3861,51 @@ function generateTaskChartData(user) {
     return { labels: last7Days, views, tasks: taskCounts };
 }
 
-// World Map Analytics (amCharts v5) — theme-aware, hover shows views
+// amCharts v5 World Map — hover shows views by country (theme-aware, Rocket Loader safe)
 function initializeCountryMap(user) {
   const container = document.getElementById('countryMap');
   if (!container) return;
-
-  // Ensure some height if none set
   if (!container.style.height) container.style.height = '420px';
 
-  // ---- Clean any previous amCharts root on this container ----
+  // dispose old instance
   if (container.__am5root && !container.__am5root.isDisposed()) {
     try { container.__am5root.dispose(); } catch (_) {}
     container.__am5root = null;
   }
-  if (window.globalMapRoot && !window.globalMapRoot.isDisposed?.()) {
-    try { window.globalMapRoot.dispose(); } catch (_) {}
-    window.globalMapRoot = null;
-  }
 
-  // ---- Theme colors from your CSS vars (with fallbacks) ----
+  // --- theme colors with safe fallbacks
   const cs = getComputedStyle(document.documentElement);
-  const cPrimary      = (cs.getPropertyValue('--primary') || '#6366f1').trim();
-  const cPrimaryLight = (cs.getPropertyValue('--primary-light') || '#a5b4fc').trim();
-  const cBg           = (cs.getPropertyValue('--bg-secondary') || '#0f172a').trim();
-  const cCard         = (cs.getPropertyValue('--card') || '#111827').trim();
-  const cBorder       = (cs.getPropertyValue('--border') || 'rgba(148,163,184,0.25)').trim();
-  const cText         = (cs.getPropertyValue('--text') || '#e5e7eb').trim();
-  const cTextMut      = (cs.getPropertyValue('--text-secondary') || '#9ca3af').trim();
+  const col = (v, fb) => (cs.getPropertyValue(v) || fb).trim();
+  const cPrimary      = col('--primary', '#6366f1');
+  const cPrimaryLight = col('--primary-light', '#a5b4fc');
+  const cBg           = col('--bg-secondary', '#0f172a');
+  const cCard         = col('--card', '#111827');
+  const cBorder       = col('--border', 'rgba(148,163,184,0.25)');
+  const cText         = col('--text', '#e5e7eb');
+  const cTextMut      = col('--text-secondary', '#9ca3af');
 
-  // ---- Build country counts from your analytics shape ----
-  const u = user?.data?.data?.user ?? user?.data?.user ?? user?.user ?? user;
+  // --- aggregate analytics -> {id, name, value}
+  const src = user?.data?.data?.user ?? user?.data?.user ?? user?.user ?? user;
   const counts = {};
-
-  // Preferred: monthly_stats country aggregation
-  const monthly = u?.analytics?.monthly_stats || {};
+  const monthly = src?.analytics?.monthly_stats || {};
   Object.values(monthly).forEach(m => {
     const cc = m?.country || {};
-    for (const [iso2, val] of Object.entries(cc)) {
+    for (const [iso2, v] of Object.entries(cc)) {
       const k = String(iso2).toUpperCase();
-      counts[k] = (counts[k] || 0) + (Number(val) || 0);
+      counts[k] = (counts[k] || 0) + (Number(v) || 0);
     }
   });
-
-  // Fallback: sessions (count each session as 1 view)
-  if (Object.keys(counts).length === 0 && Array.isArray(u?.sessions)) {
-    u.sessions.forEach(s => {
+  if (Object.keys(counts).length === 0 && Array.isArray(src?.sessions)) {
+    src.sessions.forEach(s => {
       const k = (s.country_code || s.country || '').toUpperCase();
       if (k) counts[k] = (counts[k] || 0) + 1;
     });
   }
 
-  // If still empty show friendly empty state
+  // empty state
   if (Object.keys(counts).length === 0) {
     container.innerHTML = `
-      <div style="
-        height:100%;display:flex;align-items:center;justify-content:center;
+      <div style="height:100%;display:flex;align-items:center;justify-content:center;
         background:${cCard};border:1px solid ${cBorder};border-radius:12px;flex-direction:column;
         padding:2rem;text-align:center;">
         <div style="font-size:3rem;">🌍</div>
@@ -3925,242 +3915,134 @@ function initializeCountryMap(user) {
     return;
   }
 
-  // ISO2 -> common name (for labels)
-  const ISO2_TO_NAME = {
-    US:'United States', GB:'United Kingdom', CN:'China', IN:'India', AU:'Australia',
-    CA:'Canada', BR:'Brazil', ZA:'South Africa', DE:'Germany', FR:'France', IT:'Italy',
-    ES:'Spain', NL:'Netherlands', SE:'Sweden', NO:'Norway', DK:'Denmark', FI:'Finland',
-    PL:'Poland', CZ:'Czech Republic', AT:'Austria', MX:'Mexico', AR:'Argentina',
-    EG:'Egypt', NG:'Nigeria', KE:'Kenya', JP:'Japan', KR:'South Korea', ID:'Indonesia',
-    MY:'Malaysia', SG:'Singapore', PH:'Philippines', VN:'Vietnam', RU:'Russia'
+  const NAME = {
+    US:'United States', GB:'United Kingdom', CN:'China', IN:'India', AU:'Australia', CA:'Canada',
+    BR:'Brazil', ZA:'South Africa', DE:'Germany', FR:'France', IT:'Italy', ES:'Spain', NL:'Netherlands',
+    SE:'Sweden', NO:'Norway', DK:'Denmark', FI:'Finland', PL:'Poland', CZ:'Czech Republic', AT:'Austria',
+    MX:'Mexico', AR:'Argentina', EG:'Egypt', NG:'Nigeria', KE:'Kenya', JP:'Japan', KR:'South Korea',
+    ID:'Indonesia', MY:'Malaysia', SG:'Singapore', PH:'Philippines', VN:'Vietnam', RU:'Russia'
   };
 
   const data = Object.entries(counts).map(([id, value]) => ({
-    id,
-    name: ISO2_TO_NAME[id] || id,
-    value: Number(value) || 0
+    id, name: NAME[id] || id, value: Number(value) || 0
   }));
-
   const totalViews = data.reduce((s, d) => s + d.value, 0);
-  const maxViews   = Math.max(...data.map(d => d.value), 1);
+  const maxViews = Math.max(...data.map(d => d.value), 1);
 
-  // ---- Script loader ----
-  function loadScript(id, src) {
-    return new Promise((resolve, reject) => {
-      if (window[id] === true) return resolve();
-      if (document.getElementById(id)) return resolve();
-      const s = document.createElement('script');
-      s.id = id; s.src = src; s.async = true;
-      s.onload = () => { window[id] = true; resolve(); };
-      s.onerror = reject;
-      document.head.appendChild(s);
+  // header shell
+  container.innerHTML = `
+    <div style="height:100%;background:${cCard};border:1px solid ${cBorder};
+      border-radius:12px;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="display:flex;justify-content:space-between;align-items:center;
+        padding:12px 14px;border-bottom:1px solid ${cBorder};background:${cBg}">
+        <div>
+          <div style="font-weight:600;color:${cText};font-size:14px">Global Audience</div>
+          <div style="color:${cTextMut};font-size:12px">${totalViews.toLocaleString()} total views</div>
+        </div>
+        <div style="background:${cPrimary};color:#fff;padding:6px 10px;border-radius:8px;
+          font-size:12px;font-weight:700">🌍 ${data.length} Countries</div>
+      </div>
+      <div id="countryMapCanvas" style="flex:1;min-height:320px;"></div>
+    </div>
+  `;
+
+  // --- ensure am5 and geodata exist (Rocket Loader can defer execution)
+  const ensureLibs = () => typeof window.am5 !== 'undefined' &&
+                           typeof window.am5map !== 'undefined' &&
+                           typeof window.am5geodata_worldLow !== 'undefined';
+
+  const boot = () => {
+    const root = am5.Root.new("countryMapCanvas");
+    container.__am5root = root;
+
+    root.setThemes([ am5themes_Animated.new(root) ]);
+
+    // Chart
+    const chart = root.container.children.push(
+      am5map.MapChart.new(root, {})
+    );
+
+    // Polygons with heat coloring
+    const polygonSeries = chart.series.push(
+      am5map.MapPolygonSeries.new(root, {
+        geoJSON: am5geodata_worldLow,
+        exclude: ["AQ"],
+        valueField: "value",
+        calculateAggregates: true
+      })
+    );
+
+    // tooltip + base styles
+    const polyTpl = polygonSeries.mapPolygons.template;
+    polyTpl.setAll({
+      tooltipText: "{name}: [bold]{value}[/]",
+      strokeOpacity: 0.6,
+      stroke: am5.color.fromString(cBorder),
+      fillOpacity: 1
     });
+
+    // heat rules (no custom math; safe CSS parsing)
+    polygonSeries.set("heatRules", [{
+      target: polyTpl,
+      dataField: "value",
+      min: am5.color.fromString(cPrimaryLight),
+      max: am5.color.fromString(cPrimary),
+      key: "fill"
+    }]);
+
+    polygonSeries.data.setAll(data);
+
+    // nice zoom
+    chart.set("wheelY", "zoom");
+    chart.set("wheelX", "zoom");
+
+    // resize
+    const ro = new ResizeObserver(() => root.resize());
+    ro.observe(container);
+    root.__ro = ro;
+  };
+
+  // If libs are already there, just boot
+  if (ensureLibs()) {
+    boot();
+    return;
   }
 
-  // ---- Render after libs are available ----
+  // Otherwise inject scripts (disable CF async)
+  const add = (id, src) => new Promise((res, rej) => {
+    if (document.getElementById(id)) return res();
+    const s = document.createElement('script');
+    s.id = id; s.src = src; s.async = true; s.setAttribute('data-cfasync','false');
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+
   Promise.resolve()
-    .then(() => loadScript('am5-core', 'https://cdn.amcharts.com/lib/5/index.js'))
-    .then(() => loadScript('am5-map', 'https://cdn.amcharts.com/lib/5/map.js'))
-    .then(() => loadScript('am5-worldlow', 'https://cdn.amcharts.com/lib/5/geodata/worldLow.js'))
-    .then(() => loadScript('am5-animated', 'https://cdn.amcharts.com/lib/5/themes/Animated.js'))
+    .then(() => add('am5-core', 'https://cdn.amcharts.com/lib/5/index.js'))
+    .then(() => add('am5-map', 'https://cdn.amcharts.com/lib/5/map.js'))
+    .then(() => add('am5-worldlow', 'https://cdn.amcharts.com/lib/5/geodata/worldLow.js'))
+    .then(() => add('am5-animated', 'https://cdn.amcharts.com/lib/5/themes/Animated.js'))
     .then(() => {
-      // Create / style a card wrapper (keeps your theme vibe)
-      container.innerHTML = `
-        <div style="
-          height:100%;background:${cCard};border:1px solid ${cBorder};
-          border-radius:12px;display:flex;flex-direction:column;overflow:hidden;">
-          <div style="display:flex;justify-content:space-between;align-items:center;
-            padding:12px 14px;border-bottom:1px solid ${cBorder};background:${cBg}">
-            <div>
-              <div style="font-weight:600;color:${cText};font-size:14px">Global Audience</div>
-              <div style="color:${cTextMut};font-size:12px">${totalViews.toLocaleString()} total views</div>
-            </div>
-            <div style="background:${cPrimary};color:#fff;padding:6px 10px;border-radius:8px;
-              font-size:12px;font-weight:700">🌍 ${data.length} Countries</div>
-          </div>
-          <div id="countryMapCanvas" style="flex:1;min-height:320px;"></div>
-        </div>
-      `;
-
-      // amCharts code
-      const root = am5.Root.new("countryMapCanvas");
-      container.__am5root = root;
-      window.globalMapRoot = root;
-
-      // Theme
-      root.setThemes([ am5themes_Animated.new(root) ]);
-
-      // Chart
-      const chart = root.container.children.push(
-        am5map.MapChart.new(root, {
-          // projection: am5map.geoMercator(), // default
-        })
-      );
-
-      // Base polygons
-      const polygonSeries = chart.series.push(
-        am5map.MapPolygonSeries.new(root, {
-          geoJSON: am5geodata_worldLow,
-          exclude: ["AQ"],
-          valueField: "value"
-        })
-      );
-
-      // Polygon template styles
-      const polyTemplate = polygonSeries.mapPolygons.template;
-      polyTemplate.setAll({
-        tooltipText: "{name}: [bold]{value}[/]",
-        strokeOpacity: 0.6,
-        stroke: am5.color(hexToNumber(mixColors(cBorder, '#000000', 0.1))),
-        fillOpacity: 1
-      });
-
-      // Heat coloring for polygons (min -> max mapped to light -> primary)
-      polygonSeries.set("heatRules", [{
-        target: polyTemplate,
-        dataField: "value",
-        min: am5.color(hexToNumber(rgbOrHex(lightenHex(cPrimaryLight || cPrimary, 0.85)))),
-        max: am5.color(hexToNumber(rgbOrHex(cPrimary))),
-        key: "fill"
-      }]);
-
-      // Feed polygon values so hovering ANY country shows views
-      polygonSeries.data.setAll(data);
-
-      // Bubble series (optional visual emphasis; also shows tooltip)
-      const bubbleSeries = chart.series.push(
-        am5map.MapPointSeries.new(root, {
-          valueField: "value",
-          calculateAggregates: true,
-          polygonIdField: "id"
-        })
-      );
-
-      const circleTemplate = am5.Template.new({});
-
-      bubbleSeries.bullets.push(function(root, series, dataItem) {
-        const container = am5.Container.new(root, {});
-
-        const circle = container.children.push(
-          am5.Circle.new(root, {
-            radius: 10,
-            fillOpacity: 0.85,
-            fill: am5.color(hexToNumber(rgbOrHex(cPrimary))),
-            stroke: am5.color(hexToNumber(rgbOrHex(lightenHex(cPrimary, 0.25)))),
-            strokeOpacity: 0.9,
-            tooltipText: `{name}: [bold]{value}[/]`,
-            cursorOverStyle: "pointer"
-          }, circleTemplate)
-        );
-
-        // Optional label next to bubble (country name)
-        const label = container.children.push(
-          am5.Label.new(root, {
-            text: "{name}",
-            populateText: true,
-            fontWeight: "600",
-            fontSize: 12,
-            centerY: am5.p50,
-            fill: am5.color(hexToNumber(rgbOrHex(cText))),
-            paddingLeft: 6
-          })
-        );
-
-        circle.on("radius", (r) => label.set("x", r));
-
-        return am5.Bullet.new(root, { sprite: container, dynamic: true });
-      });
-
-      // Value label inside bubble
-      bubbleSeries.bullets.push(function(root) {
-        return am5.Bullet.new(root, {
-          sprite: am5.Label.new(root, {
-            text: "{value.formatNumber('#,###.')}",
-            populateText: true,
-            centerX: am5.p50,
-            centerY: am5.p50,
-            fontSize: 11,
-            fill: am5.color(0xffffff),
-            textAlign: "center"
-          }),
-          dynamic: true
-        });
-      });
-
-      // Bubble sizing by value
-      bubbleSeries.set("heatRules", [{
-        target: circleTemplate,
-        dataField: "value",
-        min: 6,
-        max: 38,
-        minValue: 0,
-        maxValue: maxViews,
-        key: "radius"
-      }]);
-
-      bubbleSeries.data.setAll(data);
-
-      // Nice zoom on wheel
-      chart.set("wheelY", "zoom");
-      chart.set("wheelX", "zoom");
-
-      // Resize observer
-      const ro = new ResizeObserver(() => root.resize());
-      ro.observe(container);
-      root.__ro = ro;
-
-      // Done
-      console.log('amCharts world map ready', { countries: data.length, totalViews });
+      // Wait a tick in case Rocket Loader defers execution
+      let tries = 0;
+      const timer = setInterval(() => {
+        if (ensureLibs() || tries++ > 20) {
+          clearInterval(timer);
+          if (ensureLibs()) boot();
+          else console.error('amCharts libs not ready (Rocket Loader interference?)');
+        }
+      }, 100);
     })
     .catch(err => {
-      console.error('Map init failed:', err);
+      console.error('Map libs failed to load:', err);
       container.innerHTML = `
-        <div style="
-          height:100%;display:flex;align-items:center;justify-content:center;
+        <div style="height:100%;display:flex;align-items:center;justify-content:center;
           background:${cCard};border:1px solid ${cBorder};border-radius:12px;flex-direction:column;
           padding:2rem;text-align:center;">
           <h4 style="margin:.5rem 0;color:${cText}">Map failed to load</h4>
           <p style="color:${cTextMut};font-size:.9rem">Please check your network and try again.</p>
         </div>`;
     });
-
-  // ---- Utils ----
-  function hexToNumber(hex) {
-    // accepts "#rrggbb" or "rgb(...)" and converts to 0xRRGGBB
-    const h = rgbOrHex(hex);
-    if (h.startsWith('#')) return parseInt(h.slice(1), 16);
-    // crude rgb(...) -> number
-    const m = h.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
-    if (m) {
-      const r = (+m[1] & 255), g = (+m[2] & 255), b = (+m[3] & 255);
-      return (r << 16) + (g << 8) + b;
-    }
-    return 0x6366f1; // fallback
-  }
-  function rgbOrHex(x) { return (x || '').trim(); }
-  function lightenHex(hex, t = 0.5) {
-    // simple lighten towards white
-    const m = hex.replace('#', '').trim();
-    const to255 = (s) => parseInt(s, 16);
-    const [r,g,b] = m.length === 3
-      ? [m[0]+m[0], m[1]+m[1], m[2]+m[2]].map(to255)
-      : [m.slice(0,2), m.slice(2,4), m.slice(4,6)].map(to255);
-    const lr = Math.round(r + (255 - r) * t);
-    const lg = Math.round(g + (255 - g) * t);
-    const lb = Math.round(b + (255 - b) * t);
-    return `#${[lr,lg,lb].map(v => v.toString(16).padStart(2,'0')).join('')}`;
-  }
-  function mixColors(hexA, hexB, t = 0.5) {
-    const a = hexA.replace('#', ''), b = hexB.replace('#', '');
-    const toRGB = (h) => h.length === 3
-      ? [h[0]+h[0], h[1]+h[1], h[2]+h[2]].map(x => parseInt(x,16))
-      : [h.slice(0,2), h.slice(2,4), h.slice(4,6)].map(x => parseInt(x,16));
-    const [ar,ag,ab] = toRGB(a), [br,bg,bb] = toRGB(b);
-    const r = Math.round(ar*(1-t) + br*t);
-    const g = Math.round(ag*(1-t) + bg*t);
-    const b2 = Math.round(ab*(1-t) + bb*t);
-    return `#${[r,g,b2].map(v=>v.toString(16).padStart(2,'0')).join('')}`;
-  }
 }
 
 

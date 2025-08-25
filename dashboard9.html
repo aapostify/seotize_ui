@@ -3861,38 +3861,23 @@ function generateTaskChartData(user) {
     return { labels: last7Days, views, tasks: taskCounts };
 }
 
-// Country Analytics Chart (replaces map, matches Task Performance design)
+// World Map with Country Views (SVG-based)
 function initializeCountryMap(user) {
     const mapContainer = document.getElementById('countryMap');
     if (!mapContainer) return;
 
-    // Clean up any existing chart
-    if (globalMap && typeof globalMap.destroy === 'function') {
-        globalMap.destroy();
+    // Clean up any existing map
+    if (globalMap) {
         globalMap = null;
     }
 
-    // Clear the container and create canvas for Chart.js
-    mapContainer.innerHTML = '<canvas id="countryChart" style="max-height: 350px;"></canvas>';
-    
-    const ctx = document.getElementById('countryChart');
-    if (!ctx) return;
-
     const isDark = document.body.getAttribute('data-theme') === 'dark';
-    const textColor = isDark ? '#e2e8f0' : '#1e293b';
-    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
 
     // Extract country data from analytics
     const countryData = {};
-    const monthlyData = {};
-
     if (user.analytics && user.analytics.monthly_stats) {
         Object.entries(user.analytics.monthly_stats).forEach(([month, stats]) => {
             if (stats.country) {
-                // Store monthly data for timeline
-                monthlyData[month] = stats.country;
-                
-                // Aggregate total country data
                 Object.entries(stats.country).forEach(([country, views]) => {
                     countryData[country] = (countryData[country] || 0) + views;
                 });
@@ -3907,211 +3892,397 @@ function initializeCountryMap(user) {
         countryData['DE'] = 1;
     }
 
-    // Enhanced country information
-    const countryInfo = {
-        'US': { name: 'United States', flag: '🇺🇸', color: '#3b82f6' },
-        'GB': { name: 'United Kingdom', flag: '🇬🇧', color: '#6366f1' },
-        'DE': { name: 'Germany', flag: '🇩🇪', color: '#8b5cf6' },
-        'FR': { name: 'France', flag: '🇫🇷', color: '#a855f7' },
-        'CA': { name: 'Canada', flag: '🇨🇦', color: '#d946ef' },
-        'AU': { name: 'Australia', flag: '🇦🇺', color: '#ec4899' },
-        'JP': { name: 'Japan', flag: '🇯🇵', color: '#f43f5e' },
-        'IN': { name: 'India', flag: '🇮🇳', color: '#ef4444' },
-        'BR': { name: 'Brazil', flag: '🇧🇷', color: '#f97316' },
-        'IT': { name: 'Italy', flag: '🇮🇹', color: '#f59e0b' },
-        'ES': { name: 'Spain', flag: '🇪🇸', color: '#eab308' },
-        'NL': { name: 'Netherlands', flag: '🇳🇱', color: '#84cc16' },
-        'SE': { name: 'Sweden', flag: '🇸🇪', color: '#22c55e' },
-        'NO': { name: 'Norway', flag: '🇳🇴', color: '#10b981' },
-        'DK': { name: 'Denmark', flag: '🇩🇰', color: '#14b8a6' },
-        'FI': { name: 'Finland', flag: '🇫🇮', color: '#06b6d4' },
-        'PL': { name: 'Poland', flag: '🇵🇱', color: '#0ea5e9' },
-        'CZ': { name: 'Czech Republic', flag: '🇨🇿', color: '#3b82f6' },
-        'AT': { name: 'Austria', flag: '🇦🇹', color: '#6366f1' }
+    // Country code to full name mapping
+    const countryNames = {
+        'US': 'United States',
+        'GB': 'United Kingdom',
+        'DE': 'Germany',
+        'FR': 'France',
+        'CA': 'Canada',
+        'AU': 'Australia',
+        'JP': 'Japan',
+        'IN': 'India',
+        'BR': 'Brazil',
+        'RU': 'Russia',
+        'IT': 'Italy',
+        'ES': 'Spain',
+        'NL': 'Netherlands',
+        'SE': 'Sweden',
+        'NO': 'Norway',
+        'DK': 'Denmark',
+        'FI': 'Finland',
+        'PL': 'Poland',
+        'CZ': 'Czech Republic',
+        'AT': 'Austria',
+        'CN': 'China',
+        'MX': 'Mexico'
     };
 
-    // Sort countries by views (descending)
-    const sortedCountries = Object.entries(countryData)
-        .sort(([,a], [,b]) => b - a)
-        .slice(0, 8); // Show top 8 countries
+    // Calculate max views for color intensity
+    const maxViews = Math.max(...Object.values(countryData));
+    const totalViews = Object.values(countryData).reduce((sum, views) => sum + views, 0);
 
-    // Prepare chart data
-    const labels = sortedCountries.map(([code]) => {
-        const info = countryInfo[code];
-        return info ? `${info.flag} ${info.name}` : code;
-    });
+    // Create the world map HTML
+    mapContainer.innerHTML = `
+        <div style="
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: ${isDark ? '#0a0a0a' : '#f8fafc'};
+            border-radius: var(--radius);
+            overflow: hidden;
+            padding: 1rem;
+        ">
+            <!-- Header -->
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 1px solid var(--border);
+            ">
+                <div style="color: var(--text); font-weight: 600; font-size: 0.875rem;">
+                    🌍 Global Views Distribution
+                </div>
+                <div style="
+                    background: var(--primary);
+                    color: white;
+                    padding: 0.25rem 0.75rem;
+                    border-radius: var(--radius-sm);
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                ">
+                    ${totalViews} total views
+                </div>
+            </div>
 
-    const views = sortedCountries.map(([,count]) => count);
-    const backgroundColors = sortedCountries.map(([code], index) => {
-        const info = countryInfo[code];
-        return info ? info.color : `hsl(${index * 45}, 70%, 60%)`;
-    });
+            <!-- World Map SVG -->
+            <div style="position: relative; height: calc(100% - 80px); min-height: 250px;">
+                <svg viewBox="0 0 1000 500" style="
+                    width: 100%;
+                    height: 100%;
+                    background: ${isDark ? '#1a1a1a' : '#ffffff'};
+                    border-radius: var(--radius-sm);
+                    border: 1px solid var(--border);
+                ">
+                    <!-- Ocean background -->
+                    <rect width="1000" height="500" fill="${isDark ? '#0f1419' : '#e0f2fe'}" />
 
-    const borderColors = backgroundColors.map(color => color);
+                    <!-- Grid lines -->
+                    <defs>
+                        <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                            <path d="M 50 0 L 0 0 0 50" fill="none" stroke="${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}" stroke-width="1"/>
+                        </pattern>
+                    </defs>
+                    <rect width="1000" height="500" fill="url(#grid)" />
 
-    // Create the chart
-    globalMap = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Views by Country',
-                data: views,
-                backgroundColor: backgroundColors.map(color => color + '80'), // Add transparency
-                borderColor: borderColors,
-                borderWidth: 2,
-                hoverBackgroundColor: backgroundColors,
-                hoverBorderColor: borderColors,
-                hoverBorderWidth: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            layout: {
-                padding: 10
-            },
-            plugins: {
-                legend: {
-                    position: 'right',
-                    align: 'center',
-                    labels: {
-                        color: textColor,
-                        padding: 15,
-                        font: {
-                            size: 12,
-                            family: 'Inter'
-                        },
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        generateLabels: function(chart) {
-                            const data = chart.data;
-                            if (data.labels.length && data.datasets.length) {
-                                const dataset = data.datasets[0];
-                                const total = dataset.data.reduce((sum, value) => sum + value, 0);
-                                
-                                return data.labels.map((label, i) => {
-                                    const value = dataset.data[i];
-                                    const percentage = ((value / total) * 100).toFixed(1);
-                                    
-                                    return {
-                                        text: `${label} (${value} - ${percentage}%)`,
-                                        fillStyle: dataset.backgroundColor[i],
-                                        strokeStyle: dataset.borderColor[i],
-                                        lineWidth: dataset.borderWidth,
-                                        hidden: false,
-                                        index: i
-                                    };
-                                });
-                            }
-                            return [];
-                        }
-                    }
-                },
-                tooltip: {
-                    backgroundColor: isDark ? 'rgba(31, 31, 31, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                    titleColor: textColor,
-                    bodyColor: textColor,
-                    borderColor: isDark ? '#374151' : '#e2e8f0',
-                    borderWidth: 1,
-                    cornerRadius: 8,
-                    padding: 12,
-                    displayColors: true,
-                    callbacks: {
-                        title: function(context) {
-                            return context[0].label;
-                        },
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((sum, value) => sum + value, 0);
-                            const value = context.raw;
-                            const percentage = ((value / total) * 100).toFixed(1);
-                            return [
-                                `Views: ${value.toLocaleString()}`,
-                                `Share: ${percentage}%`,
-                                `Total Views: ${total.toLocaleString()}`
-                            ];
-                        }
-                    }
-                }
-            },
-            cutout: '60%',
-            animation: {
-                animateRotate: true,
-                animateScale: true,
-                duration: 1000,
-                easing: 'easeOutQuart'
-            },
-            elements: {
-                arc: {
-                    borderRadius: 4
-                }
-            },
-            onHover: (event, activeElements) => {
-                event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
-            }
-        },
-        plugins: [{
-            // Center text plugin
-            id: 'centerText',
-            beforeDraw: function(chart) {
-                if (chart.config.options.elements.center) {
-                    const ctx = chart.ctx;
-                    const centerConfig = chart.config.options.elements.center;
-                    const fontStyle = centerConfig.fontStyle || 'Arial';
-                    const txt = centerConfig.text;
-                    const color = centerConfig.color || textColor;
-                    const maxFontSize = centerConfig.maxFontSize || 75;
-                    const sidePadding = centerConfig.sidePadding || 20;
-                    const sidePaddingCalculated = (sidePadding / 100) * (chart.innerRadius * 2);
+                    <!-- Simplified world map paths -->
+                    <!-- United States -->
+                    <path d="M200,200 L300,180 L380,190 L420,200 L380,240 L300,250 L200,240 Z"
+                          fill="${getCountryColor('US', countryData, maxViews, isDark)}"
+                          stroke="${isDark ? '#374151' : '#e2e8f0'}"
+                          stroke-width="1"
+                          class="country-path"
+                          data-country="US"
+                          style="cursor: pointer; transition: all 0.3s ease;"/>
 
-                    ctx.font = "30px " + fontStyle;
-                    const stringWidth = ctx.measureText(txt).width;
-                    const elementWidth = (chart.innerRadius * 2) - sidePaddingCalculated;
-                    const widthRatio = elementWidth / stringWidth;
-                    const newFontSize = Math.floor(30 * widthRatio);
-                    const fontSizeToUse = Math.min(newFontSize, maxFontSize);
+                    <!-- Canada -->
+                    <path d="M200,120 L420,100 L420,180 L380,190 L300,180 L200,190 Z"
+                          fill="${getCountryColor('CA', countryData, maxViews, isDark)}"
+                          stroke="${isDark ? '#374151' : '#e2e8f0'}"
+                          stroke-width="1"
+                          class="country-path"
+                          data-country="CA"
+                          style="cursor: pointer; transition: all 0.3s ease;"/>
 
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    const centerX = ((chart.chartArea.left + chart.chartArea.right) / 2);
-                    const centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
-                    ctx.font = fontSizeToUse + "px " + fontStyle;
-                    ctx.fillStyle = color;
-                    ctx.fillText(txt, centerX, centerY);
-                }
-            }
-        }]
-    });
+                    <!-- United Kingdom -->
+                    <path d="M480,160 L520,150 L530,170 L510,180 L480,175 Z"
+                          fill="${getCountryColor('GB', countryData, maxViews, isDark)}"
+                          stroke="${isDark ? '#374151' : '#e2e8f0'}"
+                          stroke-width="1"
+                          class="country-path"
+                          data-country="GB"
+                          style="cursor: pointer; transition: all 0.3s ease;"/>
 
-    // Add center text with total views
-    const totalViews = views.reduce((sum, count) => sum + count, 0);
-    globalMap.config.options.elements.center = {
-        text: totalViews.toLocaleString(),
-        color: textColor,
-        fontStyle: 'Inter',
-        sidePadding: 20,
-        maxFontSize: 30
-    };
+                    <!-- Germany -->
+                    <path d="M520,170 L550,165 L560,185 L540,190 L520,185 Z"
+                          fill="${getCountryColor('DE', countryData, maxViews, isDark)}"
+                          stroke="${isDark ? '#374151' : '#e2e8f0'}"
+                          stroke-width="1"
+                          class="country-path"
+                          data-country="DE"
+                          style="cursor: pointer; transition: all 0.3s ease;"/>
 
-    // Add custom styling for better integration
-    if (!document.getElementById('country-chart-styles')) {
-        const style = document.createElement('style');
-        style.id = 'country-chart-styles';
-        style.innerHTML = `
-            #countryMap canvas {
-                border-radius: var(--radius);
-            }
-            
-            .chartjs-tooltip {
-                font-family: 'Inter', sans-serif !important;
-                border-radius: var(--radius) !important;
-                box-shadow: var(--shadow-lg) !important;
-            }
+                    <!-- France -->
+                    <path d="M500,185 L540,180 L545,205 L515,210 L500,200 Z"
+                          fill="${getCountryColor('FR', countryData, maxViews, isDark)}"
+                          stroke="${isDark ? '#374151' : '#e2e8f0'}"
+                          stroke-width="1"
+                          class="country-path"
+                          data-country="FR"
+                          style="cursor: pointer; transition: all 0.3s ease;"/>
+
+                    <!-- Russia -->
+                    <path d="M580,120 L850,100 L880,160 L600,180 L580,150 Z"
+                          fill="${getCountryColor('RU', countryData, maxViews, isDark)}"
+                          stroke="${isDark ? '#374151' : '#e2e8f0'}"
+                          stroke-width="1"
+                          class="country-path"
+                          data-country="RU"
+                          style="cursor: pointer; transition: all 0.3s ease;"/>
+
+                    <!-- China -->
+                    <path d="M700,180 L800,170 L820,210 L750,220 L700,210 Z"
+                          fill="${getCountryColor('CN', countryData, maxViews, isDark)}"
+                          stroke="${isDark ? '#374151' : '#e2e8f0'}"
+                          stroke-width="1"
+                          class="country-path"
+                          data-country="CN"
+                          style="cursor: pointer; transition: all 0.3s ease;"/>
+
+                    <!-- India -->
+                    <path d="M680,220 L720,210 L730,260 L700,270 L680,250 Z"
+                          fill="${getCountryColor('IN', countryData, maxViews, isDark)}"
+                          stroke="${isDark ? '#374151' : '#e2e8f0'}"
+                          stroke-width="1"
+                          class="country-path"
+                          data-country="IN"
+                          style="cursor: pointer; transition: all 0.3s ease;"/>
+
+                    <!-- Australia -->
+                    <path d="M750,350 L850,340 L860,380 L770,390 L750,370 Z"
+                          fill="${getCountryColor('AU', countryData, maxViews, isDark)}"
+                          stroke="${isDark ? '#374151' : '#e2e8f0'}"
+                          stroke-width="1"
+                          class="country-path"
+                          data-country="AU"
+                          style="cursor: pointer; transition: all 0.3s ease;"/>
+
+                    <!-- Brazil -->
+                    <path d="M350,280 L420,270 L430,330 L370,340 L350,310 Z"
+                          fill="${getCountryColor('BR', countryData, maxViews, isDark)}"
+                          stroke="${isDark ? '#374151' : '#e2e8f0'}"
+                          stroke-width="1"
+                          class="country-path"
+                          data-country="BR"
+                          style="cursor: pointer; transition: all 0.3s ease;"/>
+
+                    <!-- Japan -->
+                    <path d="M850,200 L880,195 L885,220 L860,225 L850,210 Z"
+                          fill="${getCountryColor('JP', countryData, maxViews, isDark)}"
+                          stroke="${isDark ? '#374151' : '#e2e8f0'}"
+                          stroke-width="1"
+                          class="country-path"
+                          data-country="JP"
+                          style="cursor: pointer; transition: all 0.3s ease;"/>
+
+                    <!-- Country view indicators (dots) -->
+                    ${Object.entries(countryData).map(([country, views]) => {
+                        const coords = getCountryCenter(country);
+                        if (!coords) return '';
+
+                        const radius = Math.max(3, Math.min(15, (views / maxViews) * 12 + 3));
+                        const opacity = Math.max(0.6, views / maxViews);
+
+                        return `
+                            <circle cx="${coords.x}" cy="${coords.y}" r="${radius}"
+                                    fill="${isDark ? '#8b5cf6' : '#6366f1'}"
+                                    stroke="white"
+                                    stroke-width="2"
+                                    opacity="${opacity}"
+                                    class="view-indicator"
+                                    data-country="${country}"
+                                    data-views="${views}"
+                                    style="cursor: pointer; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); animation: pulse 2s infinite;">
+                                <animate attributeName="r" values="${radius};${radius + 2};${radius}" dur="2s" repeatCount="indefinite"/>
+                            </circle>
+                            <text x="${coords.x}" y="${coords.y + 1}"
+                                  text-anchor="middle"
+                                  dominant-baseline="central"
+                                  fill="white"
+                                  font-size="8"
+                                  font-weight="bold"
+                                  font-family="Inter"
+                                  style="pointer-events: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">
+                                ${views}
+                            </text>
+                        `;
+                    }).join('')}
+
+                    <!-- Legend -->
+                    <g transform="translate(20, 420)">
+                        <rect x="0" y="0" width="200" height="70"
+                              fill="${isDark ? 'rgba(31, 31, 31, 0.9)' : 'rgba(255, 255, 255, 0.9)'}"
+                              stroke="${isDark ? '#374151' : '#e2e8f0'}"
+                              stroke-width="1"
+                              rx="8"/>
+                        <text x="10" y="18"
+                              fill="${isDark ? '#ffffff' : '#1e293b'}"
+                              font-size="11"
+                              font-weight="600"
+                              font-family="Inter">Views Intensity</text>
+
+                        <!-- Legend gradient -->
+                        <defs>
+                            <linearGradient id="legendGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:${isDark ? '#374151' : '#e2e8f0'};stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:${isDark ? '#8b5cf6' : '#6366f1'};stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <rect x="10" y="28" width="120" height="8" fill="url(#legendGradient)" rx="4"/>
+
+                        <text x="10" y="50"
+                              fill="${isDark ? '#9ca3af' : '#64748b'}"
+                              font-size="9"
+                              font-family="Inter">Low</text>
+                        <text x="110" y="50"
+                              fill="${isDark ? '#9ca3af' : '#64748b'}"
+                              font-size="9"
+                              font-family="Inter">High</text>
+                        <text x="10" y="62"
+                              fill="${isDark ? '#9ca3af' : '#64748b'}"
+                              font-size="9"
+                              font-family="Inter">Max: ${maxViews} views</text>
+                    </g>
+                </svg>
+
+                <!-- Tooltip -->
+                <div id="mapTooltip" style="
+                    position: absolute;
+                    background: ${isDark ? 'rgba(31, 31, 31, 0.95)' : 'rgba(255, 255, 255, 0.95)'};
+                    color: ${isDark ? '#ffffff' : '#1e293b'};
+                    padding: 0.75rem;
+                    border-radius: var(--radius);
+                    border: 1px solid ${isDark ? '#374151' : '#e2e8f0'};
+                    box-shadow: var(--shadow-lg);
+                    font-size: 0.875rem;
+                    pointer-events: none;
+                    opacity: 0;
+                    transition: all 0.3s ease;
+                    z-index: 1000;
+                    backdrop-filter: blur(8px);
+                "></div>
+            </div>
+        </div>
+    `;
+
+    // Add interactivity
+    const tooltip = document.getElementById('mapTooltip');
+    const countryPaths = document.querySelectorAll('.country-path');
+    const viewIndicators = document.querySelectorAll('.view-indicator');
+
+    function showTooltip(e, country, views) {
+        const countryName = countryNames[country] || country;
+        const percentage = totalViews > 0 ? ((views / totalViews) * 100).toFixed(1) : '0';
+
+        tooltip.innerHTML = `
+            <div style="font-weight: 600; margin-bottom: 0.25rem;">
+                ${countryName}
+            </div>
+            <div style="color: ${isDark ? '#8b5cf6' : '#6366f1'}; font-weight: 700;">
+                ${views.toLocaleString()} view${views !== 1 ? 's' : ''}
+            </div>
+            <div style="font-size: 0.75rem; color: ${isDark ? '#9ca3af' : '#64748b'}; margin-top: 0.25rem;">
+                ${percentage}% of total traffic
+            </div>
         `;
-        document.head.appendChild(style);
+
+        tooltip.style.left = e.pageX + 10 + 'px';
+        tooltip.style.top = e.pageY - 10 + 'px';
+        tooltip.style.opacity = '1';
     }
 
-    console.log('Country analytics chart initialized with theme:', isDark ? 'dark' : 'light', 'Countries:', sortedCountries.length, 'Total views:', totalViews);
+    function hideTooltip() {
+        tooltip.style.opacity = '0';
+    }
+
+    // Add event listeners for country paths
+    countryPaths.forEach(path => {
+        const country = path.getAttribute('data-country');
+        const views = countryData[country] || 0;
+
+        if (views > 0) {
+            path.addEventListener('mouseenter', (e) => {
+                path.style.filter = 'brightness(1.2)';
+                showTooltip(e, country, views);
+            });
+
+            path.addEventListener('mouseleave', () => {
+                path.style.filter = 'none';
+                hideTooltip();
+            });
+
+            path.addEventListener('mousemove', (e) => {
+                tooltip.style.left = e.pageX + 10 + 'px';
+                tooltip.style.top = e.pageY - 10 + 'px';
+            });
+        }
+    });
+
+    // Add event listeners for view indicators
+    viewIndicators.forEach(indicator => {
+        const country = indicator.getAttribute('data-country');
+        const views = parseInt(indicator.getAttribute('data-views'));
+
+        indicator.addEventListener('mouseenter', (e) => {
+            indicator.style.transform = 'scale(1.2)';
+            showTooltip(e, country, views);
+        });
+
+        indicator.addEventListener('mouseleave', () => {
+            indicator.style.transform = 'scale(1)';
+            hideTooltip();
+        });
+
+        indicator.addEventListener('mousemove', (e) => {
+            tooltip.style.left = e.pageX + 10 + 'px';
+            tooltip.style.top = e.pageY - 10 + 'px';
+        });
+    });
+
+    console.log('World map initialized with theme:', isDark ? 'dark' : 'light', 'Countries with views:', Object.keys(countryData).length, 'Total views:', totalViews);
+}
+
+// Helper function to get country color based on view intensity
+function getCountryColor(countryCode, countryData, maxViews, isDark) {
+    const views = countryData[countryCode] || 0;
+    if (views === 0) {
+        return isDark ? '#2a2a2a' : '#f1f5f9';
+    }
+
+    const intensity = views / maxViews;
+    if (isDark) {
+        // Dark theme: purple gradient
+        const r = Math.floor(139 + (116 * intensity)); // 139 to 255
+        const g = Math.floor(92 + (20 * intensity));   // 92 to 112
+        const b = Math.floor(246 + (9 * intensity));   // 246 to 255
+        return `rgb(${r}, ${g}, ${b})`;
+    } else {
+        // Light theme: blue gradient
+        const r = Math.floor(99 + (156 * (1 - intensity)));  // 255 to 99
+        const g = Math.floor(102 + (153 * (1 - intensity))); // 255 to 102
+        const b = Math.floor(241 + (14 * (1 - intensity)));  // 255 to 241
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+}
+
+// Helper function to get country center coordinates for indicators
+function getCountryCenter(countryCode) {
+    const centers = {
+        'US': { x: 310, y: 220 },
+        'CA': { x: 310, y: 150 },
+        'GB': { x: 505, y: 165 },
+        'DE': { x: 540, y: 175 },
+        'FR': { x: 520, y: 195 },
+        'RU': { x: 730, y: 140 },
+        'CN': { x: 760, y: 195 },
+        'IN': { x: 705, y: 240 },
+        'AU': { x: 805, y: 365 },
+        'BR': { x: 390, y: 305 },
+        'JP': { x: 867, y: 210 }
+    };
+    return centers[countryCode];
 }
 
 function updateCharts() {

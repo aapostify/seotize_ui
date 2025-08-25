@@ -2268,10 +2268,13 @@
 
             updateEstimates();
         }
-
+        // Complete Fixed Step Navigation System
         function goToStep(step) {
+            console.log(`Attempting to go to step ${step}`); // Debug log
+            console.log(`Current selected locations:`, currentData.selectedLocations); // Debug log
+
             if (step === 2) {
-                const url = document.getElementById('taskUrl').value;
+                const url = document.getElementById('taskUrl').value.trim();
                 if (!url) {
                     showToast('Please enter a valid URL', 'error');
                     return;
@@ -2282,7 +2285,11 @@
                     showToast('Please select at least one click location', 'error');
                     return;
                 }
-                updateOrderSummary();
+                // Initialize step 3 elements
+                setTimeout(() => {
+                    updateEstimates();
+                    updateOrderSummary();
+                }, 100);
             }
 
             // Hide all steps
@@ -2291,10 +2298,17 @@
             });
 
             // Show current step
-            document.getElementById(`step${step}`).classList.add('active');
-            currentData.currentStep = step;
+            const targetStep = document.getElementById(`step${step}`);
+            if (targetStep) {
+                targetStep.classList.add('active');
+                currentData.currentStep = step;
+                console.log(`Successfully moved to step ${step}`); // Debug log
+            } else {
+                console.error(`Step ${step} element not found`); // Debug log
+            }
         }
 
+        // Fixed Website Preview with Complete XPath Selection
         function loadWebsitePreview(url) {
             const iframe = document.getElementById('taskPreviewFrame');
             const loader = document.getElementById('websiteLoader');
@@ -2311,45 +2325,27 @@
             loader.style.display = 'flex';
             iframe.style.display = 'none';
 
+            // Clear existing markers and locations
+            overlay.innerHTML = '';
+            currentData.selectedLocations = [];
+            updateSelectedLocationsDisplay();
+
             iframe.src = proxyUrl;
 
             iframe.onload = () => {
                 loader.style.display = 'none';
                 iframe.style.display = 'block';
 
-                overlay.addEventListener('click', (e) => {
-                    const rect = overlay.getBoundingClientRect();
-                    const x = ((e.clientX - rect.left) / rect.width) * 100;
-                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                // Remove any existing click listeners
+                const newOverlay = overlay.cloneNode(true);
+                overlay.parentNode.replaceChild(newOverlay, overlay);
 
-                    const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
-                    if (currentData.selectedLocations.length >= maxLocations) {
-                        showToast(`Maximum ${maxLocations} locations allowed for ${currentData.taskPriority} priority`, 'warning');
-                        return;
-                    }
+                // Get the new overlay reference
+                const currentOverlay = document.getElementById('xpathOverlay');
 
-                    const xpath = generateXPath(x, y, currentData.selectedLocations.length + 1);
-                    const locationId = Date.now() + Math.random();
-
-                    // Add marker
-                    const marker = document.createElement('div');
-                    marker.className = 'xpath-marker';
-                    marker.style.left = x + '%';
-                    marker.style.top = y + '%';
-                    marker.innerHTML = currentData.selectedLocations.length + 1;
-                    marker.dataset.locationId = locationId;
-
-                    overlay.appendChild(marker);
-
-                    currentData.selectedLocations.push({
-                        id: locationId,
-                        xpath: xpath,
-                        x: x,
-                        y: y
-                    });
-
-                    updateSelectedLocationsDisplay();
-                });
+                // Add click listener to new overlay
+                currentOverlay.addEventListener('click', handleOverlayClick);
+                console.log('Website loaded and overlay click listener added'); // Debug log
             };
 
             iframe.onerror = () => {
@@ -2359,23 +2355,278 @@
                 <div style="font-size: 1.1rem; margin-bottom: 1rem;">Unable to load website preview</div>
                 <div style="font-size: 0.875rem; color: var(--text-tertiary);">
                 The website may block iframe embedding or have CORS restrictions.<br>
-                You can still continue to create the task manually.
+                You can still continue by manually specifying XPath locations.
                 </div>
+                <button class="btn btn-primary" onclick="showManualXPathInput()" style="margin-top: 1rem;">
+                <i class="ri-code-line"></i> Add XPath Manually
+                </button>
                 </div>
                 `;
             };
         }
 
-        function setZoom(scale) {
-            const iframe = document.getElementById('taskPreviewFrame');
-            iframe.style.transform = `scale(${scale})`;
-            iframe.style.transformOrigin = '0 0';
-            iframe.style.width = `${100/scale}%`;
-            iframe.style.height = `${100/scale}%`;
+        // Handle overlay clicks for XPath selection
+        function handleOverlayClick(e) {
+            console.log('Overlay clicked'); // Debug log
+
+            const overlay = document.getElementById('xpathOverlay');
+            const rect = overlay.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+            const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
+            if (currentData.selectedLocations.length >= maxLocations) {
+                showToast(`Maximum ${maxLocations} locations allowed for ${currentData.taskPriority} priority`, 'warning');
+                return;
+            }
+
+            const xpath = generateXPath(x, y, currentData.selectedLocations.length + 1);
+            const locationId = Date.now() + Math.random();
+
+            // Add visual marker
+            const marker = document.createElement('div');
+            marker.className = 'xpath-marker';
+            marker.style.left = x + '%';
+            marker.style.top = y + '%';
+            marker.innerHTML = currentData.selectedLocations.length + 1;
+            marker.dataset.locationId = locationId;
+
+            // Add click handler to remove marker
+            marker.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeLocation(locationId);
+            });
+
+            overlay.appendChild(marker);
+
+            // Add to locations array
+            currentData.selectedLocations.push({
+                id: locationId,
+                xpath: xpath,
+                x: x,
+                y: y
+            });
+
+            updateSelectedLocationsDisplay();
+            console.log('Added location:', { id: locationId, xpath, x, y }); // Debug log
         }
 
+        // Manual XPath input for when preview fails
+        function showManualXPathInput() {
+            const container = document.getElementById('selectedLocations');
+            const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
+
+            container.innerHTML = `
+            <div style="background: var(--bg-secondary); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+            <h4 style="margin-bottom: 1rem;">Add XPath Locations Manually</h4>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <input type="text" class="form-input" id="manualXPath" placeholder="/html/body/header//a[1]" style="flex: 1;">
+            <button class="btn btn-primary" onclick="addManualXPath()">
+            <i class="ri-add-line"></i> Add
+            </button>
+            </div>
+            <small style="color: var(--text-secondary);">
+            Enter XPath expressions like: /html/body/header//a[1], /html/body/nav//a[2], etc.<br>
+            You can add up to ${maxLocations} locations for ${currentData.taskPriority} priority.
+            </small>
+            <div id="manualLocations" style="margin-top: 1rem;">
+            ${updateSelectedLocationsHTML()}
+            </div>
+            </div>
+            `;
+
+            // Add enter key listener
+            const input = document.getElementById('manualXPath');
+            if (input) {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        addManualXPath();
+                    }
+                });
+                input.focus();
+            }
+        }
+
+        // Add manual XPath
+        function addManualXPath() {
+            const input = document.getElementById('manualXPath');
+            if (!input) return;
+
+            const xpath = input.value.trim();
+
+            if (!xpath) {
+                showToast('Please enter a valid XPath', 'error');
+                return;
+            }
+
+            // Basic XPath validation
+            if (!xpath.startsWith('/') || !xpath.includes('html')) {
+                showToast('XPath should start with / and contain html (e.g., /html/body/header//a[1])', 'error');
+                return;
+            }
+
+            const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
+            if (currentData.selectedLocations.length >= maxLocations) {
+                showToast(`Maximum ${maxLocations} locations allowed`, 'warning');
+                return;
+            }
+
+            const locationId = Date.now() + Math.random();
+
+            currentData.selectedLocations.push({
+                id: locationId,
+                xpath: xpath,
+                x: 0,
+                y: 0,
+                manual: true
+            });
+
+            input.value = '';
+
+            // Update the manual locations display
+            const manualContainer = document.getElementById('manualLocations');
+            if (manualContainer) {
+                manualContainer.innerHTML = updateSelectedLocationsHTML();
+            } else {
+                updateSelectedLocationsDisplay();
+            }
+
+            showToast('XPath location added successfully', 'success');
+        }
+
+        // Generate HTML for selected locations
+        function updateSelectedLocationsHTML() {
+            if (currentData.selectedLocations.length === 0) {
+                return '<p style="color: var(--text-secondary); font-size: 0.875rem;">No locations selected yet.</p>';
+            }
+
+            return currentData.selectedLocations.map((location, index) => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius); margin-bottom: 0.5rem;">
+            <div>
+            <span style="font-weight: 500;">Location ${index + 1}:</span>
+            <code style="background: var(--bg); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-left: 0.5rem;">${location.xpath}</code>
+            ${location.manual ? '<span class="badge badge-warning" style="margin-left: 0.5rem; font-size: 0.7rem;">Manual</span>' : ''}
+            </div>
+            <button class="btn btn-sm btn-danger" onclick="removeLocation('${location.id}')">
+            <i class="ri-delete-bin-line"></i>
+            </button>
+            </div>
+            `).join('');
+        }
+
+        // Update selected locations display
+        function updateSelectedLocationsDisplay() {
+            const container = document.getElementById('selectedLocations');
+            if (!container) return;
+
+            const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
+
+            if (currentData.selectedLocations.length === 0) {
+                container.innerHTML = `
+                <div style="text-align: center; padding: 1rem; color: var(--text-secondary);">
+                <p style="font-size: 0.875rem; margin-bottom: 1rem;">
+                Click on the website preview above to select clickable areas, or add XPath locations manually.
+                </p>
+                <p style="font-size: 0.875rem; margin-bottom: 1rem;">
+                You can select up to <span id="maxLocations" style="font-weight: 600; color: var(--primary);">${maxLocations}</span> locations for ${currentData.taskPriority} priority.
+                </p>
+                <button class="btn btn-secondary btn-sm" onclick="showManualXPathInput()">
+                <i class="ri-code-line"></i> Add XPath Manually
+                </button>
+                </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+            <div style="margin-bottom: 1rem;">
+            ${updateSelectedLocationsHTML()}
+            </div>
+            <div style="text-align: center;">
+            <button class="btn btn-secondary btn-sm" onclick="showManualXPathInput()">
+            <i class="ri-add-line"></i> Add More XPaths
+            </button>
+            </div>
+            `;
+        }
+
+        // Remove location
+        function removeLocation(locationId) {
+            console.log('Removing location:', locationId); // Debug log
+
+            // Remove from array
+            currentData.selectedLocations = currentData.selectedLocations.filter(loc => loc.id != locationId);
+
+            // Remove marker from overlay
+            const marker = document.querySelector(`[data-location-id="${locationId}"]`);
+            if (marker) {
+                marker.remove();
+            }
+
+            // Update display
+            const manualContainer = document.getElementById('manualLocations');
+            if (manualContainer) {
+                manualContainer.innerHTML = updateSelectedLocationsHTML();
+            } else {
+                updateSelectedLocationsDisplay();
+            }
+
+            showToast('Location removed', 'info');
+            console.log('Location removed, remaining:', currentData.selectedLocations.length); // Debug log
+        }
+
+        // Select priority
+        function selectPriority(priority) {
+            console.log('Selecting priority:', priority); // Debug log
+
+            document.querySelectorAll('.priority-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+
+            const selectedOption = document.querySelector(`[data-priority="${priority}"]`);
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+                currentData.taskPriority = priority;
+
+                // Update max locations display
+                const maxLocations = getPriorityMaxLocations(priority);
+                const maxLocationsSpan = document.getElementById('maxLocations');
+                if (maxLocationsSpan) {
+                    maxLocationsSpan.textContent = maxLocations;
+                }
+
+                // Trim locations if they exceed the new limit
+                if (currentData.selectedLocations.length > maxLocations) {
+                    const removedCount = currentData.selectedLocations.length - maxLocations;
+                    currentData.selectedLocations = currentData.selectedLocations.slice(0, maxLocations);
+
+                    // Remove excess markers from overlay
+                    const overlay = document.getElementById('xpathOverlay');
+                    if (overlay) {
+                        const markers = overlay.querySelectorAll('.xpath-marker');
+                        for (let i = maxLocations; i < markers.length; i++) {
+                            markers[i].remove();
+                        }
+                    }
+
+                    updateSelectedLocationsDisplay();
+                    showToast(`Reduced to ${maxLocations} locations for ${priority} priority (removed ${removedCount})`, 'warning');
+                }
+
+                updateEstimates();
+                console.log('Priority updated to:', priority, 'Max locations:', maxLocations); // Debug log
+            }
+        }
+
+        // Get priority max locations
+        function getPriorityMaxLocations(priority) {
+            const limits = { basic: 2, standard: 3, premium: 5 };
+            return limits[priority] || 3;
+        }
+
+        // Generate XPath based on click position
         function generateXPath(x, y, index) {
-            // Enhanced XPath generation
+            // Enhanced XPath generation based on click position
             const sections = [
                 '/html/body/header//a',
                 '/html/body/nav//a',
@@ -2392,58 +2643,18 @@
             return `${sections[sectionIndex]}[${elementIndex}]`;
         }
 
-        function updateSelectedLocationsDisplay() {
-            const container = document.getElementById('selectedLocations');
-            const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
-
-            if (currentData.selectedLocations.length === 0) {
-                container.innerHTML = `<p style="color: var(--text-secondary); font-size: 0.875rem;">Click on the website preview above to select clickable areas. You can select up to <span id="maxLocations">${maxLocations}</span> locations.</p>`;
-                return;
+        // Set zoom for website preview
+        function setZoom(scale) {
+            const iframe = document.getElementById('taskPreviewFrame');
+            if (iframe) {
+                iframe.style.transform = `scale(${scale})`;
+                iframe.style.transformOrigin = '0 0';
+                iframe.style.width = `${100/scale}%`;
+                iframe.style.height = `${100/scale}%`;
             }
-
-            container.innerHTML = currentData.selectedLocations.map((location, index) => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius); margin-bottom: 0.5rem;">
-                    <span>Location ${index + 1}: ${location.xpath}</span>
-                    <button class="btn btn-sm btn-danger" onclick="removeLocation('${location.id}')">
-                        <i class="ri-delete-bin-line"></i>
-                    </button>
-                </div>
-            `).join('');
         }
 
-        function removeLocation(locationId) {
-            // Remove from array
-            currentData.selectedLocations = currentData.selectedLocations.filter(loc => loc.id != locationId);
-
-            // Remove marker from overlay
-            const marker = document.querySelector(`[data-location-id="${locationId}"]`);
-            if (marker) marker.remove();
-
-            updateSelectedLocationsDisplay();
-        }
-
-        function selectPriority(priority) {
-            document.querySelectorAll('.priority-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            document.querySelector(`[data-priority="${priority}"]`).classList.add('selected');
-            currentData.taskPriority = priority;
-
-            // Update max locations display
-            const maxLocations = getPriorityMaxLocations(priority);
-            const maxLocationsSpan = document.getElementById('maxLocations');
-            if (maxLocationsSpan) {
-                maxLocationsSpan.textContent = maxLocations;
-            }
-
-            updateEstimates();
-        }
-
-        function getPriorityMaxLocations(priority) {
-            const limits = { basic: 2, standard: 3, premium: 5 };
-            return limits[priority] || 3;
-        }
-
+        // Update estimates
         function updateEstimates() {
             const budget = parseFloat(document.getElementById('taskBudget')?.value || 150);
             const rates = { basic: 0.10, standard: 0.12, premium: 0.15 };
@@ -2453,6 +2664,46 @@
             const estimatedClicksInput = document.getElementById('estimatedClicks');
             if (estimatedClicksInput) {
                 estimatedClicksInput.value = estimatedClicks.toLocaleString() + ' clicks';
+            }
+
+            updateOrderSummary();
+        }
+
+        // Update order summary
+        function updateOrderSummary() {
+            const budget = parseFloat(document.getElementById('taskBudget')?.value || 150);
+            const priority = currentData.taskPriority;
+            const keywordCount = currentData.selectedKeywords.length;
+            const locationCount = currentData.selectedLocations.length;
+            const paymentType = document.getElementById('paymentType')?.value || 'one-time';
+
+            // Update all order summary elements if they exist
+            const orderBudget = document.getElementById('orderBudget');
+            const orderPriority = document.getElementById('orderPriority');
+            const orderKeywords = document.getElementById('orderKeywords');
+            const orderLocations = document.getElementById('orderLocations');
+            const orderTotal = document.getElementById('orderTotal');
+
+            if (orderBudget) orderBudget.textContent = `$${budget.toFixed(2)}`;
+            if (orderPriority) orderPriority.textContent = priority.charAt(0).toUpperCase() + priority.slice(1);
+            if (orderKeywords) orderKeywords.textContent = keywordCount;
+            if (orderLocations) orderLocations.textContent = locationCount;
+            if (orderTotal) orderTotal.textContent = `$${budget.toFixed(2)}${paymentType === 'subscription' ? '/mo' : ''}`;
+
+            console.log('Order summary updated:', { budget, priority, keywordCount, locationCount }); // Debug log
+        }
+
+        // Toggle subscription options
+        function toggleSubscriptionOptions() {
+            const paymentType = document.getElementById('paymentType')?.value;
+            const subscriptionOptions = document.getElementById('subscriptionOptions');
+
+            if (subscriptionOptions) {
+                if (paymentType === 'subscription') {
+                    subscriptionOptions.style.display = 'block';
+                } else {
+                    subscriptionOptions.style.display = 'none';
+                }
             }
 
             updateOrderSummary();

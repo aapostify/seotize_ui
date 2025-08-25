@@ -1829,127 +1829,201 @@
             try {
                 showSpinner();
                 const response = await api(`/dashboard/billings?page=${page}&limit=10&type=${type}`);
-                const { data, pagination } = response;
+                const { data } = response;
 
-                const allPayments = [...(data.tasks || []), ...(data.hosting || [])];
+                // Get payments from both tasks and hosting arrays
+                const taskPayments = data.tasks || [];
+                const hostingPayments = data.hosting || [];
+                const allPayments = [...taskPayments, ...hostingPayments];
+
+                // Update pagination state
                 paginationState.billing = {
-                    page: pagination.page,
-                    pageSize: pagination.limit,
-                    total: pagination.total,
-                    hasNext: pagination.page < pagination.pages
+                    page: data.pagination.page,
+                    pageSize: data.pagination.limit,
+                    total: data.pagination.total,
+                    hasNext: data.pagination.page < data.pagination.pages
                 };
 
                 // Calculate stats from real data
                 const totalSpent = allPayments.reduce((sum, payment) => sum + (payment.total_payment || 0), 0);
-                const completedPayments = allPayments.filter(p => p.status === 'Paid').length;
+                const completedPayments = allPayments.filter(p => p.status === 'Paid' || p.status === 'paid').length;
+                const pendingPayments = allPayments.filter(p => p.status === 'pending').length;
+                const cancelledPayments = allPayments.filter(p => p.status === 'cancelled' || p.status === 'expired').length;
 
                 const content = document.getElementById('content');
                 content.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <h2 style="font-size: 1.5rem; font-weight: 700;">Billing & Payments</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700;">Billing & Payments</h2>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <span style="font-size: 0.875rem; color: var(--text-secondary);">Filter:</span>
+                <select class="form-select" style="width: auto; padding: 0.5rem;" onchange="loadBilling(1, this.value)">
+                <option value="all" ${type === 'all' ? 'selected' : ''}>All Types</option>
+                <option value="tasks" ${type === 'tasks' ? 'selected' : ''}>Tasks Only</option>
+                <option value="hosting" ${type === 'hosting' ? 'selected' : ''}>Hosting Only</option>
+                </select>
+                </div>
+                </div>
+
+                <div class="stats-grid">
+                <div class="stat-card">
+                <div class="stat-icon primary">
+                <i class="ri-wallet-line"></i>
+                </div>
+                <div class="stat-content">
+                <div class="stat-value">$${totalSpent.toFixed(2)}</div>
+                <div class="stat-label">Total Spent</div>
+                </div>
+                </div>
+                <div class="stat-card">
+                <div class="stat-icon success">
+                <i class="ri-check-circle-line"></i>
+                </div>
+                <div class="stat-content">
+                <div class="stat-value">${completedPayments}</div>
+                <div class="stat-label">Completed</div>
+                </div>
+                </div>
+                <div class="stat-card">
+                <div class="stat-icon warning">
+                <i class="ri-time-line"></i>
+                </div>
+                <div class="stat-content">
+                <div class="stat-value">${pendingPayments}</div>
+                <div class="stat-label">Pending</div>
+                </div>
+                </div>
+                <div class="stat-card">
+                <div class="stat-icon error">
+                <i class="ri-close-circle-line"></i>
+                </div>
+                <div class="stat-content">
+                <div class="stat-value">${cancelledPayments}</div>
+                <div class="stat-label">Cancelled</div>
+                </div>
+                </div>
+                </div>
+
+                <div class="card">
+                <div class="card-header">
+                <h3 class="card-title">Transaction History</h3>
+                <span class="badge badge-primary">${allPayments.length} transactions</span>
+                </div>
+                <div class="card-body">
+                <div class="table-container">
+                <table>
+                <thead>
+                <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                ${allPayments.map(payment => {
+                    // Determine payment type and description
+                    let paymentType = '';
+                    let description = '';
+                    let badgeClass = '';
+
+                    if (payment.method === 'create_task') {
+                        paymentType = 'SEO Task';
+                        badgeClass = 'primary';
+                        description = payment.details?.url || 'Task Creation';
+                        if (payment.details?.keywords && payment.details.keywords.length > 0) {
+                            const keywordCount = payment.details.keywords.length;
+                            const firstKeywords = payment.details.keywords.slice(0, 2);
+                            description += ` - ${firstKeywords.join(', ')}${keywordCount > 2 ? ` +${keywordCount - 2} more` : ''}`;
+                        }
+                    } else if (payment.method === 'recharge') {
+                        paymentType = 'Recharge';
+                        badgeClass = 'success';
+                        description = `Task Recharge (${payment.details?.task_ids?.length || 1} task${payment.details?.task_ids?.length !== 1 ? 's' : ''})`;
+                    } else if (payment.method === 'buy_package') {
+                        paymentType = 'Hosting';
+                        badgeClass = 'warning';
+                        const pkg = payment.details?.package || 'Unknown';
+                        const duration = payment.details?.duration || '';
+                        description = `${pkg.charAt(0).toUpperCase() + pkg.slice(1)} Package${duration ? ` - ${duration}` : ''}`;
+                    } else {
+                        paymentType = payment.method || 'Payment';
+                        badgeClass = 'primary';
+                        description = 'Payment';
+                    }
+
+                    // Determine status badge
+                    let statusClass = 'warning';
+                    let statusText = payment.status || 'Unknown';
+
+                    switch (payment.status?.toLowerCase()) {
+                        case 'paid':
+                            statusClass = 'success';
+                            statusText = 'Paid';
+                            break;
+                        case 'pending':
+                            statusClass = 'warning';
+                            statusText = 'Pending';
+                            break;
+                        case 'cancelled':
+                            statusClass = 'danger';
+                            statusText = 'Cancelled';
+                            break;
+                        case 'expired':
+                            statusClass = 'error';
+                            statusText = 'Expired';
+                            break;
+                        default:
+                            statusClass = 'warning';
+                    }
+
+                    return `
+                    <tr>
+                    <td>${new Date(payment.dates?.created || Date.now()).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    })}</td>
+                    <td><span class="badge badge-${badgeClass}">${paymentType}</span></td>
+                    <td style="max-width: 300px; word-break: break-word;">${description}</td>
+                    <td style="font-weight: 600;">$${(payment.total_payment || 0).toFixed(2)}</td>
+                    <td><span class="badge badge-${statusClass}">${statusText}</span></td>
+                    <td>
+                    <button class="btn btn-sm" onclick="viewPaymentDetails('${payment.billing_id}')">
+                    <i class="ri-eye-line"></i> Details
+                    </button>
+                    ${payment.payment_url ? `
+                        <button class="btn btn-sm btn-primary" onclick="window.open('${payment.payment_url}', '_blank')" style="margin-left: 0.25rem;">
+                        <i class="ri-external-link-line"></i> Pay
+                        </button>
+                        ` : ''}
+                        </td>
+                        </tr>
+                        `;
+                }).join('')}
+                </tbody>
+                </table>
+                </div>
+
+                ${allPayments.length === 0 ? `
+                    <div class="empty-state">
+                    <div class="empty-state-icon">
+                    <i class="ri-file-list-line"></i>
                     </div>
-
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-icon primary">
-                                <i class="ri-wallet-line"></i>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-value">$${totalSpent.toFixed(2)}</div>
-                                <div class="stat-label">Total Spent</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon success">
-                                <i class="ri-bank-card-line"></i>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-value">$${(currentData.user?.task_statistics?.available_charge || 0).toFixed(2)}</div>
-                                <div class="stat-label">Available Credit</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon warning">
-                                <i class="ri-file-list-line"></i>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-value">${allPayments.length}</div>
-                                <div class="stat-label">Total Transactions</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon error">
-                                <i class="ri-check-line"></i>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-value">${completedPayments}</div>
-                                <div class="stat-label">Completed Payments</div>
-                            </div>
-                        </div>
+                    <div class="empty-state-title">No Transactions Found</div>
+                    <div class="empty-state-description">Your payment history will appear here once you make your first transaction</div>
                     </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Transaction History</h3>
-                            <select class="form-select" style="width: auto;" onchange="loadBilling(1, this.value)">
-                                <option value="all" ${type === 'all' ? 'selected' : ''}>All Types</option>
-                                <option value="tasks" ${type === 'tasks' ? 'selected' : ''}>Tasks Only</option>
-                                <option value="hosting" ${type === 'hosting' ? 'selected' : ''}>Hosting Only</option>
-                            </select>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-container">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Type</th>
-                                            <th>Description</th>
-                                            <th>Amount</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${allPayments.map(payment => `
-                                            <tr>
-                                                <td>${new Date(payment.dates?.created || payment.dates?.paid || Date.now()).toLocaleDateString()}</td>
-                                                <td><span class="badge badge-primary">${payment.method === 'create_task' ? 'Task' : payment.method === 'recharge' ? 'Recharge' : payment.method === 'buy_package' ? 'Hosting' : 'Payment'}</span></td>
-                                                <td>
-                                                    ${payment.details?.url || payment.details?.package || 'Payment'}
-                                                    ${payment.details?.keywords ? ` - ${payment.details.keywords.slice(0, 2).join(', ')}${payment.details.keywords.length > 2 ? '...' : ''}` : ''}
-                                                </td>
-                                                <td>$${(payment.total_payment || 0).toFixed(2)}</td>
-                                                <td><span class="badge badge-${payment.status === 'Paid' ? 'success' : payment.status === 'expired' ? 'warning' : payment.status === 'cancelled' ? 'danger' : 'warning'}">${payment.status || 'Pending'}</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm" onclick="viewPaymentDetails('${payment.billing_id}')">
-                                                        <i class="ri-eye-line"></i> Details
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            ${allPayments.length === 0 ? `
-                                <div class="empty-state">
-                                    <div class="empty-state-icon">
-                                        <i class="ri-file-list-line"></i>
-                                    </div>
-                                    <div class="empty-state-title">No Transactions Found</div>
-                                    <div class="empty-state-description">Your payment history will appear here</div>
-                                </div>
-                            ` : ''}
-                        </div>
+                    ` : ''}
+                    </div>
                     </div>
 
                     ${paginationState.billing.total > paginationState.billing.pageSize ? generatePagination('billing', (page) => loadBilling(page, type)) : ''}
-                `;
+                    `;
 
             } catch (error) {
                 console.error('Billing error:', error);
-                showErrorState('Failed to load billing data');
+                showErrorState('Failed to load billing data. Please check your connection and try again.');
             }
         }
 
@@ -3108,65 +3182,130 @@
         }
 
         // Payment Details
-        async function viewPaymentDetails(paymentId) {
+        async function viewPaymentDetails(billingId) {
             try {
-                const response = await api(`/get-payment-status?payment_id=${paymentId}`);
-                const payment = response.data;
+                // Find payment in current data first (faster)
+                const taskPayments = currentData.billing?.tasks || [];
+                const hostingPayments = currentData.billing?.hosting || [];
+                const allPayments = [...taskPayments, ...hostingPayments];
+
+                let payment = allPayments.find(p => p.billing_id === billingId);
+
+                // If not found in current data, try API call
+                if (!payment) {
+                    try {
+                        const response = await api(`/get-payment-status?payment_id=${billingId}`);
+                        payment = response.data;
+                    } catch (apiError) {
+                        console.error('API payment details error:', apiError);
+                        showToast('Payment details not found', 'error');
+                        return;
+                    }
+                }
+
+                if (!payment) {
+                    showToast('Payment details not found', 'error');
+                    return;
+                }
+
+                // Calculate fees and amounts
+                const totalAmount = payment.total_payment || 0;
+                const finalAmount = payment.final_amount || 0;
+                const platformFee = payment.platform_fee || 0;
+                const providerFee = payment.provider_fee || 0;
 
                 showModal('Payment Details', `
-                    <div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                            <div class="stat-card">
-                                <div class="stat-value">$${(payment.amount || 0).toFixed(2)}</div>
-                                <div class="stat-label">Amount</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">${payment.status || 'Unknown'}</div>
-                                <div class="stat-label">Status</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">${payment.payment_method || 'N/A'}</div>
-                                <div class="stat-label">Method</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">${payment.type || 'N/A'}</div>
-                                <div class="stat-label">Type</div>
-                            </div>
-                        </div>
+                <div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <div class="stat-card">
+                <div class="stat-value">$${totalAmount.toFixed(2)}</div>
+                <div class="stat-label">Total Amount</div>
+                </div>
+                <div class="stat-card">
+                <div class="stat-value">$${finalAmount.toFixed(2)}</div>
+                <div class="stat-label">Final Amount</div>
+                </div>
+                <div class="stat-card">
+                <div class="stat-value">${payment.provider || 'N/A'}</div>
+                <div class="stat-label">Provider</div>
+                </div>
+                <div class="stat-card">
+                <div class="stat-value">${payment.status || 'Unknown'}</div>
+                <div class="stat-label">Status</div>
+                </div>
+                </div>
 
-                        <table style="width: 100%;">
-                            <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Invoice Number:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">${payment.invoice_number || 'N/A'}</td></tr>
-                            <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Transaction ID:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">${payment.transaction_id || 'N/A'}</td></tr>
-                            <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Date Created:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">${new Date(payment.date_created || payment.date_of_payment).toLocaleString()}</td></tr>
-                            <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Currency:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">${(payment.currency || 'USD').toUpperCase()}</td></tr>
-                            ${payment.customer_email ? `<tr><td style="padding: 0.5rem 0; font-weight: 500;">Customer Email:</td><td style="padding: 0.5rem 0;">${payment.customer_email}</td></tr>` : ''}
-                        </table>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                <h4 style="margin-bottom: 1rem;">Payment Information</h4>
+                <table style="width: 100%; font-size: 0.875rem;">
+                <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Billing ID:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-family: monospace;">${payment.billing_id}</td></tr>
+                <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Transaction ID:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-family: monospace;">${payment.txID || payment.trackId || 'N/A'}</td></tr>
+                <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Date Created:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">${new Date(payment.dates?.created || Date.now()).toLocaleString()}</td></tr>
+                <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Date Updated:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">${payment.dates?.updated ? new Date(payment.dates.updated).toLocaleString() : 'N/A'}</td></tr>
+                <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Currency:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">${payment.transaction_data?.currency?.toUpperCase() || 'USD'}</td></tr>
+                <tr><td style="padding: 0.5rem 0; font-weight: 500;">Customer:</td><td style="padding: 0.5rem 0;">${payment.transaction_data?.customer_details?.email || 'N/A'}</td></tr>
+                </table>
+                </div>
 
-                        ${payment.type === 'create_task' && payment.task_id ? `
-                            <div style="margin-top: 1.5rem;">
-                                <h4>Task Information</h4>
-                                <p>This payment was for creating a new SEO task.</p>
-                                <button class="btn btn-primary" onclick="closeModal(); viewTaskDetails('${payment.task_id}')">View Task Details</button>
-                            </div>
-                        ` : ''}
+                <div>
+                <h4 style="margin-bottom: 1rem;">Fee Breakdown</h4>
+                <table style="width: 100%; font-size: 0.875rem;">
+                <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Platform Fee:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">$${platformFee.toFixed(2)}</td></tr>
+                <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Provider Fee:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">$${providerFee.toFixed(2)}</td></tr>
+                <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Total Fees:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">$${(platformFee + providerFee).toFixed(2)}</td></tr>
+                <tr style="font-weight: 600;"><td style="padding: 0.5rem 0; font-weight: 600;">Net Amount:</td><td style="padding: 0.5rem 0;">$${finalAmount.toFixed(2)}</td></tr>
+                </table>
+                </div>
+                </div>
 
-                        ${payment.type === 'recharge' && payment.task_ids ? `
-                            <div style="margin-top: 1.5rem;">
-                                <h4>Recharge Information</h4>
-                                <p>This payment was for recharging ${payment.task_ids.length} task(s).</p>
-                            </div>
-                        ` : ''}
-
-                        ${payment.type === 'buy_package' ? `
-                            <div style="margin-top: 1.5rem;">
-                                <h4>Package Information</h4>
-                                <p>Package: ${payment.package || 'N/A'}</p>
-                                <p>Duration: ${payment.duration || 'N/A'}</p>
-                                ${payment.subscription_status ? `<p>Subscription Status: ${payment.subscription_status}</p>` : ''}
-                            </div>
-                        ` : ''}
+                ${payment.method === 'create_task' && payment.details ? `
+                    <div style="margin-top: 2rem;">
+                    <h4 style="margin-bottom: 1rem;">Task Details</h4>
+                    <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius);">
+                    <div style="margin-bottom: 0.5rem;"><strong>URL:</strong> <a href="${payment.details.url}" target="_blank" style="color: var(--primary);">${payment.details.url}</a></div>
+                    <div style="margin-bottom: 0.5rem;"><strong>Priority:</strong> ${payment.details.priority}</div>
+                    <div style="margin-bottom: 0.5rem;"><strong>Keywords:</strong> ${payment.details.keywords ? payment.details.keywords.join(', ') : 'N/A'}</div>
+                    <div><strong>HTML Locations:</strong> ${payment.details.html_locations ? payment.details.html_locations.length : 0} locations</div>
                     </div>
-                `);
+                    </div>
+                    ` : ''}
+
+                    ${payment.method === 'buy_package' && payment.details ? `
+                        <div style="margin-top: 2rem;">
+                        <h4 style="margin-bottom: 1rem;">Hosting Package Details</h4>
+                        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius);">
+                        <div style="margin-bottom: 0.5rem;"><strong>Package:</strong> ${payment.details.package?.charAt(0).toUpperCase() + payment.details.package?.slice(1) || 'N/A'}</div>
+                        <div><strong>Duration:</strong> ${payment.details.duration || 'N/A'}</div>
+                        ${payment.subscription?.details ? `
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                            <strong>Subscription Status:</strong> ${payment.subscription.details.status || 'N/A'}
+                            ${payment.subscription.details.current_period_end ? `<br><strong>Next Billing:</strong> ${new Date(payment.subscription.details.current_period_end).toLocaleDateString()}` : ''}
+                            </div>
+                            ` : ''}
+                            </div>
+                            </div>
+                            ` : ''}
+
+                            ${payment.method === 'recharge' && payment.details?.task_ids ? `
+                                <div style="margin-top: 2rem;">
+                                <h4 style="margin-bottom: 1rem;">Recharge Details</h4>
+                                <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius);">
+                                <div><strong>Recharged Tasks:</strong> ${payment.details.task_ids.length} task${payment.details.task_ids.length !== 1 ? 's' : ''}</div>
+                                </div>
+                                </div>
+                                ` : ''}
+
+                                <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: center;">
+                                ${payment.payment_url ? `
+                                    <button class="btn btn-primary" onclick="window.open('${payment.payment_url}', '_blank')">
+                                    <i class="ri-external-link-line"></i> View Payment
+                                    </button>
+                                    ` : ''}
+                                    <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                                    </div>
+                                    </div>
+                                    `);
 
             } catch (error) {
                 console.error('Payment details error:', error);

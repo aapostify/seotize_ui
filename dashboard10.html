@@ -1494,7 +1494,7 @@ async function loadDashboard(page = 1) {
         <h3 class="card-title">Recent Tasks</h3>
         <div style="display: flex; gap: 0.5rem; align-items: center;">
         <span style="font-size: 0.875rem; color: var(--text-secondary);">
-        Showing ${Math.min(5, user.tasks?.length || 0)} of ${pagination.total} tasks
+        Page ${pagination.current} of ${pagination.pages} (${pagination.total} total)
         </span>
         <button class="btn btn-primary btn-sm" onclick="navigateTo('tasks')">View All</button>
         </div>
@@ -1513,7 +1513,7 @@ async function loadDashboard(page = 1) {
         </tr>
         </thead>
         <tbody>
-        ${(user.tasks || []).slice(0, 5).map(task => `
+        ${(user.tasks || []).map(task => `
             <tr>
             <td>
             <a href="${task.url}" target="_blank" style="color: var(--primary); text-decoration: none;">
@@ -1535,17 +1535,29 @@ async function loadDashboard(page = 1) {
             </table>
             </div>
 
-            ${pagination.total > 5 ? `
-                <div style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem; padding: 1rem; background: var(--bg-tertiary); border-radius: var(--radius);">
-                <button class="btn btn-sm btn-secondary" ${pagination.current <= 1 ? 'disabled' : ''} onclick="loadDashboard(${pagination.current - 1})">
+            ${pagination.pages > 1 ? `
+                <div class="pagination" style="margin-top: 1rem;">
+                <button class="pagination-btn" ${pagination.current <= 1 ? 'disabled' : ''} onclick="loadDashboard(${pagination.current - 1})">
                 <i class="ri-arrow-left-s-line"></i> Previous
                 </button>
-                <span style="font-size: 0.875rem; color: var(--text-secondary);">
-                Page ${pagination.current} of ${pagination.pages}
-                </span>
-                <button class="btn btn-sm btn-secondary" ${!pagination.has_next ? 'disabled' : ''} onclick="loadDashboard(${pagination.current + 1})">
+
+                ${pagination.current > 1 ? `<button class="pagination-btn" onclick="loadDashboard(1)">1</button>` : ''}
+
+                ${pagination.current > 2 ? `<span class="pagination-info">...</span>` : ''}
+
+                <button class="pagination-btn active">${pagination.current}</button>
+
+                ${pagination.current < pagination.pages - 1 ? `<span class="pagination-info">...</span>` : ''}
+
+                ${pagination.current < pagination.pages ? `<button class="pagination-btn" onclick="loadDashboard(${pagination.pages})">${pagination.pages}</button>` : ''}
+
+                <button class="pagination-btn" ${!pagination.has_next ? 'disabled' : ''} onclick="loadDashboard(${pagination.current + 1})">
                 Next <i class="ri-arrow-right-s-line"></i>
                 </button>
+
+                <div class="pagination-info">
+                Showing ${((pagination.current - 1) * pagination.size) + 1} to ${Math.min(pagination.current * pagination.size, pagination.total)} of ${pagination.total} tasks
+                </div>
                 </div>
                 ` : ''}
                 </div>
@@ -3833,13 +3845,14 @@ function initializeCharts(user) {
         }
 
         const taskData = generateTaskChartData(user);
+        const hasRealData = taskData.labels[0] !== 'No Data';
 
         charts.task = new Chart(taskCtx, {
             type: 'line',
             data: {
                 labels: taskData.labels,
                 datasets: [{
-                    label: 'Daily Views',
+                    label: 'Views',
                     data: taskData.views,
                     borderColor: '#6366f1',
                     backgroundColor: 'rgba(99, 102, 241, 0.1)',
@@ -3849,7 +3862,7 @@ function initializeCharts(user) {
                     pointBackgroundColor: '#6366f1',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
-                    pointRadius: 4
+                    pointRadius: hasRealData ? 4 : 0
                 }, {
                     label: 'Active Tasks',
                     data: taskData.tasks,
@@ -3861,7 +3874,7 @@ function initializeCharts(user) {
                     pointBackgroundColor: '#10b981',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
-                    pointRadius: 4
+                    pointRadius: hasRealData ? 4 : 0
                 }]
             },
             options: {
@@ -3876,6 +3889,14 @@ function initializeCharts(user) {
                             usePointStyle: true,
                             padding: 20
                         }
+                    },
+                    tooltip: {
+                        enabled: hasRealData,
+                        backgroundColor: isDark ? 'rgba(30, 30, 30, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                        titleColor: textColor,
+                        bodyColor: textColor,
+                        borderColor: textColor,
+                        borderWidth: 1
                     }
                 },
                 scales: {
@@ -3886,7 +3907,8 @@ function initializeCharts(user) {
                         },
                         ticks: {
                             color: textColor,
-                            font: { size: 12 }
+                            font: { size: 12 },
+                            maxRotation: 45
                         }
                     },
                     y: {
@@ -3903,11 +3925,35 @@ function initializeCharts(user) {
                 },
                 elements: {
                     point: {
-                        hoverRadius: 6
+                        hoverRadius: hasRealData ? 6 : 0
                     }
                 }
             }
         });
+
+        // Add "No data available" message if needed
+        if (!hasRealData) {
+            const chartContainer = taskCtx.parentElement;
+            const noDataMsg = document.createElement('div');
+            noDataMsg.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: var(--text-secondary);
+                font-size: 0.875rem;
+                text-align: center;
+                pointer-events: none;
+                z-index: 10;
+            `;
+            noDataMsg.innerHTML = `
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                <div>No analytics data available yet</div>
+                <div style="font-size: 0.75rem; margin-top: 0.25rem;">Data will appear when tasks receive views</div>
+            `;
+            chartContainer.style.position = 'relative';
+            chartContainer.appendChild(noDataMsg);
+        }
     }
 }
 
@@ -3915,53 +3961,53 @@ function generateTaskChartData(user) {
     const analytics = user.analytics || {};
     const monthlyStats = analytics.monthly_stats || {};
 
-    // Get last 7 days of data from analytics
-    const last7Days = [];
-    const views = [];
-    const taskCounts = [];
+    // Collect all date-view pairs from the analytics
+    const dateViews = [];
 
-    // Generate dates for last 7 days
-    const today = new Date();
-    const dateViews = {};
-
-    // Extract daily views from monthly stats
-    Object.entries(monthlyStats).forEach(([month, stats]) => {
+    // Parse analytics data: "2025-02": {"daily": {"04": 1, "09": 3}}
+    Object.entries(monthlyStats).forEach(([monthKey, stats]) => {
         if (stats.daily) {
-            Object.entries(stats.daily).forEach(([day, dayViews]) => {
-                const [year, monthNum] = month.split('-');
-                const fullDate = `${year}-${monthNum.padStart(2, '0')}-${day.padStart(2, '0')}`;
-                dateViews[fullDate] = dayViews;
+            Object.entries(stats.daily).forEach(([day, views]) => {
+                // Convert "2025-02" and "04" to "2025-02-04"
+                const fullDate = `${monthKey}-${day.padStart(2, '0')}`;
+                const dateObj = new Date(fullDate);
+
+                if (!isNaN(dateObj.getTime())) {
+                    dateViews.push({
+                        date: dateObj,
+                        dateString: fullDate,
+                        views: views || 0
+                    });
+                }
             });
         }
     });
 
-    // Build chart data for last 7 days
-    for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
+    // Sort by date
+    dateViews.sort((a, b) => a.date - b.date);
 
-        const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
-        const dayLabel = date.toLocaleDateString('en-US', { weekday: 'short' });
+    // If we have analytics data, use the actual dates and views
+    if (dateViews.length > 0) {
+        // Take last 10 data points or all if less than 10
+        const recentData = dateViews.slice(-10);
 
-        last7Days.push(dayLabel);
-        views.push(dateViews[dateStr] || 0);
-        taskCounts.push(user.usage_summary?.active_tasks || 0);
+        const labels = recentData.map(item =>
+            item.date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            })
+        );
+        const views = recentData.map(item => item.views);
+        const tasks = new Array(recentData.length).fill(user.usage_summary?.active_tasks || 0);
+
+        return { labels, views, tasks };
     }
 
-    // If no recent data, show summary data distributed
-    if (views.every(v => v === 0) && user.usage_summary?.total_views > 0) {
-        const avgViews = Math.floor(user.usage_summary.total_views / 7);
-        const remainder = user.usage_summary.total_views % 7;
-
-        for (let i = 0; i < 7; i++) {
-            views[i] = avgViews + (i < remainder ? 1 : 0);
-        }
-    }
-
+    // Fallback: if no analytics data, show empty chart with message
     return {
-        labels: last7Days,
-        views,
-        tasks: taskCounts
+        labels: ['No Data'],
+        views: [0],
+        tasks: [user.usage_summary?.active_tasks || 0]
     };
 }
 

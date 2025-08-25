@@ -3867,24 +3867,24 @@ function initializeCountryMap(user) {
   if (!container) return;
   if (!container.style.height) container.style.height = '420px';
 
-  // dispose old instance
+  // Dispose previous map
   if (container.__am5root && !container.__am5root.isDisposed()) {
     try { container.__am5root.dispose(); } catch (_) {}
     container.__am5root = null;
   }
 
-  // --- theme colors with safe fallbacks
+  // --- Theme vars with fallbacks
   const cs = getComputedStyle(document.documentElement);
-  const col = (v, fb) => (cs.getPropertyValue(v) || fb).trim();
-  const cPrimary      = col('--primary', '#6366f1');
-  const cPrimaryLight = col('--primary-light', '#a5b4fc');
-  const cBg           = col('--bg-secondary', '#0f172a');
-  const cCard         = col('--card', '#111827');
-  const cBorder       = col('--border', 'rgba(148,163,184,0.25)');
-  const cText         = col('--text', '#e5e7eb');
-  const cTextMut      = col('--text-secondary', '#9ca3af');
+  const getVar = (v, fb) => (cs.getPropertyValue(v) || fb).trim();
+  const cPrimary      = getVar('--primary', '#6366f1');
+  const cPrimaryLight = getVar('--primary-light', '#a5b4fc');
+  const cBg           = getVar('--bg-secondary', '#0f172a');
+  const cCard         = getVar('--card', '#111827');
+  const cBorder       = getVar('--border', 'rgba(148,163,184,0.25)');
+  const cText         = getVar('--text', '#e5e7eb');
+  const cTextMut      = getVar('--text-secondary', '#9ca3af');
 
-  // --- aggregate analytics -> {id, name, value}
+  // --- Aggregate analytics -> { id, name, value }
   const src = user?.data?.data?.user ?? user?.data?.user ?? user?.user ?? user;
   const counts = {};
   const monthly = src?.analytics?.monthly_stats || {};
@@ -3902,7 +3902,6 @@ function initializeCountryMap(user) {
     });
   }
 
-  // empty state
   if (Object.keys(counts).length === 0) {
     container.innerHTML = `
       <div style="height:100%;display:flex;align-items:center;justify-content:center;
@@ -3929,7 +3928,7 @@ function initializeCountryMap(user) {
   const totalViews = data.reduce((s, d) => s + d.value, 0);
   const maxViews = Math.max(...data.map(d => d.value), 1);
 
-  // header shell
+  // Shell header
   container.innerHTML = `
     <div style="height:100%;background:${cCard};border:1px solid ${cBorder};
       border-radius:12px;display:flex;flex-direction:column;overflow:hidden;">
@@ -3946,10 +3945,10 @@ function initializeCountryMap(user) {
     </div>
   `;
 
-  // --- ensure am5 and geodata exist (Rocket Loader can defer execution)
-  const ensureLibs = () => typeof window.am5 !== 'undefined' &&
-                           typeof window.am5map !== 'undefined' &&
-                           typeof window.am5geodata_worldLow !== 'undefined';
+  // --- Wait for libs (Rocket Loader friendly)
+  const ready = () => typeof window.am5 !== 'undefined'
+                 && typeof window.am5map !== 'undefined'
+                 && typeof window.am5geodata_worldLow !== 'undefined';
 
   const boot = () => {
     const root = am5.Root.new("countryMapCanvas");
@@ -3957,12 +3956,8 @@ function initializeCountryMap(user) {
 
     root.setThemes([ am5themes_Animated.new(root) ]);
 
-    // Chart
-    const chart = root.container.children.push(
-      am5map.MapChart.new(root, {})
-    );
+    const chart = root.container.children.push(am5map.MapChart.new(root, {}));
 
-    // Polygons with heat coloring
     const polygonSeries = chart.series.push(
       am5map.MapPolygonSeries.new(root, {
         geoJSON: am5geodata_worldLow,
@@ -3972,43 +3967,42 @@ function initializeCountryMap(user) {
       })
     );
 
-    // tooltip + base styles
     const polyTpl = polygonSeries.mapPolygons.template;
     polyTpl.setAll({
       tooltipText: "{name}: [bold]{value}[/]",
       strokeOpacity: 0.6,
-      stroke: am5.color.fromString(cBorder),
+      stroke: am5.color(hexToNumber(cBorder)),
       fillOpacity: 1
     });
 
-    // heat rules (no custom math; safe CSS parsing)
+    // Heat gradient using safe color conversion
     polygonSeries.set("heatRules", [{
       target: polyTpl,
       dataField: "value",
-      min: am5.color.fromString(cPrimaryLight),
-      max: am5.color.fromString(cPrimary),
+      min: am5.color(hexToNumber(cPrimaryLight)),
+      max: am5.color(hexToNumber(cPrimary)),
       key: "fill"
     }]);
 
     polygonSeries.data.setAll(data);
 
-    // nice zoom
     chart.set("wheelY", "zoom");
     chart.set("wheelX", "zoom");
 
-    // resize
     const ro = new ResizeObserver(() => root.resize());
     ro.observe(container);
     root.__ro = ro;
+
+    // Optional: center/zoom a bit
+    // chart.zoomToGeoPoint({ longitude: 10, latitude: 20 }, 1.1, true);
   };
 
-  // If libs are already there, just boot
-  if (ensureLibs()) {
+  if (ready()) {
     boot();
     return;
   }
 
-  // Otherwise inject scripts (disable CF async)
+  // Inject scripts with data-cfasync="false" to reduce Rocket Loader issues
   const add = (id, src) => new Promise((res, rej) => {
     if (document.getElementById(id)) return res();
     const s = document.createElement('script');
@@ -4023,13 +4017,12 @@ function initializeCountryMap(user) {
     .then(() => add('am5-worldlow', 'https://cdn.amcharts.com/lib/5/geodata/worldLow.js'))
     .then(() => add('am5-animated', 'https://cdn.amcharts.com/lib/5/themes/Animated.js'))
     .then(() => {
-      // Wait a tick in case Rocket Loader defers execution
       let tries = 0;
-      const timer = setInterval(() => {
-        if (ensureLibs() || tries++ > 20) {
-          clearInterval(timer);
-          if (ensureLibs()) boot();
-          else console.error('amCharts libs not ready (Rocket Loader interference?)');
+      const t = setInterval(() => {
+        if (ready() || tries++ > 40) {
+          clearInterval(t);
+          if (ready()) boot();
+          else console.error('amCharts libs not ready (possible Rocket Loader interference).');
         }
       }, 100);
     })
@@ -4043,6 +4036,26 @@ function initializeCountryMap(user) {
           <p style="color:${cTextMut};font-size:.9rem">Please check your network and try again.</p>
         </div>`;
     });
+
+  // --- Utilities ---
+  function hexToNumber(input) {
+    const s = String(input || '').trim();
+    if (!s) return 0x000000;
+
+    // rgb/rgba
+    const m = s.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+    if (m) {
+      const r = (+m[1] & 255), g = (+m[2] & 255), b = (+m[3] & 255);
+      return (r << 16) + (g << 8) + b;
+    }
+
+    // hex #rgb or #rrggbb
+    let h = s.replace('#', '');
+    if (h.length === 3) h = h.split('').map(x => x + x).join('');
+    if (h.length !== 6 || /[^0-9a-f]/i.test(h)) return 0x000000;
+
+    return parseInt(h, 16);
+  }
 }
 
 

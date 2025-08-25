@@ -3861,237 +3861,214 @@ function generateTaskChartData(user) {
     return { labels: last7Days, views, tasks: taskCounts };
 }
 
-// Simple World Map with Country Views using svgMap
+// Simple World Map with Country Views using svgMap (FULL REPLACEMENT)
 function initializeCountryMap(user) {
-    const mapContainer = document.getElementById('countryMap');
-    if (!mapContainer) return;
+  const mapContainer = document.getElementById('countryMap');
+  if (!mapContainer) return;
 
-    // Clean up any existing map
-    if (globalMap && typeof globalMap.destroy === 'function') {
-        globalMap.destroy();
-        globalMap = null;
-    }
+  // Clean up any existing map
+  if (window.globalMap && typeof window.globalMap.destroy === 'function') {
+    window.globalMap.destroy();
+    window.globalMap = null;
+  }
 
-    // Include the required CSS and JS files (add to head if not already included)
-    if (!document.getElementById('svgMapCSS')) {
-        const css = document.createElement('link');
-        css.id = 'svgMapCSS';
-        css.rel = 'stylesheet';
-        css.href = 'https://cdn.jsdelivr.net/gh/StephanWagner/svgMap@v2.10.1/dist/svgMap.min.css';
-        document.head.appendChild(css);
-    }
+  // Include the required CSS and JS files (add to head if not already included)
+  if (!document.getElementById('svgMapCSS')) {
+    const css = document.createElement('link');
+    css.id = 'svgMapCSS';
+    css.rel = 'stylesheet';
+    css.href = 'https://cdn.jsdelivr.net/gh/StephanWagner/svgMap@v2.10.1/dist/svgMap.min.css';
+    document.head.appendChild(css);
+  }
 
-    if (!window.svgMap && !document.getElementById('svgMapJS')) {
-        const script = document.createElement('script');
-        script.id = 'svgMapJS';
-        script.src = 'https://cdn.jsdelivr.net/gh/StephanWagner/svgMap@v2.10.1/dist/svgMap.min.js';
-        script.onload = () => initializeMap();
-        document.head.appendChild(script);
-        return;
-    }
+  const proceed = () => initializeMap();
 
-    initializeMap();
-
-    function initializeMap() {
-        const isDark = document.body.getAttribute('data-theme') === 'dark';
-
-        // Extract country data from analytics
-        const countryViews = {};
-        if (user.analytics && user.analytics.monthly_stats) {
-            Object.entries(user.analytics.monthly_stats).forEach(([month, stats]) => {
-                if (stats.country) {
-                    Object.entries(stats.country).forEach(([country, views]) => {
-                        countryViews[country] = (countryViews[country] || 0) + views;
-                    });
-                }
-            });
+  if (!window.svgMap) {
+    // If script is not present, add it; otherwise wait for it
+    const existing = document.getElementById('svgMapJS');
+    if (!existing) {
+      const script = document.createElement('script');
+      script.id = 'svgMapJS';
+      script.src = 'https://cdn.jsdelivr.net/gh/StephanWagner/svgMap@v2.10.1/dist/svgMap.min.js';
+      script.onload = proceed;
+      document.head.appendChild(script);
+      return;
+    } else {
+      // Poll until svgMap is available
+      const iv = setInterval(() => {
+        if (window.svgMap) {
+          clearInterval(iv);
+          proceed();
         }
-
-        // If no data, add sample data
-        if (Object.keys(countryViews).length === 0) {
-            countryViews['GB'] = 4;
-            countryViews['US'] = 2;
-            countryViews['DE'] = 1;
-        }
-
-        // Clear the container and create the map element
-        mapContainer.innerHTML = '<div id="svgMapContainer"></div>';
-
-        // Calculate totals for better color scaling
-        const totalViews = Object.values(countryViews).reduce((sum, views) => sum + views, 0);
-        const maxViews = Math.max(...Object.values(countryViews));
-
-        // Convert country data to svgMap format
-        const mapData = {};
-        Object.entries(countryViews).forEach(([countryCode, views]) => {
-            mapData[countryCode] = {
-                views: views,
-                percentage: totalViews > 0 ? ((views / totalViews) * 100).toFixed(1) : '0'
-            };
-        });
-
-        // Configure svgMap
-        const mapConfig = {
-            targetElementID: 'svgMapContainer',
-            data: {
-                data: {
-                    views: {
-                        name: 'Views',
-                        format: '{0} views',
-                        thousandSeparator: ',',
-                        thresholdMax: maxViews,
-                        thresholdMin: 1
-                    }
-                },
-                applyData: 'views',
-                values: mapData
-            },
-
-            // Styling options
-            colorMax: isDark ? '#8b5cf6' : '#6366f1',
-            colorMin: isDark ? '#374151' : '#e2e8f0',
-            colorNoData: isDark ? '#1f1f1f' : '#f8fafc',
-
-            // Tooltip and interaction
-            mouseEnterOnCountry: function(el, val, data) {
-                if (data && data.views) {
-                    // Enhanced tooltip styling
-                    const tooltip = document.querySelector('.svgMap-tooltip');
-                    if (tooltip) {
-                        tooltip.style.backgroundColor = isDark ? 'rgba(31, 31, 31, 0.95)' : 'rgba(255, 255, 255, 0.95)';
-                        tooltip.style.color = isDark ? '#ffffff' : '#1e293b';
-                        tooltip.style.border = `1px solid ${isDark ? '#374151' : '#e2e8f0'}`;
-                        tooltip.style.borderRadius = '8px';
-                        tooltip.style.boxShadow = isDark ? '0 10px 25px rgba(0,0,0,0.4)' : '0 10px 25px rgba(0,0,0,0.15)';
-                        tooltip.style.backdropFilter = 'blur(8px)';
-                        tooltip.style.padding = '12px';
-                        tooltip.style.fontSize = '14px';
-                        tooltip.style.fontFamily = 'Inter, sans-serif';
-                    }
-                }
-            },
-
-            // Custom tooltip content
-            tooltipContent: function(countryName, val, data) {
-                if (!data || !data.views) {
-                    return `<div style="font-weight: 600;">${countryName}</div><div style="color: ${isDark ? '#9ca3af' : '#64748b'}; font-size: 0.875rem;">No data</div>`;
-                }
-
-                return `
-                    <div style="font-weight: 600; margin-bottom: 6px; color: ${isDark ? '#ffffff' : '#1e293b'};">
-                        ${countryName}
-                    </div>
-                    <div style="color: ${isDark ? '#8b5cf6' : '#6366f1'}; font-weight: 700; font-size: 1.1rem; margin-bottom: 4px;">
-                        ${data.views.toLocaleString()} view${data.views !== 1 ? 's' : ''}
-                    </div>
-                    <div style="color: ${isDark ? '#9ca3af' : '#64748b'}; font-size: 0.875rem;">
-                        ${data.percentage}% of total traffic
-                    </div>
-                `;
-            },
-
-            // Hide default legend (we'll create custom one)
-            showZoomReset: false,
-
-            // Additional styling
-            countryStrokeWidth: 0.5,
-            countryStrokeColor: isDark ? '#374151' : '#d1d5db'
-        };
-
-        // Initialize the map
-        try {
-            globalMap = new svgMap(mapConfig);
-
-            // Add custom header and stats
-            setTimeout(() => {
-                const svgContainer = document.getElementById('svgMapContainer');
-                if (svgContainer) {
-                    // Add header
-                    const header = document.createElement('div');
-                    header.style.cssText = `
-                        position: absolute;
-                        top: 10px;
-                        left: 15px;
-                        right: 15px;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        background: ${isDark ? 'rgba(31, 31, 31, 0.9)' : 'rgba(255, 255, 255, 0.9)'};
-                        padding: 8px 12px;
-                        border-radius: 8px;
-                        border: 1px solid ${isDark ? '#374151' : '#e2e8f0'};
-                        backdrop-filter: blur(8px);
-                        z-index: 1000;
-                        font-family: Inter, sans-serif;
-                    `;
-
-                    header.innerHTML = `
-                        <div style="color: ${isDark ? '#ffffff' : '#1e293b'}; font-weight: 600; font-size: 0.875rem;">
-                            🌍 Views by Country
-                        </div>
-                        <div style="background: ${isDark ? '#8b5cf6' : '#6366f1'}; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
-                            ${totalViews} total views
-                        </div>
-                    `;
-
-                    svgContainer.style.position = 'relative';
-                    svgContainer.appendChild(header);
-
-                    // Add custom legend
-                    const legend = document.createElement('div');
-                    legend.style.cssText = `
-                        position: absolute;
-                        bottom: 15px;
-                        left: 15px;
-                        background: ${isDark ? 'rgba(31, 31, 31, 0.9)' : 'rgba(255, 255, 255, 0.9)'};
-                        padding: 12px;
-                        border-radius: 8px;
-                        border: 1px solid ${isDark ? '#374151' : '#e2e8f0'};
-                        backdrop-filter: blur(8px);
-                        font-family: Inter, sans-serif;
-                        z-index: 1000;
-                    `;
-
-                    legend.innerHTML = `
-                        <div style="color: ${isDark ? '#ffffff' : '#1e293b'}; font-weight: 600; font-size: 0.8rem; margin-bottom: 8px;">
-                            Views Intensity
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                            <div style="width: 60px; height: 8px; background: linear-gradient(90deg, ${isDark ? '#374151' : '#e2e8f0'} 0%, ${isDark ? '#8b5cf6' : '#6366f1'} 100%); border-radius: 4px;"></div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; color: ${isDark ? '#9ca3af' : '#64748b'}; font-size: 0.75rem;">
-                            <span>Low</span>
-                            <span>High</span>
-                        </div>
-                        <div style="color: ${isDark ? '#9ca3af' : '#64748b'}; font-size: 0.75rem; margin-top: 4px;">
-                            Max: ${maxViews} views
-                        </div>
-                    `;
-
-                    svgContainer.appendChild(legend);
-                }
-            }, 100);
-
-        } catch (error) {
-            console.error('Error initializing svgMap:', error);
-            // Fallback to simple text display
-            mapContainer.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary);">
-                    <div style="font-size: 2rem; margin-bottom: 1rem;">🌍</div>
-                    <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">Views by Country</div>
-                    ${Object.entries(countryViews).map(([country, views]) => `
-                        <div style="margin: 0.25rem 0; padding: 0.5rem 1rem; background: var(--card); border-radius: var(--radius-sm); display: flex; justify-content: space-between; min-width: 200px;">
-                            <span>${country}</span>
-                            <span style="font-weight: 600; color: var(--primary);">${views} views</span>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        console.log('svgMap initialized with:', Object.keys(countryViews).length, 'countries, Total views:', totalViews);
+      }, 50);
+      return;
     }
+  }
+
+  proceed();
+
+  function initializeMap() {
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+
+    // Aggregate views from user.analytics.monthly_stats
+    const countryViews = {};
+    if (user && user.analytics && user.analytics.monthly_stats) {
+      for (const [_, stats] of Object.entries(user.analytics.monthly_stats)) {
+        if (!stats || !stats.country) continue;
+        for (const [cc, v] of Object.entries(stats.country)) {
+          const n = Number(v) || 0;
+          if (!n) continue;
+          countryViews[cc] = (countryViews[cc] || 0) + n;
+        }
+      }
+    }
+
+    // If no data, add sample data
+    if (Object.keys(countryViews).length === 0) {
+      countryViews.GB = 4;
+      countryViews.US = 2;
+      countryViews.DE = 1;
+    }
+
+    // Prepare container
+    mapContainer.innerHTML = '<div id="svgMapContainer"></div>';
+    const svgTargetId = 'svgMapContainer';
+
+    // Totals and thresholds
+    const counts = Object.values(countryViews);
+    const totalViews = counts.reduce((a, b) => a + b, 0);
+    const maxViews = counts.length ? Math.max(...counts) : 1;
+
+    // Convert to svgMap values
+    const values = {};
+    for (const [cc, views] of Object.entries(countryViews)) {
+      values[cc] = {
+        views,
+        percentage: totalViews ? ((views / totalViews) * 100).toFixed(1) : '0'
+      };
+    }
+
+    // Configure svgMap (same color combo & theme)
+    const mapConfig = {
+      targetElementID: svgTargetId,
+      data: {
+        data: {
+          views: {
+            name: 'Views',
+            format: '{0} views',
+            thousandSeparator: ',',
+            thresholdMax: maxViews || 1,
+            thresholdMin: 1
+          }
+        },
+        applyData: 'views',
+        values
+      },
+      colorMax: isDark ? '#8b5cf6' : '#6366f1',
+      colorMin: isDark ? '#374151' : '#e2e8f0',
+      colorNoData: isDark ? '#1f1f1f' : '#f8fafc',
+      countryStrokeWidth: 0.5,
+      countryStrokeColor: isDark ? '#374151' : '#d1d5db',
+      showZoomReset: false,
+
+      // Style tooltip on hover
+      mouseEnterOnCountry: function () {
+        const tip = document.querySelector('.svgMap-tooltip');
+        if (!tip) return;
+        tip.style.backgroundColor = isDark ? 'rgba(31,31,31,0.95)' : 'rgba(255,255,255,0.95)';
+        tip.style.color = isDark ? '#ffffff' : '#1e293b';
+        tip.style.border = `1px solid ${isDark ? '#374151' : '#e2e8f0'}`;
+        tip.style.borderRadius = '8px';
+        tip.style.boxShadow = isDark ? '0 10px 25px rgba(0,0,0,0.4)' : '0 10px 25px rgba(0,0,0,0.15)';
+        tip.style.backdropFilter = 'blur(8px)';
+        tip.style.padding = '10px 12px';
+        tip.style.fontSize = '14px';
+        tip.style.fontFamily = 'Inter, system-ui, sans-serif';
+      },
+
+      // Tooltip content: show number of views (and % of total)
+      tooltipContent: function (countryName, val, data) {
+        if (!data || !data.views) {
+          return `
+            <div style="font-weight:600">${countryName}</div>
+            <div style="color:${isDark ? '#9ca3af' : '#64748b'};font-size:.875rem">No data</div>
+          `;
+        }
+        return `
+          <div style="font-weight:600;margin-bottom:4px;color:${isDark ? '#ffffff' : '#1e293b'}">${countryName}</div>
+          <div style="font-weight:700;font-size:1.05rem;margin-bottom:2px;color:${isDark ? '#8b5cf6' : '#6366f1'}">
+            ${Number(data.views).toLocaleString()} view${data.views === 1 ? '' : 's'}
+          </div>
+          <div style="color:${isDark ? '#9ca3af' : '#64748b'};font-size:.8rem">${data.percentage}% of total</div>
+        `;
+      }
+    };
+
+    // Initialize the map
+    try {
+      window.globalMap = new svgMap(mapConfig);
+
+      // Header + legend (non-intrusive, same theme)
+      setTimeout(() => {
+        const svgContainer = document.getElementById(svgTargetId);
+        if (!svgContainer) return;
+
+        svgContainer.style.position = 'relative';
+
+        const header = document.createElement('div');
+        header.style.cssText = `
+          position:absolute;top:10px;left:15px;right:15px;display:flex;justify-content:space-between;align-items:center;
+          background:${isDark ? 'rgba(31,31,31,0.9)' : 'rgba(255,255,255,0.9)'};padding:8px 12px;border-radius:8px;
+          border:1px solid ${isDark ? '#374151' : '#e2e8f0'};backdrop-filter:blur(8px);z-index:1000;font-family:Inter,system-ui,sans-serif;
+        `;
+        header.innerHTML = `
+          <div style="color:${isDark ? '#ffffff' : '#1e293b'};font-weight:600;font-size:.875rem">🌍 Views by Country</div>
+          <div style="background:${isDark ? '#8b5cf6' : '#6366f1'};color:#fff;padding:4px 8px;border-radius:6px;font-size:.75rem;font-weight:600">
+            ${totalViews.toLocaleString()} total views
+          </div>
+        `;
+        svgContainer.appendChild(header);
+
+        const legend = document.createElement('div');
+        legend.style.cssText = `
+          position:absolute;bottom:15px;left:15px;background:${isDark ? 'rgba(31,31,31,0.9)' : 'rgba(255,255,255,0.9)'};
+          padding:12px;border-radius:8px;border:1px solid ${isDark ? '#374151' : '#e2e8f0'};
+          backdrop-filter:blur(8px);font-family:Inter,system-ui,sans-serif;z-index:1000;
+        `;
+        legend.innerHTML = `
+          <div style="color:${isDark ? '#ffffff' : '#1e293b'};font-weight:600;font-size:.8rem;margin-bottom:8px">Views Intensity</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <div style="width:60px;height:8px;border-radius:4px;background:linear-gradient(90deg, ${isDark ? '#374151' : '#e2e8f0'} 0%, ${isDark ? '#8b5cf6' : '#6366f1'} 100%)"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;color:${isDark ? '#9ca3af' : '#64748b'};font-size:.75rem">
+            <span>Low</span><span>High</span>
+          </div>
+          <div style="color:${isDark ? '#9ca3af' : '#64748b'};font-size:.75rem;margin-top:4px">Max: ${maxViews.toLocaleString()} views</div>
+        `;
+        svgContainer.appendChild(legend);
+      }, 80);
+    } catch (error) {
+      console.error('Error initializing svgMap:', error);
+      // Fallback list
+      mapContainer.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:260px;color:var(--text-secondary)">
+          <div style="font-size:2rem;margin-bottom:.75rem">🌍</div>
+          <div style="font-size:1.05rem;font-weight:600;margin-bottom:.5rem">Views by Country</div>
+          ${Object.entries(countryViews).map(([cc, v]) => `
+            <div style="margin:.25rem 0;padding:.5rem 1rem;background:var(--card);border-radius:8px;display:flex;justify-content:space-between;min-width:220px">
+              <span>${cc}</span>
+              <span style="font-weight:600;color:var(--primary)">${v.toLocaleString()} views</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // Debug
+    // console.log('svgMap initialized with:', Object.keys(countryViews).length, 'countries, Total views:', totalViews);
+  }
 }
+
 
 function updateCharts() {
     if (currentData.user) {

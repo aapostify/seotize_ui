@@ -3861,19 +3861,24 @@ function generateTaskChartData(user) {
     return { labels: last7Days, views, tasks: taskCounts };
 }
 
-// amCharts v5 World Map — only the map, green→indigo theme
+// amCharts v5 World Map — hover shows views by country
+// Colors: min #10b981 (emerald) -> max #6366f1 (indigo)
 function initializeCountryMap(user) {
   const container = document.getElementById('countryMap');
   if (!container) return;
   if (!container.style.height) container.style.height = '420px';
 
-  // dispose previous map if exists
+  // Dispose previous map
   if (container.__am5root && !container.__am5root.isDisposed()) {
     try { container.__am5root.dispose(); } catch (_) {}
     container.__am5root = null;
   }
 
-  // --- aggregate analytics data
+  // Fixed gradient colors as requested
+  const COLOR_MIN = '#10b981';
+  const COLOR_MAX = '#6366f1';
+
+  // Aggregate analytics -> { id, name, value }
   const src = user?.data?.data?.user ?? user?.data?.user ?? user?.user ?? user;
   const counts = {};
   const monthly = src?.analytics?.monthly_stats || {};
@@ -3891,26 +3896,34 @@ function initializeCountryMap(user) {
     });
   }
 
-  if (Object.keys(counts).length === 0) {
-    container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;
-      height:100%;color:#9ca3af;text-align:center;">
-      🌍 No Country Data Yet</div>`;
-    return;
-  }
+  const NAME = {
+    US:'United States', GB:'United Kingdom', CN:'China', IN:'India', AU:'Australia', CA:'Canada',
+    BR:'Brazil', ZA:'South Africa', DE:'Germany', FR:'France', IT:'Italy', ES:'Spain', NL:'Netherlands',
+    SE:'Sweden', NO:'Norway', DK:'Denmark', FI:'Finland', PL:'Poland', CZ:'Czech Republic', AT:'Austria',
+    MX:'Mexico', AR:'Argentina', EG:'Egypt', NG:'Nigeria', KE:'Kenya', JP:'Japan', KR:'South Korea',
+    ID:'Indonesia', MY:'Malaysia', SG:'Singapore', PH:'Philippines', VN:'Vietnam', RU:'Russia'
+  };
 
   const data = Object.entries(counts).map(([id, value]) => ({
-    id, name: id, value: Number(value) || 0
+    id, name: NAME[id] || id, value: Number(value) || 0
   }));
 
-  // ready check
+  // Only the map canvas
+  container.innerHTML = `<div id="countryMapCanvas" style="width:100%;height:100%;"></div>`;
+
+  // Wait for libs (Rocket Loader friendly)
   const ready = () => typeof window.am5 !== 'undefined'
                  && typeof window.am5map !== 'undefined'
                  && typeof window.am5geodata_worldLow !== 'undefined';
 
   const boot = () => {
-    const root = am5.Root.new("countryMap");
+    const root = am5.Root.new("countryMapCanvas");
     container.__am5root = root;
-    root.setThemes([ am5themes_Animated.new(root) ]);
+
+    // Optional animated theme
+    if (typeof am5themes_Animated !== 'undefined') {
+      root.setThemes([ am5themes_Animated.new(root) ]);
+    }
 
     const chart = root.container.children.push(am5map.MapChart.new(root, {}));
 
@@ -3923,38 +3936,40 @@ function initializeCountryMap(user) {
       })
     );
 
+    // Tooltip and base styles
     const polyTpl = polygonSeries.mapPolygons.template;
     polyTpl.setAll({
       tooltipText: "{name}: [bold]{value}[/]",
       strokeOpacity: 0.5,
-      stroke: am5.color(0xffffff),
+      stroke: am5.color(0x2d3748), // subtle border
       fillOpacity: 1
     });
 
-    // heat gradient: emerald → indigo
+    // Heat gradient using requested colors
     polygonSeries.set("heatRules", [{
       target: polyTpl,
       dataField: "value",
-      min: am5.color(0x10b981), // emerald
-      max: am5.color(0x6366f1), // indigo
+      min: am5.color(hexToNumber(COLOR_MIN)),
+      max: am5.color(hexToNumber(COLOR_MAX)),
       key: "fill"
     }]);
 
-    polygonSeries.data.setAll(data);
+    // Apply values
+    if (data.length > 0) {
+      polygonSeries.data.setAll(data);
+    }
 
+    // Nice zoom
     chart.set("wheelY", "zoom");
     chart.set("wheelX", "zoom");
 
+    // Responsive
     const ro = new ResizeObserver(() => root.resize());
     ro.observe(container);
     root.__ro = ro;
   };
 
-  if (ready()) {
-    boot();
-    return;
-  }
-
+  // Inject scripts with data-cfasync="false" to reduce Rocket Loader issues
   const add = (id, src) => new Promise((res, rej) => {
     if (document.getElementById(id)) return res();
     const s = document.createElement('script');
@@ -3963,20 +3978,45 @@ function initializeCountryMap(user) {
     document.head.appendChild(s);
   });
 
-  Promise.resolve()
-    .then(() => add('am5-core', 'https://cdn.amcharts.com/lib/5/index.js'))
-    .then(() => add('am5-map', 'https://cdn.amcharts.com/lib/5/map.js'))
-    .then(() => add('am5-worldlow', 'https://cdn.amcharts.com/lib/5/geodata/worldLow.js'))
-    .then(() => add('am5-animated', 'https://cdn.amcharts.com/lib/5/themes/Animated.js'))
-    .then(() => {
-      let tries = 0;
-      const t = setInterval(() => {
-        if (ready() || tries++ > 40) {
-          clearInterval(t);
-          if (ready()) boot();
-        }
-      }, 100);
-    });
+  if (ready()) {
+    boot();
+  } else {
+    Promise.resolve()
+      .then(() => add('am5-core', 'https://cdn.amcharts.com/lib/5/index.js'))
+      .then(() => add('am5-map', 'https://cdn.amcharts.com/lib/5/map.js'))
+      .then(() => add('am5-worldlow', 'https://cdn.amcharts.com/lib/5/geodata/worldLow.js'))
+      .then(() => add('am5-animated', 'https://cdn.amcharts.com/lib/5/themes/Animated.js'))
+      .then(() => {
+        let tries = 0;
+        const t = setInterval(() => {
+          if (ready() || tries++ > 40) {
+            clearInterval(t);
+            if (ready()) boot();
+            else console.error('amCharts libs not ready (possible Rocket Loader interference).');
+          }
+        }, 100);
+      })
+      .catch(err => {
+        console.error('Map libs failed to load:', err);
+        // Silent fail to keep page clean
+      });
+  }
+
+  // Utilities
+  function hexToNumber(input) {
+    const s = String(input || '').trim();
+    if (!s) return 0x000000;
+
+    const m = s.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+    if (m) {
+      const r = (+m[1] & 255), g = (+m[2] & 255), b = (+m[3] & 255);
+      return (r << 16) + (g << 8) + b;
+    }
+    let h = s.replace('#', '');
+    if (h.length === 3) h = h.split('').map(x => x + x).join('');
+    if (h.length !== 6 || /[^0-9a-f]/i.test(h)) return 0x000000;
+    return parseInt(h, 16);
+  }
 }
 
 

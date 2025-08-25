@@ -3861,74 +3861,61 @@ function generateTaskChartData(user) {
     return { labels: last7Days, views, tasks: taskCounts };
 }
 
-// World Map Analytics (theme-aware, hover shows views) — uses GeoJSON + registerMap
+// World Map Analytics (amCharts v5) — theme-aware, hover shows views
 function initializeCountryMap(user) {
   const container = document.getElementById('countryMap');
   if (!container) return;
 
-  // Clean any previous instance
-  if (window.globalMap && typeof window.globalMap.dispose === 'function') {
-    try { window.globalMap.dispose(); } catch (_) {}
-    window.globalMap = null;
+  // Ensure some height if none set
+  if (!container.style.height) container.style.height = '420px';
+
+  // ---- Clean any previous amCharts root on this container ----
+  if (container.__am5root && !container.__am5root.isDisposed()) {
+    try { container.__am5root.dispose(); } catch (_) {}
+    container.__am5root = null;
+  }
+  if (window.globalMapRoot && !window.globalMapRoot.isDisposed?.()) {
+    try { window.globalMapRoot.dispose(); } catch (_) {}
+    window.globalMapRoot = null;
   }
 
-  // ---------- Helpers ----------
-  function loadScript(id, src) {
-    return new Promise((resolve, reject) => {
-      if (document.getElementById(id)) return resolve();
-      const s = document.createElement('script');
-      s.id = id; s.src = src; s.async = true;
-      s.onload = resolve; s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
-
-  async function fetchWithFallback(urls) {
-    let lastErr;
-    for (const url of urls) {
-      try {
-        const res = await fetch(url, { cache: 'force-cache' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return await res.json();
-      } catch (e) { lastErr = e; }
-    }
-    throw lastErr || new Error('Failed to load GeoJSON');
-  }
-
+  // ---- Theme colors from your CSS vars (with fallbacks) ----
   const cs = getComputedStyle(document.documentElement);
-  const cPrimary = cs.getPropertyValue('--primary')?.trim() || '#6366f1';
-  const cPrimaryLight = cs.getPropertyValue('--primary-light')?.trim() || '#a5b4fc';
-  const cBg = cs.getPropertyValue('--bg-secondary')?.trim() || '#0f172a';
-  const cCard = cs.getPropertyValue('--card')?.trim() || '#111827';
-  const cBorder = cs.getPropertyValue('--border')?.trim() || 'rgba(148,163,184,0.25)';
-  const cText = cs.getPropertyValue('--text')?.trim() || '#e5e7eb';
-  const cTextMut = cs.getPropertyValue('--text-secondary')?.trim() || '#9ca3af';
+  const cPrimary      = (cs.getPropertyValue('--primary') || '#6366f1').trim();
+  const cPrimaryLight = (cs.getPropertyValue('--primary-light') || '#a5b4fc').trim();
+  const cBg           = (cs.getPropertyValue('--bg-secondary') || '#0f172a').trim();
+  const cCard         = (cs.getPropertyValue('--card') || '#111827').trim();
+  const cBorder       = (cs.getPropertyValue('--border') || 'rgba(148,163,184,0.25)').trim();
+  const cText         = (cs.getPropertyValue('--text') || '#e5e7eb').trim();
+  const cTextMut      = (cs.getPropertyValue('--text-secondary') || '#9ca3af').trim();
 
-  // ---------- Build country counts from your analytics shape ----------
+  // ---- Build country counts from your analytics shape ----
   const u = user?.data?.data?.user ?? user?.data?.user ?? user?.user ?? user;
-  const countryCounts = {};
+  const counts = {};
 
-  // 1) monthly_stats.country (preferred)
-  const monthlyStats = u?.analytics?.monthly_stats || {};
-  Object.values(monthlyStats).forEach(m => {
+  // Preferred: monthly_stats country aggregation
+  const monthly = u?.analytics?.monthly_stats || {};
+  Object.values(monthly).forEach(m => {
     const cc = m?.country || {};
-    Object.entries(cc).forEach(([iso2, count]) => {
+    for (const [iso2, val] of Object.entries(cc)) {
       const k = String(iso2).toUpperCase();
-      countryCounts[k] = (countryCounts[k] || 0) + (Number(count) || 0);
-    });
+      counts[k] = (counts[k] || 0) + (Number(val) || 0);
+    }
   });
 
-  // 2) sessions fallback (count sessions as views)
-  if (Object.keys(countryCounts).length === 0 && Array.isArray(u?.sessions)) {
+  // Fallback: sessions (count each session as 1 view)
+  if (Object.keys(counts).length === 0 && Array.isArray(u?.sessions)) {
     u.sessions.forEach(s => {
       const k = (s.country_code || s.country || '').toUpperCase();
-      if (k) countryCounts[k] = (countryCounts[k] || 0) + 1;
+      if (k) counts[k] = (counts[k] || 0) + 1;
     });
   }
 
-  if (Object.keys(countryCounts).length === 0) {
+  // If still empty show friendly empty state
+  if (Object.keys(counts).length === 0) {
     container.innerHTML = `
-      <div style="height:100%;display:flex;align-items:center;justify-content:center;
+      <div style="
+        height:100%;display:flex;align-items:center;justify-content:center;
         background:${cCard};border:1px solid ${cBorder};border-radius:12px;flex-direction:column;
         padding:2rem;text-align:center;">
         <div style="font-size:3rem;">🌍</div>
@@ -3938,176 +3925,241 @@ function initializeCountryMap(user) {
     return;
   }
 
+  // ISO2 -> common name (for labels)
   const ISO2_TO_NAME = {
-    US:'United States', GB:'United Kingdom', DE:'Germany', FR:'France', CA:'Canada',
-    AU:'Australia', JP:'Japan', IN:'India', BR:'Brazil', RU:'Russia', IT:'Italy',
+    US:'United States', GB:'United Kingdom', CN:'China', IN:'India', AU:'Australia',
+    CA:'Canada', BR:'Brazil', ZA:'South Africa', DE:'Germany', FR:'France', IT:'Italy',
     ES:'Spain', NL:'Netherlands', SE:'Sweden', NO:'Norway', DK:'Denmark', FI:'Finland',
-    PL:'Poland', CZ:'Czech Republic', AT:'Austria', CN:'China', MX:'Mexico',
-    AR:'Argentina', ZA:'South Africa', EG:'Egypt', NG:'Nigeria', KE:'Kenya',
-    TH:'Thailand', KR:'South Korea', ID:'Indonesia', MY:'Malaysia', SG:'Singapore',
-    PH:'Philippines', VN:'Vietnam'
+    PL:'Poland', CZ:'Czech Republic', AT:'Austria', MX:'Mexico', AR:'Argentina',
+    EG:'Egypt', NG:'Nigeria', KE:'Kenya', JP:'Japan', KR:'South Korea', ID:'Indonesia',
+    MY:'Malaysia', SG:'Singapore', PH:'Philippines', VN:'Vietnam', RU:'Russia'
   };
 
-  const data = Object.entries(countryCounts).map(([iso2, value]) => ({
-    name: ISO2_TO_NAME[iso2] || iso2,
-    value: Number(value) || 0,
-    _iso2: iso2
+  const data = Object.entries(counts).map(([id, value]) => ({
+    id,
+    name: ISO2_TO_NAME[id] || id,
+    value: Number(value) || 0
   }));
 
   const totalViews = data.reduce((s, d) => s + d.value, 0);
-  const maxViews = Math.max(...data.map(d => d.value), 1);
+  const maxViews   = Math.max(...data.map(d => d.value), 1);
 
-  // ---------- Render shell ----------
-  container.innerHTML = `
-    <div style="height:100%;background:${cCard};border:1px solid ${cBorder};
-      border-radius:12px;display:flex;flex-direction:column;overflow:hidden;">
-      <div style="display:flex;justify-content:space-between;align-items:center;
-        padding:12px 14px;border-bottom:1px solid ${cBorder};background:${cBg}">
-        <div>
-          <div style="font-weight:600;color:${cText};font-size:14px">Global Audience</div>
-          <div style="color:${cTextMut};font-size:12px">${totalViews.toLocaleString()} total views</div>
-        </div>
-        <div style="background:${cPrimary};color:#fff;padding:6px 10px;border-radius:8px;
-          font-size:12px;font-weight:700">🌍 ${data.length} Countries</div>
-      </div>
-      <div id="countryMapCanvas" style="flex:1;min-height:300px;"></div>
-    </div>
-  `;
-
-  const el = document.getElementById('countryMapCanvas');
-
-  // ---------- Load ECharts, load world GeoJSON, register and draw ----------
-  (async () => {
-    await loadScript('echarts-core', 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js');
-
-    // Cache GeoJSON across inits
-    if (!window.__WORLD_GEOJSON__) {
-      window.__WORLD_GEOJSON__ = await fetchWithFallback([
-        // Official examples CDN
-        'https://echarts.apache.org/examples/data/asset/geo/world.json',
-        // Fallback mirrors (kept as backups)
-        'https://unpkg.com/echarts@5/examples/data/asset/geo/world.json',
-        'https://fastly.jsdelivr.net/npm/echarts@5/examples/data/asset/geo/world.json'
-      ]);
-    }
-
-    // Register and init
-    window.echarts.registerMap('world', window.__WORLD_GEOJSON__);
-
-    const chart = window.echarts.init(el, null, { renderer: 'canvas' });
-    window.globalMap = chart;
-
-    const option = {
-      backgroundColor: 'transparent',
-      tooltip: {
-        trigger: 'item',
-        formatter: (params) => {
-          const d = params.data || {};
-          const name = params.name || d.name || 'Unknown';
-          const val = Number(params.value || 0).toLocaleString();
-          const iso2 = d._iso2 || '';
-          const flag = iso2 ? iso2ToFlag(iso2) : '🌐';
-          return `
-            <div style="min-width:160px">
-              <div style="font-weight:700;margin-bottom:4px">${flag} ${name}</div>
-              <div style="color:${cTextMut}">Views: <b style="color:${cText}">${val}</b></div>
-            </div>
-          `;
-        },
-        backgroundColor: cCard,
-        borderColor: cBorder,
-        borderWidth: 1,
-        textStyle: { color: cText, fontSize: 12 },
-        padding: 8
-      },
-      visualMap: {
-        min: 0,
-        max: maxViews,
-        calculable: true,
-        orient: 'horizontal',
-        left: 'center',
-        bottom: 10,
-        inRange: {
-          color: [hexWithAlpha(cPrimaryLight || cPrimary, 0.15), cPrimary]
-        },
-        textStyle: { color: cText },
-        backgroundColor: cBg,
-        borderColor: cBorder,
-        borderWidth: 1
-      },
-      series: [{
-        name: 'Views',
-        type: 'map',
-        map: 'world',
-        roam: true,
-        zoom: 1.15,
-        top: 10,
-        emphasis: {
-          label: { show: false },
-          itemStyle: {
-            areaColor: mixColors(cPrimary, '#ffffff', 0.15),
-            borderColor: cPrimary,
-            borderWidth: 1
-          }
-        },
-        itemStyle: {
-          areaColor: mixColors(cPrimary, '#000000', 0.06),
-          borderColor: mixColors(cBorder, '#000000', 0.2),
-          borderWidth: 0.6
-        },
-        data
-      }]
-    };
-
-    chart.setOption(option);
-    const ro = new ResizeObserver(() => chart.resize());
-    ro.observe(container);
-    chart.__ro = ro;
-
-    console.log('World map analytics initialized', { countries: data.length, totalViews });
-  })().catch(err => {
-    console.error('Failed to initialize world map', err);
-    container.innerHTML = `
-      <div style="height:100%;display:flex;align-items:center;justify-content:center;
-        background:${cCard};border:1px solid ${cBorder};border-radius:12px;flex-direction:column;
-        padding:2rem;text-align:center;">
-        <h4 style="margin:.5rem 0;color:${cText}">Map failed to load</h4>
-        <p style="color:${cTextMut};font-size:.9rem">Please check your network and try again.</p>
-      </div>
-    `;
-  });
-
-  // ---------- Small utils ----------
-  function iso2ToFlag(iso2) {
-    const s = String(iso2 || '').toUpperCase();
-    if (s.length !== 2) return '🌐';
-    return String.fromCodePoint(...[...s].map(c => 127397 + c.charCodeAt()));
+  // ---- Script loader ----
+  function loadScript(id, src) {
+    return new Promise((resolve, reject) => {
+      if (window[id] === true) return resolve();
+      if (document.getElementById(id)) return resolve();
+      const s = document.createElement('script');
+      s.id = id; s.src = src; s.async = true;
+      s.onload = () => { window[id] = true; resolve(); };
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
   }
-  function hexWithAlpha(hex, alpha) {
-    if (/^rgba?\(/i.test(hex)) return hex;
-    let h = hex.replace('#', '').trim();
-    if (h.length === 3) h = h.split('').map(x => x + x).join('');
-    const r = parseInt(h.slice(0, 2), 16);
-    const g = parseInt(h.slice(2, 4), 16);
-    const b = parseInt(h.slice(4, 6), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+
+  // ---- Render after libs are available ----
+  Promise.resolve()
+    .then(() => loadScript('am5-core', 'https://cdn.amcharts.com/lib/5/index.js'))
+    .then(() => loadScript('am5-map', 'https://cdn.amcharts.com/lib/5/map.js'))
+    .then(() => loadScript('am5-worldlow', 'https://cdn.amcharts.com/lib/5/geodata/worldLow.js'))
+    .then(() => loadScript('am5-animated', 'https://cdn.amcharts.com/lib/5/themes/Animated.js'))
+    .then(() => {
+      // Create / style a card wrapper (keeps your theme vibe)
+      container.innerHTML = `
+        <div style="
+          height:100%;background:${cCard};border:1px solid ${cBorder};
+          border-radius:12px;display:flex;flex-direction:column;overflow:hidden;">
+          <div style="display:flex;justify-content:space-between;align-items:center;
+            padding:12px 14px;border-bottom:1px solid ${cBorder};background:${cBg}">
+            <div>
+              <div style="font-weight:600;color:${cText};font-size:14px">Global Audience</div>
+              <div style="color:${cTextMut};font-size:12px">${totalViews.toLocaleString()} total views</div>
+            </div>
+            <div style="background:${cPrimary};color:#fff;padding:6px 10px;border-radius:8px;
+              font-size:12px;font-weight:700">🌍 ${data.length} Countries</div>
+          </div>
+          <div id="countryMapCanvas" style="flex:1;min-height:320px;"></div>
+        </div>
+      `;
+
+      // amCharts code
+      const root = am5.Root.new("countryMapCanvas");
+      container.__am5root = root;
+      window.globalMapRoot = root;
+
+      // Theme
+      root.setThemes([ am5themes_Animated.new(root) ]);
+
+      // Chart
+      const chart = root.container.children.push(
+        am5map.MapChart.new(root, {
+          // projection: am5map.geoMercator(), // default
+        })
+      );
+
+      // Base polygons
+      const polygonSeries = chart.series.push(
+        am5map.MapPolygonSeries.new(root, {
+          geoJSON: am5geodata_worldLow,
+          exclude: ["AQ"],
+          valueField: "value"
+        })
+      );
+
+      // Polygon template styles
+      const polyTemplate = polygonSeries.mapPolygons.template;
+      polyTemplate.setAll({
+        tooltipText: "{name}: [bold]{value}[/]",
+        strokeOpacity: 0.6,
+        stroke: am5.color(hexToNumber(mixColors(cBorder, '#000000', 0.1))),
+        fillOpacity: 1
+      });
+
+      // Heat coloring for polygons (min -> max mapped to light -> primary)
+      polygonSeries.set("heatRules", [{
+        target: polyTemplate,
+        dataField: "value",
+        min: am5.color(hexToNumber(rgbOrHex(lightenHex(cPrimaryLight || cPrimary, 0.85)))),
+        max: am5.color(hexToNumber(rgbOrHex(cPrimary))),
+        key: "fill"
+      }]);
+
+      // Feed polygon values so hovering ANY country shows views
+      polygonSeries.data.setAll(data);
+
+      // Bubble series (optional visual emphasis; also shows tooltip)
+      const bubbleSeries = chart.series.push(
+        am5map.MapPointSeries.new(root, {
+          valueField: "value",
+          calculateAggregates: true,
+          polygonIdField: "id"
+        })
+      );
+
+      const circleTemplate = am5.Template.new({});
+
+      bubbleSeries.bullets.push(function(root, series, dataItem) {
+        const container = am5.Container.new(root, {});
+
+        const circle = container.children.push(
+          am5.Circle.new(root, {
+            radius: 10,
+            fillOpacity: 0.85,
+            fill: am5.color(hexToNumber(rgbOrHex(cPrimary))),
+            stroke: am5.color(hexToNumber(rgbOrHex(lightenHex(cPrimary, 0.25)))),
+            strokeOpacity: 0.9,
+            tooltipText: `{name}: [bold]{value}[/]`,
+            cursorOverStyle: "pointer"
+          }, circleTemplate)
+        );
+
+        // Optional label next to bubble (country name)
+        const label = container.children.push(
+          am5.Label.new(root, {
+            text: "{name}",
+            populateText: true,
+            fontWeight: "600",
+            fontSize: 12,
+            centerY: am5.p50,
+            fill: am5.color(hexToNumber(rgbOrHex(cText))),
+            paddingLeft: 6
+          })
+        );
+
+        circle.on("radius", (r) => label.set("x", r));
+
+        return am5.Bullet.new(root, { sprite: container, dynamic: true });
+      });
+
+      // Value label inside bubble
+      bubbleSeries.bullets.push(function(root) {
+        return am5.Bullet.new(root, {
+          sprite: am5.Label.new(root, {
+            text: "{value.formatNumber('#,###.')}",
+            populateText: true,
+            centerX: am5.p50,
+            centerY: am5.p50,
+            fontSize: 11,
+            fill: am5.color(0xffffff),
+            textAlign: "center"
+          }),
+          dynamic: true
+        });
+      });
+
+      // Bubble sizing by value
+      bubbleSeries.set("heatRules", [{
+        target: circleTemplate,
+        dataField: "value",
+        min: 6,
+        max: 38,
+        minValue: 0,
+        maxValue: maxViews,
+        key: "radius"
+      }]);
+
+      bubbleSeries.data.setAll(data);
+
+      // Nice zoom on wheel
+      chart.set("wheelY", "zoom");
+      chart.set("wheelX", "zoom");
+
+      // Resize observer
+      const ro = new ResizeObserver(() => root.resize());
+      ro.observe(container);
+      root.__ro = ro;
+
+      // Done
+      console.log('amCharts world map ready', { countries: data.length, totalViews });
+    })
+    .catch(err => {
+      console.error('Map init failed:', err);
+      container.innerHTML = `
+        <div style="
+          height:100%;display:flex;align-items:center;justify-content:center;
+          background:${cCard};border:1px solid ${cBorder};border-radius:12px;flex-direction:column;
+          padding:2rem;text-align:center;">
+          <h4 style="margin:.5rem 0;color:${cText}">Map failed to load</h4>
+          <p style="color:${cTextMut};font-size:.9rem">Please check your network and try again.</p>
+        </div>`;
+    });
+
+  // ---- Utils ----
+  function hexToNumber(hex) {
+    // accepts "#rrggbb" or "rgb(...)" and converts to 0xRRGGBB
+    const h = rgbOrHex(hex);
+    if (h.startsWith('#')) return parseInt(h.slice(1), 16);
+    // crude rgb(...) -> number
+    const m = h.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+    if (m) {
+      const r = (+m[1] & 255), g = (+m[2] & 255), b = (+m[3] & 255);
+      return (r << 16) + (g << 8) + b;
+    }
+    return 0x6366f1; // fallback
+  }
+  function rgbOrHex(x) { return (x || '').trim(); }
+  function lightenHex(hex, t = 0.5) {
+    // simple lighten towards white
+    const m = hex.replace('#', '').trim();
+    const to255 = (s) => parseInt(s, 16);
+    const [r,g,b] = m.length === 3
+      ? [m[0]+m[0], m[1]+m[1], m[2]+m[2]].map(to255)
+      : [m.slice(0,2), m.slice(2,4), m.slice(4,6)].map(to255);
+    const lr = Math.round(r + (255 - r) * t);
+    const lg = Math.round(g + (255 - g) * t);
+    const lb = Math.round(b + (255 - b) * t);
+    return `#${[lr,lg,lb].map(v => v.toString(16).padStart(2,'0')).join('')}`;
   }
   function mixColors(hexA, hexB, t = 0.5) {
-    const toRGB = (hex) => {
-      if (/^rgba?\(/i.test(hex)) return hex;
-      let h = hex.replace('#', '').trim();
-      if (h.length === 3) h = h.split('').map(x => x + x).join('');
-      const r = parseInt(h.slice(0, 2), 16);
-      const g = parseInt(h.slice(2, 4), 16);
-      const b = parseInt(h.slice(4, 6), 16);
-      return { r, g, b };
-    };
-    const A = toRGB(hexA), B = toRGB(hexB);
-    if (typeof A === 'string' || typeof B === 'string') return hexA;
-    const r = Math.round(A.r * (1 - t) + B.r * t);
-    const g = Math.round(A.g * (1 - t) + B.g * t);
-    const b = Math.round(A.b * (1 - t) + B.b * t);
-    return `rgb(${r}, ${g}, ${b})`;
+    const a = hexA.replace('#', ''), b = hexB.replace('#', '');
+    const toRGB = (h) => h.length === 3
+      ? [h[0]+h[0], h[1]+h[1], h[2]+h[2]].map(x => parseInt(x,16))
+      : [h.slice(0,2), h.slice(2,4), h.slice(4,6)].map(x => parseInt(x,16));
+    const [ar,ag,ab] = toRGB(a), [br,bg,bb] = toRGB(b);
+    const r = Math.round(ar*(1-t) + br*t);
+    const g = Math.round(ag*(1-t) + bg*t);
+    const b2 = Math.round(ab*(1-t) + bb*t);
+    return `#${[r,g,b2].map(v=>v.toString(16).padStart(2,'0')).join('')}`;
   }
 }
 

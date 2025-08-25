@@ -3861,22 +3861,24 @@ function generateTaskChartData(user) {
     return { labels: last7Days, views, tasks: taskCounts };
 }
 
-// amCharts v5 World Map — hover shows views by country
-// Colors: min #10b981 (emerald) -> max #6366f1 (indigo)
+// amCharts v5 World Map — value-based color (mint→indigo), hover highlight green
 function initializeCountryMap(user) {
   const container = document.getElementById('countryMap');
   if (!container) return;
   if (!container.style.height) container.style.height = '420px';
 
-  // Dispose previous map
+  // Dispose previous root cleanly
   if (container.__am5root && !container.__am5root.isDisposed()) {
     try { container.__am5root.dispose(); } catch (_) {}
     container.__am5root = null;
   }
 
-  // Fixed gradient colors as requested
-  const COLOR_MIN = '#10b981';
-  const COLOR_MAX = '#6366f1';
+  // Fixed gradient endpoints + hover color
+  const COLOR_MIN = '#d1fae5'; // very light mint (for zero/low)
+  const COLOR_MID = '#10b981'; // emerald (mid)
+  const COLOR_MAX = '#6366f1'; // indigo (high)
+  const HOVER_FILL = '#10b981'; // green highlight on hover
+  const HOVER_STROKE = '#065f46';
 
   // Aggregate analytics -> { id, name, value }
   const src = user?.data?.data?.user ?? user?.data?.user ?? user?.user ?? user;
@@ -3908,19 +3910,54 @@ function initializeCountryMap(user) {
     id, name: NAME[id] || id, value: Number(value) || 0
   }));
 
-  // Only the map canvas
+  // Just the map canvas (no header)
   container.innerHTML = `<div id="countryMapCanvas" style="width:100%;height:100%;"></div>`;
 
-  // Wait for libs (Rocket Loader friendly)
+  // Helpers
   const ready = () => typeof window.am5 !== 'undefined'
-                 && typeof window.am5map !== 'undefined'
-                 && typeof window.am5geodata_worldLow !== 'undefined';
+                   && typeof window.am5map !== 'undefined'
+                   && typeof window.am5geodata_worldLow !== 'undefined';
+  const add = (id, src) => new Promise((res, rej) => {
+    if (document.getElementById(id)) return res();
+    const s = document.createElement('script');
+    s.id = id; s.src = src; s.async = true; s.setAttribute('data-cfasync','false');
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
 
-  const boot = () => {
+  function hexToNumber(hex) {
+    const s = String(hex || '').trim();
+    if (!s) return 0x000000;
+    const m = s.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+    if (m) { const r=+m[1], g=+m[2], b=+m[3]; return (r<<16) + (g<<8) + b; }
+    let h = s.replace('#','');
+    if (h.length === 3) h = h.split('').map(x=>x+x).join('');
+    if (h.length !== 6 || /[^0-9a-f]/i.test(h)) return 0x000000;
+    return parseInt(h,16);
+  }
+  function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
+  function hexToRgbObj(hex) {
+    const n = hexToNumber(hex);
+    return { r: (n>>16)&255, g: (n>>8)&255, b: n&255 };
+  }
+  // 3-stop gradient: MIN -> MID -> MAX
+  function gradient3(minHex, midHex, maxHex, t) {
+    t = Math.max(0, Math.min(1, t || 0));
+    if (t <= 0.5) {
+      const tt = t / 0.5;
+      const a = hexToRgbObj(minHex), b = hexToRgbObj(midHex);
+      return (lerp(a.r,b.r,tt) << 16) + (lerp(a.g,b.g,tt) << 8) + lerp(a.b,b.b,tt);
+    } else {
+      const tt = (t - 0.5) / 0.5;
+      const a = hexToRgbObj(midHex), b = hexToRgbObj(maxHex);
+      return (lerp(a.r,b.r,tt) << 16) + (lerp(a.g,b.g,tt) << 8) + lerp(a.b,b.b,tt);
+    }
+  }
+
+  function boot() {
     const root = am5.Root.new("countryMapCanvas");
     container.__am5root = root;
 
-    // Optional animated theme
     if (typeof am5themes_Animated !== 'undefined') {
       root.setThemes([ am5themes_Animated.new(root) ]);
     }
@@ -3936,30 +3973,47 @@ function initializeCountryMap(user) {
       })
     );
 
-    // Tooltip and base styles
+    // Prepare range (avoid divide-by-zero)
+    const maxVal = Math.max(...data.map(d => d.value), 1);
+    const minVal = Math.min(...data.map(d => d.value), 0);
+
+    // Base polygon template
     const polyTpl = polygonSeries.mapPolygons.template;
     polyTpl.setAll({
       tooltipText: "{name}: [bold]{value}[/]",
-      strokeOpacity: 0.5,
-      stroke: am5.color(0x2d3748), // subtle border
-      fillOpacity: 1
+      strokeOpacity: 0.6,
+      stroke: am5.color(0x2d3748), // slate-800-ish border
+      fillOpacity: 1,
+      interactive: true
     });
 
-    // Heat gradient using requested colors
-    polygonSeries.set("heatRules", [{
-      target: polyTpl,
-      dataField: "value",
-      min: am5.color(hexToNumber(COLOR_MIN)),
-      max: am5.color(hexToNumber(COLOR_MAX)),
-      key: "fill"
-    }]);
+    // GREEN HOVER HIGHLIGHT
+    polyTpl.states.create("hover", {
+      fill: am5.color(hexToNumber(HOVER_FILL)),
+      stroke: am5.color(hexToNumber(HOVER_STROKE)),
+      strokeWidth: 1.2
+    });
+
+    // Dynamic fill based on value -> more views = deeper color
+    polyTpl.adapters.add("fill", (fill, target) => {
+      const v = target.dataItem?.get("value");
+      if (v == null || isNaN(v)) {
+        return am5.color(hexToNumber(COLOR_MIN));
+      }
+      const t = (v - minVal) / (maxVal - minVal || 1);
+      const colNum = gradient3(COLOR_MIN, COLOR_MID, COLOR_MAX, t);
+      return am5.color(colNum);
+    });
 
     // Apply values
-    if (data.length > 0) {
-      polygonSeries.data.setAll(data);
-    }
+    polygonSeries.data.setAll(data);
 
-    // Nice zoom
+    // Bring hovered polygon to front for clean outline
+    polyTpl.events.on("pointerover", (ev) => {
+      ev.target.toFront();
+    });
+
+    // Smooth zoom controls
     chart.set("wheelY", "zoom");
     chart.set("wheelX", "zoom");
 
@@ -3967,16 +4021,7 @@ function initializeCountryMap(user) {
     const ro = new ResizeObserver(() => root.resize());
     ro.observe(container);
     root.__ro = ro;
-  };
-
-  // Inject scripts with data-cfasync="false" to reduce Rocket Loader issues
-  const add = (id, src) => new Promise((res, rej) => {
-    if (document.getElementById(id)) return res();
-    const s = document.createElement('script');
-    s.id = id; s.src = src; s.async = true; s.setAttribute('data-cfasync','false');
-    s.onload = res; s.onerror = rej;
-    document.head.appendChild(s);
-  });
+  }
 
   if (ready()) {
     boot();
@@ -3996,26 +4041,7 @@ function initializeCountryMap(user) {
           }
         }, 100);
       })
-      .catch(err => {
-        console.error('Map libs failed to load:', err);
-        // Silent fail to keep page clean
-      });
-  }
-
-  // Utilities
-  function hexToNumber(input) {
-    const s = String(input || '').trim();
-    if (!s) return 0x000000;
-
-    const m = s.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
-    if (m) {
-      const r = (+m[1] & 255), g = (+m[2] & 255), b = (+m[3] & 255);
-      return (r << 16) + (g << 8) + b;
-    }
-    let h = s.replace('#', '');
-    if (h.length === 3) h = h.split('').map(x => x + x).join('');
-    if (h.length !== 6 || /[^0-9a-f]/i.test(h)) return 0x000000;
-    return parseInt(h, 16);
+      .catch(err => console.error('Map libs failed to load:', err));
   }
 }
 

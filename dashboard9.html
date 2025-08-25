@@ -3861,7 +3861,7 @@ function generateTaskChartData(user) {
     return { labels: last7Days, views, tasks: taskCounts };
 }
 
-// amCharts v5 World Map — Indigo→Deep Indigo ramp; tooltip value in green on hover
+// amCharts v5 World Map — Indigo ramp, hover = green
 function initializeCountryMap(user) {
   const container = document.getElementById('countryMap');
   if (!container) return;
@@ -3873,14 +3873,14 @@ function initializeCountryMap(user) {
     container.__am5root = null;
   }
 
-  // ---- Colors (no green in base ramp) ----
-  const RAMP_MIN   = '#a5b4fc'; // light indigo (tailwind indigo-300)
-  const RAMP_MAX   = '#4338ca'; // deep indigo (tailwind indigo-800)
-  const HOVER_EDGE = '#1f2937'; // dark slate border on hover
-  const BASE_EDGE  = '#374151'; // slate-700 border
-  const VALUE_GREEN = '#10b981'; // tooltip value text
+  // ---- Colors ----
+  const RAMP_MIN   = '#a5b4fc'; // light indigo
+  const RAMP_MAX   = '#4338ca'; // deep indigo
+  const HOVER_FILL = '#10b981'; // green on hover
+  const HOVER_EDGE = '#065f46'; // darker green stroke
+  const BASE_EDGE  = '#374151'; // indigo border
 
-  // ---- Build data from your analytics ----
+  // ---- Build data ----
   const src = user?.data?.data?.user ?? user?.data?.user ?? user?.user ?? user;
   const counts = {};
   const monthly = src?.analytics?.monthly_stats || {};
@@ -3903,10 +3903,9 @@ function initializeCountryMap(user) {
     value: Number(value) || 0
   }));
 
-  // Canvas only (no header)
   container.innerHTML = `<div id="countryMapCanvas" style="width:100%;height:100%;"></div>`;
 
-  // ---- Helpers (robust color math) ----
+  // ---- Helpers ----
   const ready = () =>
     typeof window.am5 !== 'undefined' &&
     typeof window.am5map !== 'undefined' &&
@@ -3924,7 +3923,7 @@ function initializeCountryMap(user) {
     const s = String(hex || '').trim();
     const m = s.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
     if (m) { const r=+m[1], g=+m[2], b=+m[3]; return (r<<16) + (g<<8) + b; }
-    let h = s.replace('#','');
+    let h = s.replace('#', '');
     if (h.length === 3) h = h.split('').map(x=>x+x).join('');
     if (!/^[0-9a-f]{6}$/i.test(h)) return 0x000000;
     return parseInt(h, 16);
@@ -3942,7 +3941,6 @@ function initializeCountryMap(user) {
   function boot() {
     const root = am5.Root.new("countryMapCanvas");
     container.__am5root = root;
-
     if (typeof am5themes_Animated !== 'undefined') {
       root.setThemes([ am5themes_Animated.new(root) ]);
     }
@@ -3958,17 +3956,13 @@ function initializeCountryMap(user) {
       })
     );
 
-    // Determine value range (avoid zero division)
     const maxVal = Math.max(...data.map(d => d.value), 1);
     const minVal = Math.min(...data.map(d => d.value), 0);
     const range  = Math.max(1, maxVal - minVal);
 
-    // Base polygon style
     const polyTpl = polygonSeries.mapPolygons.template;
     polyTpl.setAll({
-      // Tooltip: country name normal, value in green
-      tooltipHTML: `<div style="font-weight:600;margin-bottom:2px">{name}</div>
-                    <div>Views: <b style="color:${VALUE_GREEN}">{value}</b></div>`,
+      tooltipText: "{name}: [bold]{value}[/]",
       strokeOpacity: 0.7,
       stroke: am5.color(hexToNum(BASE_EDGE)),
       fillOpacity: 1,
@@ -3976,32 +3970,27 @@ function initializeCountryMap(user) {
       cursorOverStyle: "pointer"
     });
 
-    // Hover: keep indigo family but accent border; value already green in tooltip
+    // Hover turns country fill GREEN
     polyTpl.states.create("hover", {
+      fill: am5.color(hexToNum(HOVER_FILL)),
       stroke: am5.color(hexToNum(HOVER_EDGE)),
       strokeWidth: 1.2
     });
 
-    // Single adapter for value→indigo ramp (no green here)
+    // Adapter: indigo ramp for normal state
     polyTpl.adapters.add("fill", (current, target) => {
       const v = target?.dataItem?.get("value");
-      if (v == null || isNaN(v)) {
-        // For truly missing values, use the minimum indigo (not gray)
-        return am5.color(hexToNum(RAMP_MIN));
-      }
-      const t = (v - minVal) / range; // 0..1
+      if (v == null || isNaN(v)) return am5.color(hexToNum(RAMP_MIN));
+      const t = (v - minVal) / range;
       return am5.color(gradient(RAMP_MIN, RAMP_MAX, t));
     });
 
-    // Apply data
     if (data.length > 0) polygonSeries.data.setAll(data);
 
-    // UX polish
     polyTpl.events.on("pointerover", ev => ev.target.toFront());
     chart.set("wheelY", "zoom");
     chart.set("wheelX", "zoom");
 
-    // Responsive
     const ro = new ResizeObserver(() => root.resize());
     ro.observe(container);
     root.__ro = ro;
@@ -4021,7 +4010,7 @@ function initializeCountryMap(user) {
           if (ready() || tries++ > 40) {
             clearInterval(t);
             if (ready()) boot();
-            else console.error('amCharts libs not ready (possible Rocket Loader interference).');
+            else console.error('amCharts libs not ready.');
           }
         }, 100);
       })

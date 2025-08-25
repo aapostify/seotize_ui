@@ -3861,7 +3861,7 @@ function generateTaskChartData(user) {
     return { labels: last7Days, views, tasks: taskCounts };
 }
 
-// Country Views Chart (replaces map with Chart.js visualization)
+// Country Analytics Chart (replaces map, matches Task Performance design)
 function initializeCountryMap(user) {
     const mapContainer = document.getElementById('countryMap');
     if (!mapContainer) return;
@@ -3871,6 +3871,12 @@ function initializeCountryMap(user) {
         globalMap.destroy();
         globalMap = null;
     }
+
+    // Clear the container and create canvas for Chart.js
+    mapContainer.innerHTML = '<canvas id="countryChart" style="max-height: 350px;"></canvas>';
+    
+    const ctx = document.getElementById('countryChart');
+    if (!ctx) return;
 
     const isDark = document.body.getAttribute('data-theme') === 'dark';
     const textColor = isDark ? '#e2e8f0' : '#1e293b';
@@ -3883,333 +3889,229 @@ function initializeCountryMap(user) {
     if (user.analytics && user.analytics.monthly_stats) {
         Object.entries(user.analytics.monthly_stats).forEach(([month, stats]) => {
             if (stats.country) {
+                // Store monthly data for timeline
                 monthlyData[month] = stats.country;
+                
+                // Aggregate total country data
                 Object.entries(stats.country).forEach(([country, views]) => {
-                    countryData[country.toUpperCase()] = (countryData[country.toUpperCase()] || 0) + views;
+                    countryData[country] = (countryData[country] || 0) + views;
                 });
             }
         });
     }
 
-    // If no analytics data, try fallback sources
+    // If no data, add sample data
     if (Object.keys(countryData).length === 0) {
-        // Try task statistics
-        if (user.task_statistics?.country_visits) {
-            Object.entries(user.task_statistics.country_visits).forEach(([country, count]) => {
-                countryData[country.toUpperCase()] = (countryData[country.toUpperCase()] || 0) + count;
-            });
-        }
-
-        // Try individual tasks
-        if (user.tasks && Array.isArray(user.tasks)) {
-            user.tasks.forEach(task => {
-                if (task.country_visits) {
-                    Object.entries(task.country_visits).forEach(([country, count]) => {
-                        countryData[country.toUpperCase()] = (countryData[country.toUpperCase()] || 0) + count;
-                    });
-                }
-            });
-        }
-
-        // Sample data for demo if still empty
-        if (Object.keys(countryData).length === 0) {
-            countryData['GB'] = 4;
-            countryData['US'] = 2;
-            countryData['DE'] = 1;
-        }
+        countryData['GB'] = 4;
+        countryData['US'] = 2;
+        countryData['DE'] = 1;
     }
 
-    // Enhanced country information mapping
+    // Enhanced country information
     const countryInfo = {
         'US': { name: 'United States', flag: '🇺🇸', color: '#3b82f6' },
-        'GB': { name: 'United Kingdom', flag: '🇬🇧', color: '#ef4444' },
-        'DE': { name: 'Germany', flag: '🇩🇪', color: '#f59e0b' },
-        'FR': { name: 'France', flag: '🇫🇷', color: '#10b981' },
-        'CA': { name: 'Canada', flag: '🇨🇦', color: '#8b5cf6' },
-        'AU': { name: 'Australia', flag: '🇦🇺', color: '#f97316' },
-        'JP': { name: 'Japan', flag: '🇯🇵', color: '#06b6d4' },
-        'IN': { name: 'India', flag: '🇮🇳', color: '#84cc16' },
-        'BR': { name: 'Brazil', flag: '🇧🇷', color: '#ec4899' },
-        'RU': { name: 'Russia', flag: '🇷🇺', color: '#6366f1' },
-        'IT': { name: 'Italy', flag: '🇮🇹', color: '#14b8a6' },
-        'ES': { name: 'Spain', flag: '🇪🇸', color: '#f43f5e' },
-        'NL': { name: 'Netherlands', flag: '🇳🇱', color: '#a855f7' },
-        'SE': { name: 'Sweden', flag: '🇸🇪', color: '#0ea5e9' },
-        'NO': { name: 'Norway', flag: '🇳🇴', color: '#22c55e' },
-        'DK': { name: 'Denmark', flag: '🇩🇰', color: '#eab308' },
-        'FI': { name: 'Finland', flag: '🇫🇮', color: '#dc2626' },
-        'PL': { name: 'Poland', flag: '🇵🇱', color: '#9333ea' },
-        'CZ': { name: 'Czech Republic', flag: '🇨🇿', color: '#059669' },
-        'AT': { name: 'Austria', flag: '🇦🇹', color: '#db2777' },
-        'CN': { name: 'China', flag: '🇨🇳', color: '#dc2626' },
-        'MX': { name: 'Mexico', flag: '🇲🇽', color: '#16a34a' },
-        'AR': { name: 'Argentina', flag: '🇦🇷', color: '#0284c7' },
-        'ZA': { name: 'South Africa', flag: '🇿🇦', color: '#7c3aed' }
+        'GB': { name: 'United Kingdom', flag: '🇬🇧', color: '#6366f1' },
+        'DE': { name: 'Germany', flag: '🇩🇪', color: '#8b5cf6' },
+        'FR': { name: 'France', flag: '🇫🇷', color: '#a855f7' },
+        'CA': { name: 'Canada', flag: '🇨🇦', color: '#d946ef' },
+        'AU': { name: 'Australia', flag: '🇦🇺', color: '#ec4899' },
+        'JP': { name: 'Japan', flag: '🇯🇵', color: '#f43f5e' },
+        'IN': { name: 'India', flag: '🇮🇳', color: '#ef4444' },
+        'BR': { name: 'Brazil', flag: '🇧🇷', color: '#f97316' },
+        'IT': { name: 'Italy', flag: '🇮🇹', color: '#f59e0b' },
+        'ES': { name: 'Spain', flag: '🇪🇸', color: '#eab308' },
+        'NL': { name: 'Netherlands', flag: '🇳🇱', color: '#84cc16' },
+        'SE': { name: 'Sweden', flag: '🇸🇪', color: '#22c55e' },
+        'NO': { name: 'Norway', flag: '🇳🇴', color: '#10b981' },
+        'DK': { name: 'Denmark', flag: '🇩🇰', color: '#14b8a6' },
+        'FI': { name: 'Finland', flag: '🇫🇮', color: '#06b6d4' },
+        'PL': { name: 'Poland', flag: '🇵🇱', color: '#0ea5e9' },
+        'CZ': { name: 'Czech Republic', flag: '🇨🇿', color: '#3b82f6' },
+        'AT': { name: 'Austria', flag: '🇦🇹', color: '#6366f1' }
     };
 
-    // Prepare chart data
+    // Sort countries by views (descending)
     const sortedCountries = Object.entries(countryData)
         .sort(([,a], [,b]) => b - a)
         .slice(0, 8); // Show top 8 countries
 
-    const labels = sortedCountries.map(([countryCode]) => {
-        const info = countryInfo[countryCode.toUpperCase()];
-        return info ? `${info.flag} ${info.name}` : countryCode;
+    // Prepare chart data
+    const labels = sortedCountries.map(([code]) => {
+        const info = countryInfo[code];
+        return info ? `${info.flag} ${info.name}` : code;
     });
 
-    const dataValues = sortedCountries.map(([,views]) => views);
-    const backgroundColors = sortedCountries.map(([countryCode]) => {
-        const info = countryInfo[countryCode.toUpperCase()];
-        return info ? info.color : '#6b7280';
+    const views = sortedCountries.map(([,count]) => count);
+    const backgroundColors = sortedCountries.map(([code], index) => {
+        const info = countryInfo[code];
+        return info ? info.color : `hsl(${index * 45}, 70%, 60%)`;
     });
 
-    // Create chart container
-    mapContainer.innerHTML = `
-        <div style="position: relative; height: 100%; width: 100%; display: flex; flex-direction: column;">
-            <canvas id="countryChart" style="flex: 1;"></canvas>
-            <div id="countryLegend" style="
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.75rem;
-                margin-top: 1rem;
-                padding: 1rem;
-                background: var(--bg-tertiary);
-                border-radius: var(--radius-sm);
-                justify-content: center;
-            "></div>
-        </div>
-    `;
+    const borderColors = backgroundColors.map(color => color);
 
     // Create the chart
-    const ctx = document.getElementById('countryChart');
-    if (ctx) {
-        globalMap = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: dataValues,
-                    backgroundColor: backgroundColors,
-                    borderColor: isDark ? '#374151' : '#ffffff',
-                    borderWidth: 2,
-                    hoverBorderWidth: 3,
-                    hoverOffset: 8
-                }]
+    globalMap = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Views by Country',
+                data: views,
+                backgroundColor: backgroundColors.map(color => color + '80'), // Add transparency
+                borderColor: borderColors,
+                borderWidth: 2,
+                hoverBackgroundColor: backgroundColors,
+                hoverBorderColor: borderColors,
+                hoverBorderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: 10
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false // We'll create custom legend
-                    },
-                    tooltip: {
-                        backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                        titleColor: textColor,
-                        bodyColor: textColor,
-                        borderColor: isDark ? '#374151' : '#e5e7eb',
-                        borderWidth: 1,
-                        cornerRadius: 8,
-                        displayColors: true,
-                        callbacks: {
-                            label: function(context) {
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = ((context.raw / total) * 100).toFixed(1);
-                                return `${context.label}: ${context.raw} views (${percentage}%)`;
-                            },
-                            title: function(context) {
-                                return 'Country Views';
+            plugins: {
+                legend: {
+                    position: 'right',
+                    align: 'center',
+                    labels: {
+                        color: textColor,
+                        padding: 15,
+                        font: {
+                            size: 12,
+                            family: 'Inter'
+                        },
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                const dataset = data.datasets[0];
+                                const total = dataset.data.reduce((sum, value) => sum + value, 0);
+                                
+                                return data.labels.map((label, i) => {
+                                    const value = dataset.data[i];
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    
+                                    return {
+                                        text: `${label} (${value} - ${percentage}%)`,
+                                        fillStyle: dataset.backgroundColor[i],
+                                        strokeStyle: dataset.borderColor[i],
+                                        lineWidth: dataset.borderWidth,
+                                        hidden: false,
+                                        index: i
+                                    };
+                                });
                             }
+                            return [];
                         }
                     }
                 },
-                cutout: '50%',
-                elements: {
-                    arc: {
-                        borderRadius: 4
+                tooltip: {
+                    backgroundColor: isDark ? 'rgba(31, 31, 31, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                    titleColor: textColor,
+                    bodyColor: textColor,
+                    borderColor: isDark ? '#374151' : '#e2e8f0',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((sum, value) => sum + value, 0);
+                            const value = context.raw;
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return [
+                                `Views: ${value.toLocaleString()}`,
+                                `Share: ${percentage}%`,
+                                `Total Views: ${total.toLocaleString()}`
+                            ];
+                        }
                     }
-                },
-                animation: {
-                    animateRotate: true,
-                    animateScale: true,
-                    duration: 1000,
-                    easing: 'easeOutCubic'
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'point'
+                }
+            },
+            cutout: '60%',
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 1000,
+                easing: 'easeOutQuart'
+            },
+            elements: {
+                arc: {
+                    borderRadius: 4
+                }
+            },
+            onHover: (event, activeElements) => {
+                event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+            }
+        },
+        plugins: [{
+            // Center text plugin
+            id: 'centerText',
+            beforeDraw: function(chart) {
+                if (chart.config.options.elements.center) {
+                    const ctx = chart.ctx;
+                    const centerConfig = chart.config.options.elements.center;
+                    const fontStyle = centerConfig.fontStyle || 'Arial';
+                    const txt = centerConfig.text;
+                    const color = centerConfig.color || textColor;
+                    const maxFontSize = centerConfig.maxFontSize || 75;
+                    const sidePadding = centerConfig.sidePadding || 20;
+                    const sidePaddingCalculated = (sidePadding / 100) * (chart.innerRadius * 2);
+
+                    ctx.font = "30px " + fontStyle;
+                    const stringWidth = ctx.measureText(txt).width;
+                    const elementWidth = (chart.innerRadius * 2) - sidePaddingCalculated;
+                    const widthRatio = elementWidth / stringWidth;
+                    const newFontSize = Math.floor(30 * widthRatio);
+                    const fontSizeToUse = Math.min(newFontSize, maxFontSize);
+
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const centerX = ((chart.chartArea.left + chart.chartArea.right) / 2);
+                    const centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
+                    ctx.font = fontSizeToUse + "px " + fontStyle;
+                    ctx.fillStyle = color;
+                    ctx.fillText(txt, centerX, centerY);
                 }
             }
-        });
+        }]
+    });
 
-        // Create custom legend with statistics
-        const legendContainer = document.getElementById('countryLegend');
-        const totalViews = dataValues.reduce((sum, value) => sum + value, 0);
+    // Add center text with total views
+    const totalViews = views.reduce((sum, count) => sum + count, 0);
+    globalMap.config.options.elements.center = {
+        text: totalViews.toLocaleString(),
+        color: textColor,
+        fontStyle: 'Inter',
+        sidePadding: 20,
+        maxFontSize: 30
+    };
 
-        if (sortedCountries.length > 0) {
-            legendContainer.innerHTML = `
-                ${sortedCountries.map(([countryCode, views], index) => {
-                    const info = countryInfo[countryCode.toUpperCase()];
-                    const percentage = ((views / totalViews) * 100).toFixed(1);
-                    const color = backgroundColors[index];
-
-                    return `
-                        <div style="
-                            display: flex;
-                            align-items: center;
-                            gap: 0.5rem;
-                            padding: 0.5rem 0.75rem;
-                            background: var(--card);
-                            border: 1px solid var(--border);
-                            border-radius: var(--radius-sm);
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                            min-width: 140px;
-                        "
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='var(--shadow)'"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
-                        onclick="toggleCountrySegment(${index})">
-                            <div style="
-                                width: 12px;
-                                height: 12px;
-                                border-radius: 50%;
-                                background: ${color};
-                                flex-shrink: 0;
-                            "></div>
-                            <div style="flex: 1; min-width: 0;">
-                                <div style="
-                                    font-size: 0.875rem;
-                                    font-weight: 600;
-                                    color: var(--text);
-                                    white-space: nowrap;
-                                    overflow: hidden;
-                                    text-overflow: ellipsis;
-                                ">
-                                    ${info ? `${info.flag} ${info.name}` : countryCode}
-                                </div>
-                                <div style="
-                                    font-size: 0.75rem;
-                                    color: var(--text-secondary);
-                                    display: flex;
-                                    justify-content: space-between;
-                                    align-items: center;
-                                ">
-                                    <span>${views} views</span>
-                                    <span>${percentage}%</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('')}
-
-                <!-- Summary Stats -->
-                <div style="
-                    width: 100%;
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 0.75rem;
-                    margin-top: 0.75rem;
-                    padding-top: 0.75rem;
-                    border-top: 1px solid var(--border);
-                ">
-                    <div style="text-align: center;">
-                        <div style="
-                            font-size: 1.25rem;
-                            font-weight: 700;
-                            color: var(--primary);
-                        ">${totalViews}</div>
-                        <div style="
-                            font-size: 0.75rem;
-                            color: var(--text-secondary);
-                        ">Total Views</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="
-                            font-size: 1.25rem;
-                            font-weight: 700;
-                            color: var(--success);
-                        ">${sortedCountries.length}</div>
-                        <div style="
-                            font-size: 0.75rem;
-                            color: var(--text-secondary);
-                        ">Countries</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="
-                            font-size: 1.25rem;
-                            font-weight: 700;
-                            color: var(--warning);
-                        ">${Math.round(totalViews / sortedCountries.length)}</div>
-                        <div style="
-                            font-size: 0.75rem;
-                            color: var(--text-secondary);
-                        ">Avg. per Country</div>
-                    </div>
-                </div>
-            `;
-        } else {
-            legendContainer.innerHTML = `
-                <div style="
-                    width: 100%;
-                    text-align: center;
-                    padding: 2rem;
-                    color: var(--text-secondary);
-                ">
-                    <div style="font-size: 2rem; margin-bottom: 1rem;">🌍</div>
-                    <div style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">
-                        No Country Data Yet
-                    </div>
-                    <div style="font-size: 0.875rem;">
-                        Country analytics will appear here once you receive views
-                    </div>
-                </div>
-            `;
-        }
-
-        // Add chart segment toggle functionality
-        window.toggleCountrySegment = function(index) {
-            const chart = globalMap;
-            if (chart) {
-                const meta = chart.getDatasetMeta(0);
-                const segment = meta.data[index];
-                segment.hidden = !segment.hidden;
-                chart.update();
+    // Add custom styling for better integration
+    if (!document.getElementById('country-chart-styles')) {
+        const style = document.createElement('style');
+        style.id = 'country-chart-styles';
+        style.innerHTML = `
+            #countryMap canvas {
+                border-radius: var(--radius);
             }
-        };
-
-        // Add center text showing total
-        const centerTextPlugin = {
-            id: 'centerText',
-            afterDatasetsDraw: function(chart) {
-                if (sortedCountries.length === 0) return;
-
-                const ctx = chart.ctx;
-                const centerX = chart.width / 2;
-                const centerY = chart.height / 2;
-
-                ctx.restore();
-                ctx.font = `600 24px Inter, sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillStyle = textColor;
-                ctx.fillText(totalViews.toLocaleString(), centerX, centerY - 10);
-
-                ctx.font = `400 12px Inter, sans-serif`;
-                ctx.fillStyle = isDark ? '#9ca3af' : '#6b7280';
-                ctx.fillText('Total Views', centerX, centerY + 15);
-                ctx.save();
+            
+            .chartjs-tooltip {
+                font-family: 'Inter', sans-serif !important;
+                border-radius: var(--radius) !important;
+                box-shadow: var(--shadow-lg) !important;
             }
-        };
-
-        // Register the plugin
-        Chart.register(centerTextPlugin);
+        `;
+        document.head.appendChild(style);
     }
 
-    console.log('Country views chart initialized with analytics data:', {
-        theme: isDark ? 'dark' : 'light',
-        countries: Object.keys(countryData),
-        totalViews: dataValues.reduce((sum, val) => sum + val, 0)
-    });
+    console.log('Country analytics chart initialized with theme:', isDark ? 'dark' : 'light', 'Countries:', sortedCountries.length, 'Total views:', totalViews);
 }
 
 function updateCharts() {

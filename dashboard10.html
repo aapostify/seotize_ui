@@ -1523,30 +1523,41 @@ async function loadDashboard(page = 1) {
                 minute: '2-digit'
             });
 
-            // Correct budget calculation logic
+            // Fixed budget calculation logic - show remaining budget in progress bar
             const totalCharge = task.total_charge;
             const availableCharge = task.available_charge;
-            const remainingPercent = task.remaining_percentage || 0;
+            const remainingPercent = Math.max(0, task.remaining_percentage || 0);
 
             // Calculate used amount and percentage
             let usedAmount = 0;
             let usedPercent = 0;
             let progressBarWidth = 0;
             let statusText = '';
+            let progressColor = 'var(--success)'; // Green for remaining budget
 
             if (remainingPercent <= 100) {
                 // Normal case: calculate used from remaining percentage
                 usedPercent = Math.max(0, 100 - remainingPercent);
                 usedAmount = (totalCharge * usedPercent) / 100;
-                progressBarWidth = usedPercent;
+                progressBarWidth = remainingPercent; // Show remaining, not used
                 statusText = `Remaining: ${remainingPercent.toFixed(0)}%`;
+
+                // Color coding based on remaining budget
+                if (remainingPercent > 50) {
+                    progressColor = 'var(--success)'; // Green
+                } else if (remainingPercent > 20) {
+                    progressColor = 'var(--warning)'; // Yellow
+                } else {
+                    progressColor = 'var(--error)'; // Red
+                }
             } else {
                 // Recharged case: remaining > 100%
                 const rechargeAmount = availableCharge - totalCharge;
-                usedAmount = 0; // Nothing used yet from original budget
+                usedAmount = 0;
                 usedPercent = 0;
-                progressBarWidth = 0;
+                progressBarWidth = 100; // Show as full since it's recharged
                 statusText = `Recharged: +$${rechargeAmount.toFixed(2)}`;
+                progressColor = 'var(--primary)'; // Blue for recharged
             }
 
             return `
@@ -1569,8 +1580,8 @@ async function loadDashboard(page = 1) {
             <span>Used: $${usedAmount.toFixed(2)}</span>
             <span>${usedPercent.toFixed(0)}%</span>
             </div>
-            <div class="progress-bar" style="height: 4px; background: var(--bg-tertiary); border-radius: 2px;">
-            <div class="progress-fill" style="width: ${progressBarWidth}%; height: 100%; background: ${progressBarWidth > 0 ? 'var(--primary)' : 'var(--bg-tertiary)'}; border-radius: 2px; transition: width 0.3s ease;"></div>
+            <div class="progress-bar" style="height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden;">
+            <div class="progress-fill" style="width: ${progressBarWidth}%; height: 100%; background: ${progressColor}; transition: width 0.3s ease, background-color 0.3s ease;"></div>
             </div>
             <div style="font-size: 0.75rem; color: var(--text-tertiary);">
             ${statusText}
@@ -1595,7 +1606,7 @@ async function loadDashboard(page = 1) {
         </table>
         </div>
 
-        <!-- Always show pagination -->
+        <!-- Always show pagination with info on next line -->
         <div class="pagination">
         <button class="pagination-btn" ${pagination.current <= 1 ? 'disabled' : ''} onclick="loadDashboard(${pagination.current - 1})">
         <i class="ri-arrow-left-s-line"></i> Previous
@@ -1641,10 +1652,11 @@ async function loadDashboard(page = 1) {
         <button class="pagination-btn" ${!pagination.has_next ? 'disabled' : ''} onclick="loadDashboard(${pagination.current + 1})">
         Next <i class="ri-arrow-right-s-line"></i>
         </button>
-
-        <div class="pagination-info">
-        Page ${pagination.current} of ${Math.max(1, pagination.pages)} | Showing ${sortedTasks.length} of ${pagination.total} tasks
         </div>
+
+        <!-- Pagination info on separate line -->
+        <div style="text-align: center; margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+        Page ${pagination.current} of ${Math.max(1, pagination.pages)} | Showing ${sortedTasks.length} of ${pagination.total} tasks
         </div>
         </div>
         </div>

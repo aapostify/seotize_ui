@@ -2241,9 +2241,17 @@ async function loadBilling(page = 1, type = 'all') {
 }
 
 // Modal Functions
-function showModal(title, content) {
+// function showModal(title, content) {
+//     document.getElementById('modalTitle').textContent = title;
+//     document.getElementById('modalBody').innerHTML = content;
+//     document.getElementById('modalOverlay').classList.add('active');
+// }
+function showModal(title, content, width = '900px') {
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalBody').innerHTML = content;
+    const modal = document.querySelector('.modal');
+    modal.style.width = width;
+    modal.style.maxWidth = '95vw';
     document.getElementById('modalOverlay').classList.add('active');
 }
 
@@ -3543,30 +3551,22 @@ async function viewArticle(articleId) {
         const devices = {};
         const viewsByDate = {};
 
-        // Aggregate all analytics data from monthly stats
         Object.entries(stats).forEach(([month, monthStats]) => {
-            // Countries
             if (monthStats.country) {
                 Object.entries(monthStats.country).forEach(([country, views]) => {
                     countries[country.toUpperCase()] = (countries[country.toUpperCase()] || 0) + views;
                 });
             }
-
-            // Browsers
             if (monthStats.browser) {
                 Object.entries(monthStats.browser).forEach(([browser, views]) => {
                     browsers[browser] = (browsers[browser] || 0) + views;
                 });
             }
-
-            // Devices
             if (monthStats.devices) {
                 Object.entries(monthStats.devices).forEach(([device, views]) => {
                     devices[device] = (devices[device] || 0) + views;
                 });
             }
-
-            // Daily views
             if (monthStats.daily) {
                 Object.entries(monthStats.daily).forEach(([day, views]) => {
                     const [year, monthNum] = month.split('-');
@@ -3576,168 +3576,149 @@ async function viewArticle(articleId) {
             }
         });
 
-        // Sort data for display
         const sortedDates = Object.entries(viewsByDate).sort(([a], [b]) => new Date(a) - new Date(b));
 
-        showModal(`Article Analytics`, `
-        <div style="height: 85vh; display: flex; flex-direction: column;">
+        showModal('Article Analytics', `
+        <div style="height: 80vh; display: grid; grid-template-rows: auto 1fr; gap: 1rem;">
             
-            <!-- Header Section -->
-            <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 2rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem;">
-                <div style="display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: start;">
-                    <div>
-                        <h3 style="color: white; margin-bottom: 1rem; font-size: 1.5rem;">${article.subject}</h3>
-                        <div style="display: flex; flex-wrap: wrap; gap: 2rem; font-size: 0.95rem;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="ri-global-line"></i>
-                                <a href="https://${article.url}" target="_blank" style="color: rgba(255,255,255,0.9); text-decoration: none;">${article.url}</a>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="ri-calendar-line"></i>
-                                <span>${new Date(article.creation_date).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                })}</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="ri-eye-line"></i>
-                                <span style="font-weight: 600;">${article.total_views || 0} Total Views</span>
-                            </div>
-                        </div>
+            <!-- Compact Header -->
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center; padding: 1rem; background: var(--primary); color: white; border-radius: var(--radius); margin: -1.5rem -1.5rem 0 -1.5rem;">
+                <div>
+                    <h4 style="color: white; margin-bottom: 0.5rem; font-size: 1.1rem; line-height: 1.2;">${article.subject}</h4>
+                    <div style="display: flex; gap: 1rem; font-size: 0.85rem; opacity: 0.9;">
+                        <span><i class="ri-global-line"></i> ${article.url}</span>
+                        <span><i class="ri-eye-line"></i> ${article.total_views || 0} views</span>
+                        <span><i class="ri-calendar-line"></i> ${new Date(article.creation_date).toLocaleDateString()}</span>
                     </div>
-                    <div style="display: flex; gap: 0.75rem;">
-                        <button class="btn btn-secondary" onclick="window.open('https://${article.url}', '_blank')" style="background: rgba(255,255,255,0.2); border: none; color: white;">
-                            <i class="ri-external-link-line"></i> Live
-                        </button>
-                        <button class="btn btn-secondary" onclick="editArticle('${article.article_id}')" style="background: rgba(255,255,255,0.2); border: none; color: white;">
-                            <i class="ri-edit-line"></i> Edit
-                        </button>
-                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-sm" onclick="window.open('https://${article.url}', '_blank')" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.375rem 0.75rem;">
+                        <i class="ri-external-link-line"></i>
+                    </button>
+                    <button class="btn btn-sm" onclick="editArticle('${article.article_id}')" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.375rem 0.75rem;">
+                        <i class="ri-edit-line"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="confirmDeleteArticle('${article.article_id}')" style="padding: 0.375rem 0.75rem;">
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
                 </div>
             </div>
 
-            <!-- Main Content Area -->
-            <div style="flex: 1; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; min-height: 0;">
+            <!-- Main Content Grid -->
+            <div style="display: grid; grid-template-columns: 2fr 300px; gap: 1.5rem; min-height: 0;">
                 
-                <!-- Charts Section -->
-                <div style="display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; padding-right: 0.5rem;">
+                <!-- Charts Area -->
+                <div style="display: flex; flex-direction: column; gap: 1rem; overflow: hidden;">
                     
                     ${Object.keys(stats).length > 0 ? `
-                        <!-- Views Over Time Chart -->
+                        <!-- Timeline Chart -->
                         ${sortedDates.length > 0 ? `
-                            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem;">
-                                <h5 style="margin-bottom: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
-                                    <i class="ri-line-chart-line"></i> Views Over Time
-                                </h5>
-                                <div style="height: 300px; position: relative;">
+                            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                                <h6 style="margin-bottom: 0.75rem; color: var(--primary); font-size: 0.9rem;">Views Timeline</h6>
+                                <div style="height: 200px; position: relative;">
                                     <canvas id="articleViewsChart"></canvas>
                                 </div>
                             </div>
                         ` : ''}
 
                         <!-- Analytics Grid -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; flex: 1;">
                             
-                            <!-- Countries Chart -->
                             ${Object.keys(countries).length > 0 ? `
-                                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem;">
-                                    <h6 style="margin-bottom: 1rem; color: var(--success); display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                                    <h6 style="margin-bottom: 0.75rem; color: var(--success); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
                                         <i class="ri-global-line"></i> Countries
                                     </h6>
-                                    <div style="height: 250px; position: relative;">
+                                    <div style="height: 180px; position: relative;">
                                         <canvas id="articleCountriesChart"></canvas>
                                     </div>
                                 </div>
                             ` : ''}
 
-                            <!-- Browsers Chart -->
                             ${Object.keys(browsers).length > 0 ? `
-                                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem;">
-                                    <h6 style="margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                                    <h6 style="margin-bottom: 0.75rem; color: var(--primary); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
                                         <i class="ri-computer-line"></i> Browsers
                                     </h6>
-                                    <div style="height: 250px; position: relative;">
+                                    <div style="height: 180px; position: relative;">
                                         <canvas id="articleBrowsersChart"></canvas>
                                     </div>
                                 </div>
                             ` : ''}
 
-                            <!-- Devices Chart -->
                             ${Object.keys(devices).length > 0 ? `
-                                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem;">
-                                    <h6 style="margin-bottom: 1rem; color: var(--warning); display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                                    <h6 style="margin-bottom: 0.75rem; color: var(--warning); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
                                         <i class="ri-smartphone-line"></i> Devices
                                     </h6>
-                                    <div style="height: 250px; position: relative;">
+                                    <div style="height: 180px; position: relative;">
                                         <canvas id="articleDevicesChart"></canvas>
                                     </div>
                                 </div>
                             ` : ''}
                         </div>
                     ` : `
-                        <div style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary); background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border);">
-                            <div style="font-size: 4rem; margin-bottom: 1.5rem; opacity: 0.5;"><i class="ri-bar-chart-line"></i></div>
-                            <h4 style="margin-bottom: 1rem;">No Analytics Data Yet</h4>
-                            <p style="font-size: 0.95rem; max-width: 400px; margin: 0 auto;">Analytics will appear once your article starts receiving views from visitors.</p>
+                        <div style="display: flex; align-items: center; justify-content: center; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--text-secondary);">
+                            <div>
+                                <i class="ri-bar-chart-line" style="font-size: 2.5rem; opacity: 0.5; margin-bottom: 1rem; display: block;"></i>
+                                <h5 style="margin-bottom: 0.5rem;">No Analytics Data</h5>
+                                <p style="font-size: 0.9rem; margin: 0;">Analytics will appear once your article receives views.</p>
+                            </div>
                         </div>
                     `}
                 </div>
 
-                <!-- Right Sidebar -->
-                <div style="display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; padding-left: 0.5rem;">
+                <!-- Sidebar -->
+                <div style="display: flex; flex-direction: column; gap: 1rem; overflow-y: auto;">
                     
-                    <!-- Article Images -->
+                    <!-- Images -->
                     ${article.images && article.images.length > 0 ? `
-                        <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem;">
-                            <h5 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="ri-image-line" style="color: var(--warning);"></i>
-                                Images (${article.images.length})
-                            </h5>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 0.75rem;">
+                        <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                            <h6 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Images (${article.images.length})</h6>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 0.5rem;">
                                 ${article.images.map(img => `
-                                    <div onclick="window.open('${img}', '_blank')" style="cursor: pointer; position: relative; border-radius: var(--radius); overflow: hidden; aspect-ratio: 1; background: var(--bg-tertiary); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                    <div onclick="window.open('${img}', '_blank')" style="cursor: pointer; aspect-ratio: 1; border-radius: 4px; overflow: hidden; background: var(--bg-tertiary); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                                         <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
-                                        <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; color: white;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0'">
-                                            <i class="ri-external-link-line"></i>
-                                        </div>
                                     </div>
                                 `).join('')}
                             </div>
                         </div>
                     ` : ''}
 
-                    <!-- Article Content Preview -->
-                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; flex: 1;">
-                        <h5 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="ri-file-text-line" style="color: var(--primary);"></i>
-                            Article Content
-                        </h5>
-                        <div style="max-height: 400px; overflow-y: auto; font-family: Georgia, serif; line-height: 1.6; font-size: 0.9rem;">
+                    <!-- Content Preview -->
+                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; flex: 1; min-height: 0;">
+                        <h6 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Content Preview</h6>
+                        <div style="overflow-y: auto; font-family: Georgia, serif; line-height: 1.5; font-size: 0.8rem; max-height: 300px;">
                             ${article.body}
                         </div>
                     </div>
 
-                    <!-- Article Details -->
-                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem;">
-                        <h5 style="margin-bottom: 1rem;">Article Details</h5>
-                        <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text-secondary);">
-                            <div style="margin-bottom: 0.75rem;"><strong>ID:</strong><br><code style="font-size: 0.75rem; background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: 3px;">${article.article_id}</code></div>
-                            <div style="margin-bottom: 0.75rem;"><strong>Created:</strong><br>${new Date(article.creation_date).toLocaleString()}</div>
-                            <div><strong>Total Views:</strong><br><span style="color: var(--primary); font-weight: 600;">${article.total_views || 0}</span></div>
-                        </div>
-                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                            <button class="btn btn-danger btn-sm" onclick="confirmDeleteArticle('${article.article_id}')" style="width: 100%;">
-                                <i class="ri-delete-bin-line"></i> Delete
-                            </button>
+                    <!-- Article Info -->
+                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                        <h6 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Details</h6>
+                        <div style="font-size: 0.8rem; line-height: 1.4; color: var(--text-secondary);">
+                            <div style="margin-bottom: 0.5rem;"><strong>ID:</strong><br><code style="font-size: 0.7rem;">${article.article_id}</code></div>
+                            <div><strong>Views:</strong> <span style="color: var(--primary); font-weight: 600;">${article.total_views || 0}</span></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        `, '98%');
 
-        // Initialize charts after modal is rendered
+        <style>
+            @media (max-width: 1024px) {
+                .modal { width: 95% !important; }
+                .modal-body > div { grid-template-columns: 1fr !important; }
+                .modal-body > div > div:last-child { grid-template-columns: 1fr 1fr !important; }
+            }
+            @media (max-width: 768px) {
+                .modal-body > div > div:last-child > div:first-child > div:last-child { grid-template-columns: 1fr !important; }
+                .modal-body > div > div:last-child { grid-template-columns: 1fr !important; }
+            }
+        </style>
+        `, '90vw');
+
+        // Initialize charts
         setTimeout(() => {
             initializeArticleCharts(countries, browsers, devices, sortedDates);
         }, 100);
@@ -3754,7 +3735,6 @@ function initializeArticleCharts(countries, browsers, devices, sortedDates) {
     const textColor = isDark ? '#e2e8f0' : '#1e293b';
     const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
     
-    // Common chart options
     const commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -3764,23 +3744,24 @@ function initializeArticleCharts(countries, browsers, devices, sortedDates) {
                 labels: {
                     color: textColor,
                     usePointStyle: true,
-                    padding: 15,
-                    font: { size: 11 }
+                    padding: 8,
+                    font: { size: 10 }
                 }
             },
             tooltip: {
                 backgroundColor: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.95)',
                 titleColor: textColor,
                 bodyColor: textColor,
-                borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                 borderWidth: 1,
-                cornerRadius: 8,
-                padding: 12
+                cornerRadius: 6,
+                padding: 8,
+                titleFont: { size: 11 },
+                bodyFont: { size: 10 }
             }
         }
     };
 
-    // Views Over Time Chart
+    // Timeline Chart
     if (sortedDates.length > 0) {
         const viewsChart = document.getElementById('articleViewsChart');
         if (viewsChart) {
@@ -3792,122 +3773,62 @@ function initializeArticleCharts(countries, browsers, devices, sortedDates) {
                         day: 'numeric'
                     })),
                     datasets: [{
-                        label: 'Daily Views',
+                        label: 'Views',
                         data: sortedDates.map(([, views]) => views),
                         borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
                         tension: 0.4,
                         fill: true,
-                        borderWidth: 3,
-                        pointBackgroundColor: '#6366f1',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
                     }]
                 },
                 options: {
                     ...commonOptions,
                     scales: {
                         x: {
-                            grid: {
-                                color: gridColor,
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: textColor,
-                                font: { size: 11 }
-                            }
+                            grid: { color: gridColor, drawBorder: false },
+                            ticks: { color: textColor, font: { size: 10 } }
                         },
                         y: {
-                            grid: {
-                                color: gridColor,
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: textColor,
-                                font: { size: 11 },
-                                beginAtZero: true
-                            }
+                            grid: { color: gridColor, drawBorder: false },
+                            ticks: { color: textColor, font: { size: 10 }, beginAtZero: true }
                         }
                     },
-                    plugins: {
-                        ...commonOptions.plugins,
-                        legend: { display: false }
-                    }
+                    plugins: { ...commonOptions.plugins, legend: { display: false } }
                 }
             });
         }
     }
 
-    // Countries Doughnut Chart
-    if (Object.keys(countries).length > 0) {
-        const countriesChart = document.getElementById('articleCountriesChart');
-        if (countriesChart) {
-            const countryData = Object.entries(countries).sort(([,a], [,b]) => b - a);
-            new Chart(countriesChart, {
-                type: 'doughnut',
-                data: {
-                    labels: countryData.map(([country]) => country),
-                    datasets: [{
-                        data: countryData.map(([, views]) => views),
-                        backgroundColor: ['#10b981', '#059669', '#047857', '#065f46', '#064e3b'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    ...commonOptions,
-                    cutout: '65%'
-                }
-            });
-        }
-    }
+    // Doughnut Charts
+    const chartConfigs = [
+        { id: 'articleCountriesChart', data: countries, colors: ['#10b981', '#059669', '#047857', '#065f46', '#064e3b'] },
+        { id: 'articleBrowsersChart', data: browsers, colors: ['#6366f1', '#4f46e5', '#4338ca', '#3730a3', '#312e81'] },
+        { id: 'articleDevicesChart', data: devices, colors: ['#f59e0b', '#d97706', '#b45309', '#92400e', '#78350f'] }
+    ];
 
-    // Browsers Doughnut Chart
-    if (Object.keys(browsers).length > 0) {
-        const browsersChart = document.getElementById('articleBrowsersChart');
-        if (browsersChart) {
-            const browserData = Object.entries(browsers).sort(([,a], [,b]) => b - a);
-            new Chart(browsersChart, {
-                type: 'doughnut',
-                data: {
-                    labels: browserData.map(([browser]) => browser.charAt(0).toUpperCase() + browser.slice(1)),
-                    datasets: [{
-                        data: browserData.map(([, views]) => views),
-                        backgroundColor: ['#6366f1', '#4f46e5', '#4338ca', '#3730a3', '#312e81'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    ...commonOptions,
-                    cutout: '65%'
-                }
-            });
+    chartConfigs.forEach(({ id, data, colors }) => {
+        if (Object.keys(data).length > 0) {
+            const chart = document.getElementById(id);
+            if (chart) {
+                const sortedData = Object.entries(data).sort(([,a], [,b]) => b - a);
+                new Chart(chart, {
+                    type: 'doughnut',
+                    data: {
+                        labels: sortedData.map(([key]) => key.charAt(0).toUpperCase() + key.slice(1)),
+                        datasets: [{
+                            data: sortedData.map(([, views]) => views),
+                            backgroundColor: colors,
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { ...commonOptions, cutout: '60%' }
+                });
+            }
         }
-    }
-
-    // Devices Doughnut Chart
-    if (Object.keys(devices).length > 0) {
-        const devicesChart = document.getElementById('articleDevicesChart');
-        if (devicesChart) {
-            const deviceData = Object.entries(devices).sort(([,a], [,b]) => b - a);
-            new Chart(devicesChart, {
-                type: 'doughnut',
-                data: {
-                    labels: deviceData.map(([device]) => device.charAt(0).toUpperCase() + device.slice(1)),
-                    datasets: [{
-                        data: deviceData.map(([, views]) => views),
-                        backgroundColor: ['#f59e0b', '#d97706', '#b45309', '#92400e', '#78350f'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    ...commonOptions,
-                    cutout: '65%'
-                }
-            });
-        }
-    }
+    });
 }
 
 async function editArticle(articleId) {

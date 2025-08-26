@@ -1422,7 +1422,7 @@ async function loadDashboard(page = 1) {
         };
 
         // Sort tasks by date (newest first)
-        const sortedTasks = (user.tasks || []).sort((a, b) =>
+        const sortedTasks = (user.tasks || []).sort((a, b) => 
             new Date(b.date_created) - new Date(a.date_created)
         );
 
@@ -1517,49 +1517,49 @@ async function loadDashboard(page = 1) {
         <tbody>
         ${sortedTasks.map(task => {
             const createdDate = new Date(task.date_created).toLocaleDateString('en-US', {
+                year: 'numeric',
                 month: 'short',
                 day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit'
             });
-
-            // Fixed budget calculation logic - show remaining budget in progress bar
+            
+            // Simplified budget calculation
             const totalCharge = task.total_charge;
             const availableCharge = task.available_charge;
             const remainingPercent = Math.max(0, task.remaining_percentage || 0);
-
-            // Calculate used amount and percentage
-            let usedAmount = 0;
-            let usedPercent = 0;
-            let progressBarWidth = 0;
+            
+            // Calculate display values
+            let displayPercent = remainingPercent;
+            let progressBarWidth = remainingPercent;
+            let progressColor = '#8b5cf6'; // Purple for 100%
             let statusText = '';
-            let progressColor = 'var(--success)'; // Green for remaining budget
-
-            if (remainingPercent <= 100) {
-                // Normal case: calculate used from remaining percentage
-                usedPercent = Math.max(0, 100 - remainingPercent);
-                usedAmount = (totalCharge * usedPercent) / 100;
-                progressBarWidth = remainingPercent; // Show remaining, not used
-                statusText = `Remaining: ${remainingPercent.toFixed(0)}%`;
-
-                // Color coding based on remaining budget
-                if (remainingPercent > 50) {
-                    progressColor = 'var(--success)'; // Green
-                } else if (remainingPercent > 20) {
-                    progressColor = 'var(--warning)'; // Yellow
+            
+            if (remainingPercent >= 100) {
+                // 100% or recharged - purple
+                progressColor = '#8b5cf6'; // Purple
+                displayPercent = remainingPercent;
+                if (remainingPercent > 100) {
+                    const rechargeAmount = availableCharge - totalCharge;
+                    statusText = `Recharged: +$${rechargeAmount.toFixed(2)}`;
+                    progressBarWidth = 100;
                 } else {
-                    progressColor = 'var(--error)'; // Red
+                    statusText = `${remainingPercent.toFixed(0)}%`;
                 }
+            } else if (remainingPercent >= 10) {
+                // 10% to 99% - green
+                progressColor = '#10b981'; // Green
+                displayPercent = remainingPercent;
+                statusText = `${remainingPercent.toFixed(0)}%`;
+                progressBarWidth = remainingPercent;
             } else {
-                // Recharged case: remaining > 100%
-                const rechargeAmount = availableCharge - totalCharge;
-                usedAmount = 0;
-                usedPercent = 0;
-                progressBarWidth = 100; // Show as full since it's recharged
-                statusText = `Recharged: +$${rechargeAmount.toFixed(2)}`;
-                progressColor = 'var(--primary)'; // Blue for recharged
+                // Below 10% - red
+                progressColor = '#ef4444'; // Red
+                displayPercent = remainingPercent;
+                statusText = `${remainingPercent.toFixed(0)}%`;
+                progressBarWidth = remainingPercent;
             }
-
+            
             return `
             <tr>
             <td>
@@ -1575,16 +1575,12 @@ async function loadDashboard(page = 1) {
             <span class="badge badge-success">${task.views_count}</span>
             </td>
             <td>
-            <div style="display: flex; flex-direction: column; gap: 0.25rem; min-width: 120px;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
-            <span>Used: $${usedAmount.toFixed(2)}</span>
-            <span>${usedPercent.toFixed(0)}%</span>
+            <div style="display: flex; flex-direction: column; gap: 0.25rem; min-width: 100px;">
+            <div style="display: flex; justify-content: center; font-size: 0.875rem; font-weight: 600;">
+            ${statusText}
             </div>
             <div class="progress-bar" style="height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden;">
             <div class="progress-fill" style="width: ${progressBarWidth}%; height: 100%; background: ${progressColor}; transition: width 0.3s ease, background-color 0.3s ease;"></div>
-            </div>
-            <div style="font-size: 0.75rem; color: var(--text-tertiary);">
-            ${statusText}
             </div>
             </div>
             </td>
@@ -1606,17 +1602,17 @@ async function loadDashboard(page = 1) {
         </table>
         </div>
 
-        <!-- Always show pagination with info on next line -->
+        <!-- Pagination with info inside the pagination class -->
         <div class="pagination">
         <button class="pagination-btn" ${pagination.current <= 1 ? 'disabled' : ''} onclick="loadDashboard(${pagination.current - 1})">
         <i class="ri-arrow-left-s-line"></i> Previous
         </button>
-
+        
         ${(() => {
             let paginationButtons = '';
             const totalPages = Math.max(1, pagination.pages);
             const currentPage = pagination.current;
-
+            
             if (totalPages <= 5) {
                 // Show all pages if 5 or fewer
                 for (let i = 1; i <= totalPages; i++) {
@@ -1630,14 +1626,14 @@ async function loadDashboard(page = 1) {
                         paginationButtons += '<span class="pagination-info">...</span>';
                     }
                 }
-
+                
                 const startPage = Math.max(1, currentPage - 1);
                 const endPage = Math.min(totalPages, currentPage + 1);
-
+                
                 for (let i = startPage; i <= endPage; i++) {
                     paginationButtons += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="loadDashboard(${i})">${i}</button>`;
                 }
-
+                
                 if (currentPage < totalPages - 1) {
                     if (currentPage < totalPages - 2) {
                         paginationButtons += '<span class="pagination-info">...</span>';
@@ -1645,18 +1641,17 @@ async function loadDashboard(page = 1) {
                     paginationButtons += `<button class="pagination-btn" onclick="loadDashboard(${totalPages})">${totalPages}</button>`;
                 }
             }
-
+            
             return paginationButtons;
         })()}
-
+        
         <button class="pagination-btn" ${!pagination.has_next ? 'disabled' : ''} onclick="loadDashboard(${pagination.current + 1})">
         Next <i class="ri-arrow-right-s-line"></i>
         </button>
-        </div>
-
-        <!-- Pagination info on separate line -->
-        <div style="text-align: center; margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+        
+        <div class="pagination-info">
         Page ${pagination.current} of ${Math.max(1, pagination.pages)} | Showing ${sortedTasks.length} of ${pagination.total} tasks
+        </div>
         </div>
         </div>
         </div>

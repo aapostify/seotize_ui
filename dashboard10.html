@@ -1878,18 +1878,39 @@ async function loadArticles(page = 1) {
             <div class="card-body" id="domainsList">
                 ${currentData.domains.length > 0 ? currentData.domains.map(domain => `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 0.5rem;">
-                        <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
                             <span class="badge badge-${domain.verified ? 'success' : 'warning'}">
                                 ${domain.verified ? '✓ Verified' : '⏳ Pending'}
                             </span>
-                            <span>${domain.domain}</span>
-                        </div>
-                        ${!domain.verified ? `
-                            <div style="display: flex; gap: 0.5rem;">
-                                <button class="btn btn-sm" onclick="showVerificationInstructions('${domain.domain}')">Instructions</button>
-                                <button class="btn btn-sm btn-primary" onclick="verifyDomain('${domain.domain}')">Verify Now</button>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">${domain.domain}</div>
+                                ${!domain.verified && domain.txt_record ? `
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                                        <strong>TXT Record:</strong>
+                                        <code style="background: var(--bg-tertiary); padding: 0.125rem 0.25rem; border-radius: 2px; margin-left: 0.25rem; font-size: 0.7rem;">${domain.txt_record}</code>
+                                    </div>
+                                ` : ''}
                             </div>
-                        ` : ''}
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            ${!domain.verified ? `
+                                ${domain.txt_record ? `
+                                    <button class="btn btn-sm" onclick="copyToClipboard('${domain.txt_record}')" title="Copy TXT Record">
+                                        <i class="ri-file-copy-line"></i>
+                                    </button>
+                                ` : ''}
+                                <button class="btn btn-sm" onclick="showVerificationInstructions('${domain.domain}', '${domain.txt_record || ''}')" title="Instructions">
+                                    <i class="ri-information-line"></i>
+                                </button>
+                                <button class="btn btn-sm btn-primary" onclick="verifyDomain('${domain.domain}')" title="Verify Now">
+                                    <i class="ri-check-line"></i>
+                                </button>
+                            ` : `
+                                <button class="btn btn-sm btn-danger" onclick="deleteDomain('${domain.domain}')" title="Remove Domain">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            `}
+                        </div>
                     </div>
                 `).join('') : `
                     <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
@@ -2037,20 +2058,6 @@ async function loadArticles(page = 1) {
         showErrorState('Failed to load articles and domains');
     }
 }
-
-// // Load Domains
-// async function loadDomains() {
-//     try {
-//         // Mock domains for demo since API endpoint not specified
-//         currentData.domains = [
-//             { url: 'example.com', verified: true },
-//             { url: 'blog.example.com', verified: false }
-//         ];
-//     } catch (error) {
-//         console.error('Domains error:', error);
-//         currentData.domains = [];
-//     }
-// }
 
 // Fixed Billing
 async function loadBilling(page = 1, type = 'all') {
@@ -3386,39 +3393,57 @@ async function verifyDomain(url) {
     }
 }
 
-function showVerificationInstructions(url) {
+function showVerificationInstructions(domain, txtRecord = '') {
     showModal('Domain Verification Instructions', `
     <div>
-    <h4>How to verify your domain: ${url}</h4>
-    <ol style="margin: 1.5rem 0; padding-left: 1.5rem;">
-    <li style="margin-bottom: 1rem;">
-    <strong>Access your DNS provider:</strong> Log in to your domain registrar or DNS hosting provider (like Cloudflare, GoDaddy, Namecheap, etc.)
-    </li>
-    <li style="margin-bottom: 1rem;">
-    <strong>Find DNS management:</strong> Look for "DNS Management", "DNS Settings", or "Zone Editor" in your control panel
-    </li>
-    <li style="margin-bottom: 1rem;">
-    <strong>Add TXT record:</strong> Create a new TXT record with the verification code we provided
-    </li>
-    <li style="margin-bottom: 1rem;">
-    <strong>Wait for propagation:</strong> DNS changes can take up to 24 hours to propagate globally
-    </li>
-    <li>
-    <strong>Click verify:</strong> Come back here and click "Verify Now" once you've added the record
-    </li>
-    </ol>
+        <h4>How to verify your domain: ${domain}</h4>
+        
+        ${txtRecord ? `
+            <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); margin: 1.5rem 0; border: 1px solid var(--border);">
+                <h5 style="margin-bottom: 0.5rem;">Your TXT Record:</h5>
+                <div style="background: var(--bg); padding: 0.75rem; border-radius: var(--radius-sm); font-family: monospace; word-break: break-all; border: 1px solid var(--border);">
+                    ${txtRecord}
+                </div>
+                <button class="btn btn-sm btn-primary" onclick="copyToClipboard('${txtRecord}')" style="margin-top: 0.5rem;">
+                    <i class="ri-file-copy-line"></i> Copy TXT Record
+                </button>
+            </div>
+        ` : ''}
 
-    <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); margin: 1rem 0;">
-    <p style="font-size: 0.875rem; margin: 0;">
-    <strong>Tip:</strong> You can use online DNS checker tools to verify if your TXT record has been added correctly.
-    </p>
-    </div>
+        <ol style="margin: 1.5rem 0; padding-left: 1.5rem;">
+            <li style="margin-bottom: 1rem;">
+                <strong>Access your DNS provider:</strong> Log in to your domain registrar or DNS hosting provider (like Cloudflare, GoDaddy, Namecheap, etc.)
+            </li>
+            <li style="margin-bottom: 1rem;">
+                <strong>Find DNS management:</strong> Look for "DNS Management", "DNS Settings", or "Zone Editor" in your control panel
+            </li>
+            <li style="margin-bottom: 1rem;">
+                <strong>Add TXT record:</strong> Create a new TXT record with:
+                <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                    <li><strong>Type:</strong> TXT</li>
+                    <li><strong>Name:</strong> @ (or leave blank for root domain)</li>
+                    <li><strong>Value:</strong> ${txtRecord || 'The verification code shown above'}</li>
+                </ul>
+            </li>
+            <li style="margin-bottom: 1rem;">
+                <strong>Wait for propagation:</strong> DNS changes can take up to 24 hours to propagate globally
+            </li>
+            <li>
+                <strong>Click verify:</strong> Come back here and click "Verify Now" once you've added the record
+            </li>
+        </ol>
 
-    <div style="display: flex; justify-content: center; margin-top: 2rem;">
-    <button class="btn btn-primary" onclick="verifyDomain('${url}')">
-    <i class="ri-check-line"></i> Try Verification Again
-    </button>
-    </div>
+        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); margin: 1rem 0;">
+            <p style="font-size: 0.875rem; margin: 0;">
+                <strong>Tip:</strong> You can use online DNS checker tools to verify if your TXT record has been added correctly.
+            </p>
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-top: 2rem;">
+            <button class="btn btn-primary" onclick="verifyDomain('${domain}')">
+                <i class="ri-check-line"></i> Try Verification Again
+            </button>
+        </div>
     </div>
     `);
 }

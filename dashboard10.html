@@ -1834,137 +1834,223 @@ async function loadImages(page = 1) {
 }
 
 // Articles with Domains
+// Fixed Articles Loading with correct API endpoint
 async function loadArticles(page = 1) {
     try {
         showSpinner();
-        // Load domains first
-        await loadDomains();
-
+        
+        // Single API call gets both articles and domains
         const response = await api(`/dashboard/articles?page=${page}&page_size=10`);
         const { data, pagination } = response;
 
+        // Extract articles and domains from the response
         currentData.articles = data.articles || [];
+        currentData.domains = data.user?.domains || [];
+        
+        // Update pagination state
         paginationState.articles = {
-            page: pagination.current,
-            pageSize: pagination.size,
-            total: pagination.total,
-            hasNext: pagination.has_next
+            page: pagination.current || page,
+            pageSize: pagination.size || 10,
+            total: pagination.total || 0,
+            hasNext: pagination.has_next || false
         };
 
         const content = document.getElementById('content');
         content.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h2 style="font-size: 1.5rem; font-weight: 700;">Articles & Domains</h2>
-        <div style="display: flex; gap: 1rem;">
-        <button class="btn btn-secondary" onclick="showDomainModal()">
-        <i class="ri-global-line"></i> Add Domain
-        </button>
-        <button class="btn btn-primary" onclick="showArticleModal()">
-        <i class="ri-add-line"></i> Create Article
-        </button>
-        </div>
-        </div>
-
-        <div class="card" style="margin-bottom: 1.5rem">
-        <div class="card-header">
-        <h3 class="card-title">Domain Verification</h3>
-        <span class="badge badge-primary">${currentData.domains.length} domains</span>
-        </div>
-        <div class="card-body" id="domainsList">
-        ${currentData.domains.length > 0 ? currentData.domains.map(domain => `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 0.5rem;">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-            <span class="badge badge-${domain.verified ? 'success' : 'warning'}">
-            ${domain.verified ? '✓ Verified' : '⏳ Pending'}
-            </span>
-            <span>${domain.url}</span>
+            <h2 style="font-size: 1.5rem; font-weight: 700;">Articles & Domains</h2>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-secondary" onclick="showDomainModal()">
+                    <i class="ri-global-line"></i> Add Domain
+                </button>
+                <button class="btn btn-primary" onclick="showArticleModal()">
+                    <i class="ri-add-line"></i> Create Article
+                </button>
             </div>
-            ${!domain.verified ? `
-                <div style="display: flex; gap: 0.5rem;">
-                <button class="btn btn-sm" onclick="showVerificationInstructions('${domain.url}')">Instructions</button>
-                <button class="btn btn-sm btn-primary" onclick="verifyDomain('${domain.url}')">Verify Now</button>
-                </div>
-                ` : ''}
-                </div>
-                `).join('') : `
-                <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                No domains added yet. Add a domain to start publishing articles.
-                </div>
-                `}
-                </div>
-                </div>
+        </div>
 
-                <div class="card">
-                <div class="card-header">
-                <h3 class="card-title">Published Articles</h3>
-                <span class="badge badge-primary">${currentData.articles.length} articles</span>
-                </div>
-                <div class="card-body">
-                ${currentData.articles.map(article => `
-                    <div style="padding: 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: start;">
-                    <div style="flex: 1;">
-                    <h4 style="margin-bottom: 0.5rem;">${article.subject}</h4>
-                    <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
-                    ${article.url} • ${new Date(article.creation_date).toLocaleDateString()} • ${article.total_views || 0} views
-                    </div>
-                    ${article.images?.length ? `
-                        <div style="display: flex; gap: 0.25rem; margin-bottom: 0.5rem;">
-                        ${article.images.slice(0, 3).map(img => `
-                            <img src="${img}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
-                            `).join('')}
-                            ${article.images.length > 3 ? `<span style="font-size: 0.75rem; color: var(--text-secondary);">+${article.images.length - 3} more</span>` : ''}
-                            </div>
-                            ` : ''}
-                            </div>
+        <!-- Domains Section -->
+        <div class="card" style="margin-bottom: 1.5rem">
+            <div class="card-header">
+                <h3 class="card-title">Domain Verification</h3>
+                <span class="badge badge-primary">${currentData.domains.length} domains</span>
+            </div>
+            <div class="card-body" id="domainsList">
+                ${currentData.domains.length > 0 ? currentData.domains.map(domain => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span class="badge badge-${domain.verified ? 'success' : 'warning'}">
+                                ${domain.verified ? '✓ Verified' : '⏳ Pending'}
+                            </span>
+                            <span>${domain.domain}</span>
+                        </div>
+                        ${!domain.verified ? `
                             <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-sm" onclick="viewArticle('${article.article_id}')">
-                            <i class="ri-eye-line"></i> View
-                            </button>
-                            <button class="btn btn-sm" onclick="editArticle('${article.article_id}')">
-                            <i class="ri-edit-line"></i> Edit
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteArticle('${article.article_id}')">
-                            <i class="ri-delete-bin-line"></i> Delete
-                            </button>
+                                <button class="btn btn-sm" onclick="showVerificationInstructions('${domain.domain}')">Instructions</button>
+                                <button class="btn btn-sm btn-primary" onclick="verifyDomain('${domain.domain}')">Verify Now</button>
                             </div>
-                            </div>
+                        ` : ''}
+                    </div>
+                `).join('') : `
+                    <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                        No domains added yet. Add a domain to start publishing articles.
+                    </div>
+                `}
+            </div>
+        </div>
+
+        <!-- Articles Section -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Published Articles</h3>
+                <span class="badge badge-primary">${paginationState.articles.total} articles</span>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Domain</th>
+                                <th>Published</th>
+                                <th>Views</th>
+                                <th>Images</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${currentData.articles.map(article => `
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 600; margin-bottom: 0.25rem;">${article.subject}</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-secondary);">ID: ${article.article_id}</div>
+                                    </td>
+                                    <td>
+                                        <a href="https://${article.url}" target="_blank" class="badge badge-primary" style="text-decoration: none;">
+                                            ${article.url}
+                                        </a>
+                                    </td>
+                                    <td style="font-size: 0.875rem; color: var(--text-secondary);">
+                                        ${new Date(article.creation_date).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric'
+                                        })}
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-success">${article.total_views || 0}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-warning">${(article.images || []).length}</span>
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; gap: 0.25rem;">
+                                            <button class="btn btn-sm" onclick="viewArticle('${article.article_id}')" title="View Details">
+                                                <i class="ri-eye-line"></i>
+                                            </button>
+                                            <button class="btn btn-sm" onclick="editArticle('${article.article_id}')" title="Edit">
+                                                <i class="ri-edit-line"></i>
+                                            </button>
+                                            <button class="btn btn-sm" onclick="window.open('https://${article.url}', '_blank')" title="View Live">
+                                                <i class="ri-external-link-line"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteArticle('${article.article_id}')" title="Delete">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
                             `).join('')}
+                        </tbody>
+                    </table>
+                </div>
 
-                            ${currentData.articles.length === 0 ? `
-                                <div class="empty-state">
-                                <div class="empty-state-icon">
-                                <i class="ri-article-line"></i>
-                                </div>
-                                <div class="empty-state-title">No Articles Published</div>
-                                <div class="empty-state-description">Create your first article to start publishing content</div>
-                                <button class="btn btn-primary" onclick="showArticleModal()">Create First Article</button>
-                                </div>
-                                ` : ''}
-                                </div>
-                                </div>
+                ${currentData.articles.length === 0 ? `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="ri-article-line"></i>
+                        </div>
+                        <div class="empty-state-title">No Articles Published</div>
+                        <div class="empty-state-description">Create your first article to start publishing content</div>
+                        <button class="btn btn-primary" onclick="showArticleModal()">Create First Article</button>
+                    </div>
+                ` : ''}
 
-                                ${paginationState.articles.total > paginationState.articles.pageSize ? generatePagination('articles', loadArticles) : ''}
-                                `;
+                <!-- Pagination -->
+                ${paginationState.articles.total > paginationState.articles.pageSize ? `
+                    <div class="pagination" style="margin-top: 1.5rem;">
+                        <button class="pagination-btn" ${paginationState.articles.page <= 1 ? 'disabled' : ''} onclick="loadArticles(${paginationState.articles.page - 1})">
+                            <i class="ri-arrow-left-s-line"></i> Previous
+                        </button>
+                        
+                        ${(() => {
+                            let paginationButtons = '';
+                            const totalPages = Math.ceil(paginationState.articles.total / paginationState.articles.pageSize);
+                            const currentPage = paginationState.articles.page;
+                            
+                            if (totalPages <= 5) {
+                                for (let i = 1; i <= totalPages; i++) {
+                                    paginationButtons += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="loadArticles(${i})">${i}</button>`;
+                                }
+                            } else {
+                                if (currentPage > 2) {
+                                    paginationButtons += `<button class="pagination-btn" onclick="loadArticles(1)">1</button>`;
+                                    if (currentPage > 3) {
+                                        paginationButtons += '<span class="pagination-info">...</span>';
+                                    }
+                                }
+                                
+                                const startPage = Math.max(1, currentPage - 1);
+                                const endPage = Math.min(totalPages, currentPage + 1);
+                                
+                                for (let i = startPage; i <= endPage; i++) {
+                                    paginationButtons += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="loadArticles(${i})">${i}</button>`;
+                                }
+                                
+                                if (currentPage < totalPages - 1) {
+                                    if (currentPage < totalPages - 2) {
+                                        paginationButtons += '<span class="pagination-info">...</span>';
+                                    }
+                                    paginationButtons += `<button class="pagination-btn" onclick="loadArticles(${totalPages})">${totalPages}</button>`;
+                                }
+                            }
+                            
+                            return paginationButtons;
+                        })()}
+                        
+                        <button class="pagination-btn" ${!paginationState.articles.hasNext ? 'disabled' : ''} onclick="loadArticles(${paginationState.articles.page + 1})">
+                            Next <i class="ri-arrow-right-s-line"></i>
+                        </button>
+                        
+                        <div class="pagination-info">
+                            Page ${paginationState.articles.page} of ${Math.ceil(paginationState.articles.total / paginationState.articles.pageSize)} | 
+                            Showing ${currentData.articles.length} of ${paginationState.articles.total} articles
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+        `;
 
     } catch (error) {
         console.error('Articles error:', error);
-        showErrorState('Failed to load articles');
+        showErrorState('Failed to load articles and domains');
     }
 }
 
-// Load Domains
-async function loadDomains() {
-    try {
-        // Mock domains for demo since API endpoint not specified
-        currentData.domains = [
-            { url: 'example.com', verified: true },
-            { url: 'blog.example.com', verified: false }
-        ];
-    } catch (error) {
-        console.error('Domains error:', error);
-        currentData.domains = [];
-    }
-}
+// // Load Domains
+// async function loadDomains() {
+//     try {
+//         // Mock domains for demo since API endpoint not specified
+//         currentData.domains = [
+//             { url: 'example.com', verified: true },
+//             { url: 'blog.example.com', verified: false }
+//         ];
+//     } catch (error) {
+//         console.error('Domains error:', error);
+//         currentData.domains = [];
+//     }
+// }
 
 // Fixed Billing
 async function loadBilling(page = 1, type = 'all') {
@@ -3337,7 +3423,7 @@ function showVerificationInstructions(url) {
     `);
 }
 
-// Article Modal
+// Article Modal - Fixed
 function showArticleModal(articleId = null) {
     const isEdit = !!articleId;
 
@@ -3348,7 +3434,7 @@ function showArticleModal(articleId = null) {
     <select class="form-select" name="url" required>
     <option value="">Select a verified domain...</option>
     ${currentData.domains.filter(d => d.verified).map(domain => `
-        <option value="${domain.url}">${domain.url}</option>
+        <option value="${domain.domain}">${domain.domain}</option>
         `).join('')}
         </select>
         ${currentData.domains.filter(d => d.verified).length === 0 ? `
@@ -3401,14 +3487,18 @@ function showArticleModal(articleId = null) {
 async function createArticle(e) {
     const formData = new FormData(e.target);
 
-    // Check if domain is verified
+    // Check if domain is verified - Fixed to use domain.domain
     const selectedDomain = formData.get('url');
-    const verifiedDomain = currentData.domains.find(d => d.url === selectedDomain && d.verified);
+    const verifiedDomain = currentData.domains.find(d => d.domain === selectedDomain && d.verified);
 
     if (!verifiedDomain) {
         showToast('Please select a verified domain', 'error');
         return;
     }
+
+    const createButton = e.target.querySelector('button[type="submit"]');
+    createButton.innerHTML = '<i class="ri-loader-line"></i> Creating Article...';
+    createButton.disabled = true;
 
     try {
         const response = await fetch(`${API_BASE}/add-article`, {
@@ -3432,6 +3522,9 @@ async function createArticle(e) {
     } catch (error) {
         console.error('Create article error:', error);
         showToast('Failed to create article: ' + error.message, 'error');
+    } finally {
+        createButton.innerHTML = 'Create Article';
+        createButton.disabled = false;
     }
 }
 

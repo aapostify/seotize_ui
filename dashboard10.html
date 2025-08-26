@@ -1790,28 +1790,28 @@ async function loadImages(page = 1) {
 
         <div class="media-grid">
         ${currentData.images.map(image => `
-            <div class="media-card">
-            <div class="media-preview">
+    <div class="media-card">
+        <div class="media-preview" onclick="window.open('${image.cdn_url}', '_blank')" style="cursor: pointer;" title="Click to open full image">
             <img src="${image.cdn_url}" alt="${image.original_filename}" loading="lazy">
-            </div>
-            <div class="media-info">
+        </div>
+        <div class="media-info">
             <div class="media-filename">${image.original_filename}</div>
             <div class="media-stats">
-            <span>${image.total_views} views</span>
-            <span>${new Date(image.upload_date).toLocaleDateString()}</span>
+                <span>${image.total_views} views</span>
+                <span>${new Date(image.upload_date).toLocaleDateString()}</span>
             </div>
             <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
-            <button class="btn btn-sm" onclick="showImageDetails('${image.image_id}')">
-            <i class="ri-eye-line"></i> Details
-            </button>
-            <button class="btn btn-sm btn-danger" onclick="deleteImage('${image.image_id}')">
-            <i class="ri-delete-bin-line"></i> Delete
-            </button>
+                <button class="btn btn-sm" onclick="showImageDetails('${image.image_id}')">
+                    <i class="ri-eye-line"></i> Details
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteImage('${image.image_id}')">
+                    <i class="ri-delete-bin-line"></i> Delete
+                </button>
             </div>
-            </div>
-            </div>
-            `).join('')}
-            </div>
+        </div>
+    </div>
+        `).join('')}
+        </div>
 
             ${currentData.images.length === 0 ? `
                 <div class="empty-state">
@@ -3761,12 +3761,12 @@ async function showImageDetails(imageId) {
                         <i class="ri-external-link-line"></i> Full Size
                     </div>
                 </div>
-                
+
                 <div class="stat-card" style="text-align: center; margin-bottom: 1rem;">
                     <div class="stat-value" style="font-size: 2rem; color: var(--primary);">${image.total_views}</div>
                     <div class="stat-label">Total Views</div>
                 </div>
-                
+
                 <div style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
                     <div style="margin-bottom: 0.75rem;">
                         <strong>Filename:</strong><br>
@@ -3783,8 +3783,8 @@ async function showImageDetails(imageId) {
                     </div>
                     <div style="margin-bottom: 0.75rem;">
                         <strong>Available Formats:</strong><br>
-                        ${Object.keys(image.formats || {}).length > 0 ? 
-                            Object.entries(image.formats).map(([format, count]) => 
+                        ${Object.keys(image.formats || {}).length > 0 ?
+                            Object.entries(image.formats).map(([format, count]) =>
                                 `${format.toUpperCase()} (${count} views)`
                             ).join(', ') : 'Original only'
                         }

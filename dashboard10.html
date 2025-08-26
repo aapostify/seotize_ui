@@ -1834,7 +1834,6 @@ async function loadImages(page = 1) {
 }
 
 // Articles with Domains
-// Fixed Articles Loading with correct API endpoint
 async function loadArticles(page = 1) {
     try {
         showSpinner();
@@ -1878,39 +1877,18 @@ async function loadArticles(page = 1) {
             <div class="card-body" id="domainsList">
                 ${currentData.domains.length > 0 ? currentData.domains.map(domain => `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 0.5rem;">
-                        <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
                             <span class="badge badge-${domain.verified ? 'success' : 'warning'}">
                                 ${domain.verified ? '✓ Verified' : '⏳ Pending'}
                             </span>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600;">${domain.domain}</div>
-                                ${!domain.verified && domain.txt_record ? `
-                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
-                                        <strong>TXT Record:</strong>
-                                        <code style="background: var(--bg-tertiary); padding: 0.125rem 0.25rem; border-radius: 2px; margin-left: 0.25rem; font-size: 0.7rem;">${domain.txt_record}</code>
-                                    </div>
-                                ` : ''}
+                            <span>${domain.domain}</span>
+                        </div>
+                        ${!domain.verified ? `
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-sm" onclick="showVerificationInstructions('${domain.domain}', '${domain.txt_record || ''}')">Instructions</button>
+                                <button class="btn btn-sm btn-primary" onclick="verifyDomain('${domain.domain}')">Verify Now</button>
                             </div>
-                        </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            ${!domain.verified ? `
-                                ${domain.txt_record ? `
-                                    <button class="btn btn-sm" onclick="copyToClipboard('${domain.txt_record}')" title="Copy TXT Record">
-                                        <i class="ri-file-copy-line"></i>
-                                    </button>
-                                ` : ''}
-                                <button class="btn btn-sm" onclick="showVerificationInstructions('${domain.domain}', '${domain.txt_record || ''}')" title="Instructions">
-                                    <i class="ri-information-line"></i>
-                                </button>
-                                <button class="btn btn-sm btn-primary" onclick="verifyDomain('${domain.domain}')" title="Verify Now">
-                                    <i class="ri-check-line"></i>
-                                </button>
-                            ` : `
-                                <button class="btn btn-sm btn-danger" onclick="deleteDomain('${domain.domain}')" title="Remove Domain">
-                                    <i class="ri-delete-bin-line"></i>
-                                </button>
-                            `}
-                        </div>
+                        ` : ''}
                     </div>
                 `).join('') : `
                     <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">

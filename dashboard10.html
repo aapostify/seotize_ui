@@ -3554,39 +3554,50 @@ async function viewArticle(articleId) {
         Object.entries(stats).forEach(([month, monthStats]) => {
             if (monthStats.country) {
                 Object.entries(monthStats.country).forEach(([country, views]) => {
-                    countries[country.toUpperCase()] = (countries[country.toUpperCase()] || 0) + views;
+                    const key = String(country || '').toUpperCase();
+                    countries[key] = (countries[key] || 0) + views;
                 });
             }
             if (monthStats.browser) {
                 Object.entries(monthStats.browser).forEach(([browser, views]) => {
-                    browsers[browser] = (browsers[browser] || 0) + views;
+                    const key = String(browser || '');
+                    browsers[key] = (browsers[key] || 0) + views;
                 });
             }
             if (monthStats.devices) {
                 Object.entries(monthStats.devices).forEach(([device, views]) => {
-                    devices[device] = (devices[device] || 0) + views;
+                    const key = String(device || '');
+                    devices[key] = (devices[key] || 0) + views;
                 });
             }
             if (monthStats.daily) {
                 Object.entries(monthStats.daily).forEach(([day, views]) => {
                     const [year, monthNum] = month.split('-');
-                    const fullDate = `${year}-${monthNum}-${day.padStart(2, '0')}`;
-                    viewsByDate[fullDate] = views;
+                    const fullDate = `${year}-${monthNum}-${String(day).padStart(2, '0')}`;
+                    viewsByDate[fullDate] = (viewsByDate[fullDate] || 0) + views;
                 });
             }
         });
 
-        const sortedDates = Object.entries(viewsByDate).sort(([a], [b]) => new Date(a) - new Date(b));
+        const sortedDates = Object
+            .entries(viewsByDate)
+            .sort(([a], [b]) => new Date(a) - new Date(b));
+
+        const haveStats = Object.keys(stats).length > 0;
+        const haveCountries = Object.keys(countries).length > 0;
+        const haveBrowsers = Object.keys(browsers).length > 0;
+        const haveDevices = Object.keys(devices).length > 0;
+        const haveTimeline = sortedDates.length > 0;
 
         showModal('Article Analytics', `
         <div style="height: 80vh; display: grid; grid-template-rows: auto 1fr; gap: 1rem;">
 
             <!-- Compact Header -->
-            <div style="display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center; padding: 1rem; background: var(--primary); color: white; border-radius: var(--radius); margin: -1.5rem -1.5rem 0 -1.5rem;">
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center; padding: 0.75rem 1rem; background: var(--primary); color: white; border-radius: var(--radius); margin: -1.5rem -1.5rem 0 -1.5rem;">
                 <div>
-                    <h4 style="color: white; margin-bottom: 0.5rem; font-size: 1.1rem; line-height: 1.2;">${article.subject}</h4>
-                    <div style="display: flex; gap: 1rem; font-size: 0.85rem; opacity: 0.9;">
-                        <span><i class="ri-global-line"></i> ${article.url}</span>
+                    <h4 style="color: white; margin-bottom: 0.5rem; font-size: 1.05rem; line-height: 1.2;">${article.subject}</h4>
+                    <div style="display: flex; gap: 1rem; font-size: 0.85rem; opacity: 0.9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <span title="${article.url}"><i class="ri-global-line"></i> ${article.url}</span>
                         <span><i class="ri-eye-line"></i> ${article.total_views || 0} views</span>
                         <span><i class="ri-calendar-line"></i> ${new Date(article.creation_date).toLocaleDateString()}</span>
                     </div>
@@ -3610,53 +3621,58 @@ async function viewArticle(articleId) {
                 <!-- Charts Area -->
                 <div style="display: flex; flex-direction: column; gap: 1rem; overflow: hidden;">
 
-                    ${Object.keys(stats).length > 0 ? `
-                        <!-- Timeline Chart -->
-                        ${sortedDates.length > 0 ? `
-                            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
-                                <h6 style="margin-bottom: 0.75rem; color: var(--primary); font-size: 0.9rem;">Views Timeline</h6>
-                                <div style="height: 200px; position: relative;">
-                                    <canvas id="articleViewsChart"></canvas>
-                                </div>
+                    ${haveStats ? `
+                        <!-- Top Row: Timeline + Devices -->
+                        ${(haveTimeline || haveDevices) ? `
+                            <div style="display: grid; grid-template-columns: ${haveDevices ? '2fr 1fr' : '1fr'}; gap: 1rem;">
+                                ${haveTimeline ? `
+                                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem;">
+                                        <h6 style="margin-bottom: 0.5rem; color: var(--primary); font-size: 0.9rem;">Views Timeline</h6>
+                                        <div style="height: 220px; position: relative;">
+                                            <canvas id="articleViewsChart"></canvas>
+                                        </div>
+                                    </div>
+                                ` : ''}
+
+                                ${haveDevices ? `
+                                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem;">
+                                        <h6 style="margin-bottom: 0.5rem; color: var(--warning); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
+                                            <i class="ri-smartphone-line"></i> Devices
+                                        </h6>
+                                        <div style="height: 200px; position: relative;">
+                                            <canvas id="articleDevicesChart"></canvas>
+                                        </div>
+                                    </div>
+                                ` : ''}
                             </div>
                         ` : ''}
 
-                        <!-- Analytics Grid -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; flex: 1;">
-
-                            ${Object.keys(countries).length > 0 ? `
-                                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
-                                    <h6 style="margin-bottom: 0.75rem; color: var(--success); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
-                                        <i class="ri-global-line"></i> Countries
-                                    </h6>
-                                    <div style="height: 180px; position: relative;">
-                                        <canvas id="articleCountriesChart"></canvas>
+                        <!-- Bottom Grid: Countries + Browsers -->
+                        ${(haveCountries || haveBrowsers) ? `
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                ${haveCountries ? `
+                                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem;">
+                                        <h6 style="margin-bottom: 0.5rem; color: var(--success); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
+                                            <i class="ri-global-line"></i> Countries
+                                        </h6>
+                                        <div style="height: 200px; position: relative;">
+                                            <canvas id="articleCountriesChart"></canvas>
+                                        </div>
                                     </div>
-                                </div>
-                            ` : ''}
+                                ` : ''}
 
-                            ${Object.keys(browsers).length > 0 ? `
-                                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
-                                    <h6 style="margin-bottom: 0.75rem; color: var(--primary); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
-                                        <i class="ri-computer-line"></i> Browsers
-                                    </h6>
-                                    <div style="height: 180px; position: relative;">
-                                        <canvas id="articleBrowsersChart"></canvas>
+                                ${haveBrowsers ? `
+                                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem;">
+                                        <h6 style="margin-bottom: 0.5rem; color: var(--primary); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
+                                            <i class="ri-computer-line"></i> Browsers
+                                        </h6>
+                                        <div style="height: 200px; position: relative;">
+                                            <canvas id="articleBrowsersChart"></canvas>
+                                        </div>
                                     </div>
-                                </div>
-                            ` : ''}
-
-                            ${Object.keys(devices).length > 0 ? `
-                                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
-                                    <h6 style="margin-bottom: 0.75rem; color: var(--warning); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
-                                        <i class="ri-smartphone-line"></i> Devices
-                                    </h6>
-                                    <div style="height: 180px; position: relative;">
-                                        <canvas id="articleDevicesChart"></canvas>
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
                     ` : `
                         <div style="display: flex; align-items: center; justify-content: center; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--text-secondary);">
                             <div>
@@ -3706,19 +3722,20 @@ async function viewArticle(articleId) {
         </div>
 
         <style>
+            /* Make modal header tighter */
+            .modal-header { padding: 6px 10px !important; }
+
             @media (max-width: 1024px) {
                 .modal { width: 95% !important; }
                 .modal-body > div { grid-template-columns: 1fr !important; }
-                .modal-body > div > div:last-child { grid-template-columns: 1fr 1fr !important; }
             }
             @media (max-width: 768px) {
-                .modal-body > div > div:last-child > div:first-child > div:last-child { grid-template-columns: 1fr !important; }
                 .modal-body > div > div:last-child { grid-template-columns: 1fr !important; }
             }
         </style>
         `, '90vw');
 
-        // Initialize charts
+        // Initialize charts after DOM paints
         setTimeout(() => {
             initializeArticleCharts(countries, browsers, devices, sortedDates);
         }, 100);
@@ -3729,64 +3746,11 @@ async function viewArticle(articleId) {
     }
 }
 
-// Updated chart initialization with better styling
+// Charts
 function initializeArticleCharts(countries, browsers, devices, sortedDates) {
-    // 1) Tighten modal header padding
-    const mh = document.querySelector('.modal-header');
-    if (mh) mh.style.padding = '6px 10px';
-
     const isDark = document.body.getAttribute('data-theme') === 'dark';
     const textColor = isDark ? '#e2e8f0' : '#1e293b';
     const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
-
-    // 2) Build a side-by-side row for Views + Devices (no HTML edits needed)
-    const viewsCanvas = document.getElementById('articleViewsChart');
-    const devicesCanvas = document.getElementById('articleDevicesChart');
-
-    if (viewsCanvas && devicesCanvas) {
-        // Wrap only once
-        let row = document.getElementById('viewsDevicesRow');
-        if (!row) {
-            // Create row
-            row = document.createElement('div');
-            row.id = 'viewsDevicesRow';
-            Object.assign(row.style, {
-                display: 'flex',
-                gap: '12px',
-                alignItems: 'stretch',
-                width: '100%',
-                marginBottom: '12px'
-            });
-
-            // Find a sensible parent: use the charts' current parent or modal body
-            const parent = viewsCanvas.parentElement || document.querySelector('.modal-body') || document.body;
-            parent.insertBefore(row, parent.firstChild);
-        }
-
-        // Left and right columns
-        let left = document.getElementById('viewsCol');
-        let right = document.getElementById('devicesCol');
-        if (!left) {
-            left = document.createElement('div');
-            left.id = 'viewsCol';
-            Object.assign(left.style, { flex: '1 1 66%', minWidth: '0', height: '260px' });
-            row.appendChild(left);
-        }
-        if (!right) {
-            right = document.createElement('div');
-            right.id = 'devicesCol';
-            Object.assign(right.style, { flex: '1 1 34%', minWidth: '220px', maxWidth: '380px', height: '220px' });
-            row.appendChild(right);
-        }
-
-        // Move canvases into columns
-        if (viewsCanvas.parentElement !== left) left.appendChild(viewsCanvas);
-        if (devicesCanvas.parentElement !== right) right.appendChild(devicesCanvas);
-
-        // Ensure canvases fill their columns
-        Object.assign(viewsCanvas.style, { width: '100%', height: '100%' });
-        Object.assign(devicesCanvas.style, { width: '100%', height: '100%' });
-    }
 
     const commonOptions = {
         responsive: true,
@@ -3815,11 +3779,11 @@ function initializeArticleCharts(countries, browsers, devices, sortedDates) {
         }
     };
 
-    // Timeline Chart (left)
-    if (sortedDates.length > 0) {
-        const viewsChartEl = document.getElementById('articleViewsChart');
-        if (viewsChartEl) {
-            new Chart(viewsChartEl, {
+    // Timeline
+    if (sortedDates && sortedDates.length > 0) {
+        const viewsChart = document.getElementById('articleViewsChart');
+        if (viewsChart) {
+            new Chart(viewsChart, {
                 type: 'line',
                 data: {
                     labels: sortedDates.map(([date]) =>
@@ -3829,7 +3793,7 @@ function initializeArticleCharts(countries, browsers, devices, sortedDates) {
                         label: 'Views',
                         data: sortedDates.map(([, views]) => views),
                         borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.12)',
                         tension: 0.35,
                         fill: true,
                         borderWidth: 2,
@@ -3855,7 +3819,7 @@ function initializeArticleCharts(countries, browsers, devices, sortedDates) {
         }
     }
 
-    // Doughnut Charts (Devices is now at the top-right)
+    // Doughnuts
     const chartConfigs = [
         { id: 'articleCountriesChart', data: countries, colors: ['#10b981', '#059669', '#047857', '#065f46', '#064e3b'] },
         { id: 'articleBrowsersChart', data: browsers, colors: ['#6366f1', '#4f46e5', '#4338ca', '#3730a3', '#312e81'] },
@@ -3864,37 +3828,31 @@ function initializeArticleCharts(countries, browsers, devices, sortedDates) {
 
     chartConfigs.forEach(({ id, data, colors }) => {
         if (data && Object.keys(data).length > 0) {
-            const canvas = document.getElementById(id);
-            if (canvas) {
-                // Make sure non-top charts still have reasonable height
-                if (id !== 'articleDevicesChart' && !canvas.style.height) {
-                    canvas.style.height = '220px';
-                    canvas.style.width = '100%';
-                }
-                const sortedData = Object.entries(data).sort(([, a], [, b]) => b - a);
-                new Chart(canvas, {
-                    type: 'doughnut',
-                    data: {
-                        labels: sortedData.map(([key]) => key.charAt(0).toUpperCase() + key.slice(1)),
-                        datasets: [{
-                            data: sortedData.map(([, views]) => views),
-                            backgroundColor: colors,
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        ...commonOptions,
-                        cutout: '60%',
-                        plugins: {
-                            ...commonOptions.plugins,
-                            legend: {
-                                ...commonOptions.plugins.legend,
-                                display: true
-                            }
+            const el = document.getElementById(id);
+            if (!el) return;
+            const sortedData = Object.entries(data).sort(([, a], [, b]) => b - a);
+            new Chart(el, {
+                type: 'doughnut',
+                data: {
+                    labels: sortedData.map(([key]) => key.charAt(0).toUpperCase() + key.slice(1)),
+                    datasets: [{
+                        data: sortedData.map(([, v]) => v),
+                        backgroundColor: colors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    cutout: '60%',
+                    plugins: {
+                        ...commonOptions.plugins,
+                        legend: {
+                            ...commonOptions.plugins.legend,
+                            display: true
                         }
                     }
-                });
-            }
+                }
+            });
         }
     });
 }

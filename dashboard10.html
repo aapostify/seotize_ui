@@ -1574,9 +1574,9 @@ async function loadDashboard(page = 1) {
             <span class="badge badge-success">${task.views_count}</span>
             </td>
             <td>
-            <div style="display: flex; flex-direction: column; gap: 0.25rem; min-width: 140px;">
+            <div style="display: flex; flex-direction: column; gap: 0.25rem; min-width: 120px;">
             <div style="font-size: 0.75rem; text-align: center;">
-            Used: $${usedAmount.toFixed(2)} Remaining: ${remainingPercent.toFixed(0)}%
+            Used: $${usedAmount.toFixed(2)} ${remainingPercent.toFixed(0)}%
             </div>
             <div class="progress-bar" style="height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden;">
             <div class="progress-fill" style="width: ${progressBarWidth}%; height: 100%; background: ${progressColor}; transition: width 0.3s ease, background-color 0.3s ease;"></div>
@@ -1601,9 +1601,9 @@ async function loadDashboard(page = 1) {
         </table>
         </div>
 
-        <!-- Pagination with buttons on first line, info on next line within same class -->
-        <div class="pagination">
-        <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+        <!-- Fixed pagination with proper structure -->
+        <div class="pagination" style="flex-direction: column;">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
         <button class="pagination-btn" ${pagination.current <= 1 ? 'disabled' : ''} onclick="loadDashboard(${pagination.current - 1})">
         <i class="ri-arrow-left-s-line"></i> Previous
         </button>
@@ -1650,7 +1650,7 @@ async function loadDashboard(page = 1) {
         </button>
         </div>
         
-        <div class="pagination-info">
+        <div class="pagination-info" style="margin-top: 1rem;">
         Page ${pagination.current} of ${Math.max(1, pagination.pages)} | Showing ${sortedTasks.length} of ${pagination.total} tasks
         </div>
         </div>

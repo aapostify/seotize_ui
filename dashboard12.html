@@ -1,0 +1,2789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEOTIZE Dashboard - Enhanced Mobile v12</title>
+
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css" rel="stylesheet">
+
+<!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+/* CSS Variables */
+:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-light: #818cf8;
+    --secondary: #10b981;
+    --secondary-dark: #059669;
+    --accent: #f59e0b;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --success: #10b981;
+    --info: #3b82f6;
+
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --gradient-accent: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+
+    --radius-sm: 8px;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Light Theme */
+[data-theme="light"] {
+    --bg: #f8f9fa;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e9ecef;
+    --sidebar: #ffffff;
+    --card: #ffffff;
+    --card-hover: #f8f9fa;
+    --text: #212529;
+    --text-secondary: #6c757d;
+    --text-tertiary: #adb5bd;
+    --border: #dee2e6;
+    --input-bg: #ffffff;
+    --overlay: rgba(255, 255, 255, 0.95);
+    --glass: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --bg: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #2a2a2a;
+    --sidebar: #141414;
+    --card: #1f1f1f;
+    --card-hover: #2a2a2a;
+    --text: #ffffff;
+    --text-secondary: #a0a0a0;
+    --text-tertiary: #6b6b6b;
+    --border: rgba(255, 255, 255, 0.1);
+    --input-bg: #1a1a1a;
+    --overlay: rgba(0, 0, 0, 0.95);
+    --glass: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: var(--transition);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Layout */
+.dashboard-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: var(--transition);
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.nav-section {
+    margin-bottom: 1.5rem;
+}
+
+.nav-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    padding: 0 0.75rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+    margin-bottom: 0.25rem;
+}
+
+.nav-item:hover {
+    background: var(--card);
+    color: var(--text);
+}
+
+.nav-item.active {
+    background: var(--primary);
+    color: white;
+}
+
+.nav-item i {
+    font-size: 1.25rem;
+    width: 1.5rem;
+    text-align: center;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header */
+.header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.5rem 1rem;
+    width: 300px;
+    transition: var(--transition);
+}
+
+.search-bar:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-bar input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 0.875rem;
+}
+
+.theme-toggle {
+    padding: 0.5rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle:hover {
+    background: var(--card);
+}
+
+/* Enhanced User Menu */
+.user-menu-container {
+    position: relative;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--card);
+    border: 1px solid var(--border);
+}
+
+.user-menu:hover {
+    background: var(--card-hover);
+    border-color: var(--primary);
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.user-role {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 200px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-xl);
+    display: none;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.user-dropdown.active {
+    display: block;
+}
+
+.user-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--text);
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.user-dropdown-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.user-dropdown-item i {
+    width: 1.25rem;
+    font-size: 1.125rem;
+}
+
+.user-dropdown-item.danger {
+    color: var(--error);
+}
+
+/* Content Area */
+.content {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+/* Stats Grid - Enhanced Mobile Design */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-primary);
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+.stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.stat-icon.primary {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+}
+
+.stat-icon.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.stat-icon.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.stat-icon.info {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--info);
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+}
+
+.stat-change.positive {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.stat-change.negative {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+/* Cards */
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.card-header {
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text);
+}
+
+.btn-secondary:hover {
+    background: var(--card-hover);
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius);
+}
+
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 0.875rem;
+    transition: var(--transition);
+    font-family: inherit;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Tables */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    padding: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--border);
+}
+
+td {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+}
+
+tr:hover td {
+    background: var(--bg-tertiary);
+}
+
+/* Badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.badge-primary {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+}
+
+.badge-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.badge-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.badge-error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+}
+
+.modal {
+    background: var(--card);
+    border-radius: var(--radius-xl);
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: var(--shadow-xl);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius);
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.modal-close:hover {
+    background: var(--bg-tertiary);
+    color: var(--text);
+}
+
+.modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Toast */
+.toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10000;
+    pointer-events: none;
+}
+
+.toast {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 300px;
+    pointer-events: all;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast.success {
+    border-left: 3px solid var(--success);
+}
+
+.toast.error {
+    border-left: 3px solid var(--error);
+}
+
+.toast.warning {
+    border-left: 3px solid var(--warning);
+}
+
+.toast.info {
+    border-left: 3px solid var(--info);
+}
+
+/* Task Cards */
+.task-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.task-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.task-priority {
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.priority-low {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.priority-medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.priority-high {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+.task-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+}
+
+.task-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* Media Grid */
+.media-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.media-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.media-item:hover {
+    transform: scale(1.02);
+    box-shadow: var(--shadow);
+}
+
+.media-preview {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: var(--bg-tertiary);
+}
+
+.media-info {
+    padding: 0.75rem;
+}
+
+.media-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.media-meta {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* Charts */
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin: 1rem 0;
+}
+
+/* Loading States */
+.skeleton {
+    background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--card) 50%, var(--bg-tertiary) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: var(--radius);
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+}
+
+.empty-state p {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tab {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.tab:hover {
+    color: var(--text);
+}
+
+.tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+/* Mobile Navigation */
+.mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    z-index: 999;
+    padding: 0.5rem;
+}
+
+.mobile-nav-items {
+    display: flex;
+    justify-content: space-around;
+}
+
+.mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.625rem;
+    transition: var(--transition);
+}
+
+.mobile-nav-item.active {
+    color: var(--primary);
+}
+
+.mobile-nav-item i {
+    font-size: 1.25rem;
+}
+
+/* Mobile Search */
+.mobile-search {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem;
+    z-index: 101;
+}
+
+.mobile-search-toggle {
+    display: none;
+}
+
+/* Detail Sections - Mobile Optimized */
+.detail-section {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.detail-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.detail-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.detail-value {
+    font-size: 0.875rem;
+    color: var(--text);
+    font-weight: 600;
+}
+
+/* Analytics Grid - Mobile Optimized */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.analytics-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+}
+
+.analytics-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+}
+
+.analytics-chart {
+    height: 200px;
+    position: relative;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 240px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    /* Hide desktop sidebar */
+    .sidebar {
+        display: none;
+    }
+    
+    /* Show mobile navigation */
+    .mobile-nav {
+        display: block;
+    }
+    
+    /* Adjust main content for mobile nav */
+    .main-content {
+        padding-bottom: 60px;
+    }
+    
+    /* Mobile header adjustments */
+    .header {
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+    
+    .header-left {
+        flex: 1;
+    }
+    
+    .header-right {
+        gap: 0.5rem;
+    }
+    
+    /* Hide desktop search, show mobile toggle */
+    .search-bar {
+        display: none;
+    }
+    
+    .mobile-search-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text);
+        cursor: pointer;
+        font-size: 1.125rem;
+    }
+    
+    /* Mobile User Menu - Always Visible */
+    .user-menu {
+        padding: 0.375rem 0.5rem;
+        gap: 0.5rem;
+    }
+    
+    .user-info {
+        display: none; /* Hide text info on mobile */
+    }
+    
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+    
+    /* User dropdown mobile optimization */
+    .user-dropdown {
+        position: fixed;
+        top: auto;
+        bottom: 60px; /* Above mobile nav */
+        left: 0;
+        right: 0;
+        min-width: 100%;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+    
+    /* Content padding adjustment */
+    .content {
+        padding: 1rem;
+    }
+    
+    /* Stats Grid - Compact Mobile Design */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .stat-card {
+        padding: 0.875rem;
+    }
+    
+    .stat-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+    }
+    
+    .stat-change {
+        font-size: 0.625rem;
+        padding: 0.125rem 0.375rem;
+    }
+    
+    /* Task grid mobile */
+    .task-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    /* Media grid mobile */
+    .media-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+    
+    /* Analytics grid mobile */
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .analytics-chart {
+        height: 180px;
+    }
+    
+    /* Card adjustments */
+    .card-header {
+        padding: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Modal full screen on mobile */
+    .modal-overlay {
+        padding: 0;
+    }
+    
+    .modal {
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+    
+    .modal-body {
+        max-height: calc(100vh - 60px);
+    }
+    
+    /* Detail sections mobile */
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .detail-section {
+        padding: 0.875rem;
+    }
+    
+    /* Table responsiveness */
+    .table-container {
+        font-size: 0.8125rem;
+    }
+    
+    th, td {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Button adjustments */
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8125rem;
+    }
+    
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+    }
+    
+    /* Toast mobile position */
+    .toast-container {
+        top: auto;
+        bottom: 70px;
+        right: 0.5rem;
+        left: 0.5rem;
+    }
+    
+    .toast {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    /* Tabs mobile scroll */
+    .tabs {
+        gap: 0.25rem;
+        padding-bottom: 0.5rem;
+    }
+    
+    .tab {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    /* Ultra compact stats grid */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .stat-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem;
+    }
+    
+    .stat-header {
+        margin-bottom: 0;
+    }
+    
+    .stat-icon {
+        order: 2;
+    }
+    
+    /* Media grid single column */
+    .media-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Form adjustments */
+    .form-input,
+    .form-select,
+    .form-textarea {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    /* Header ultra compact */
+    .header {
+        padding: 0.5rem;
+    }
+    
+    .theme-toggle {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        font-size: 1rem;
+    }
+    
+    /* Content minimal padding */
+    .content {
+        padding: 0.75rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .sidebar,
+    .mobile-nav,
+    .header,
+    .btn,
+    .modal-overlay {
+        display: none !important;
+    }
+    
+    .main-content {
+        padding-bottom: 0;
+    }
+    
+    .content {
+        padding: 0;
+    }
+    
+    * {
+        color: black !important;
+        background: white !important;
+    }
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-muted { color: var(--text-secondary); }
+.text-small { font-size: 0.875rem; }
+.text-tiny { font-size: 0.75rem; }
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+.p-1 { padding: 0.5rem; }
+.p-2 { padding: 1rem; }
+.p-3 { padding: 1.5rem; }
+
+.gap-1 { gap: 0.5rem; }
+.gap-2 { gap: 1rem; }
+.gap-3 { gap: 1.5rem; }
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+
+.hidden { display: none !important; }
+.block { display: block !important; }
+
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+.overflow-hidden { overflow: hidden; }
+.overflow-auto { overflow: auto; }
+.overflow-x-auto { overflow-x: auto; }
+.overflow-y-auto { overflow-y: auto; }
+
+.cursor-pointer { cursor: pointer; }
+.select-none { user-select: none; }
+
+.transition { transition: var(--transition); }
+
+.opacity-50 { opacity: 0.5; }
+.opacity-75 { opacity: 0.75; }
+
+.bg-primary { background: var(--primary); }
+.bg-success { background: var(--success); }
+.bg-warning { background: var(--warning); }
+.bg-error { background: var(--error); }
+
+.text-primary { color: var(--primary); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-error { color: var(--error); }
+
+.border-primary { border-color: var(--primary); }
+.border-success { border-color: var(--success); }
+.border-warning { border-color: var(--warning); }
+.border-error { border-color: var(--error); }
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.animate-fadeIn { animation: fadeIn 0.3s ease; }
+.animate-slideUp { animation: slideUp 0.3s ease; }
+.animate-pulse { animation: pulse 2s infinite; }
+</style>
+</head>
+<body data-theme="light">
+
+<div class="dashboard-layout">
+<!-- Sidebar -->
+<aside class="sidebar">
+<div class="sidebar-header">
+<a href="#" class="logo">
+<i class="ri-bar-chart-box-line"></i>
+<span>SEOTIZE</span>
+</a>
+</div>
+
+<nav class="sidebar-nav">
+<div class="nav-section">
+<div class="nav-section-title">Main</div>
+<a href="#" class="nav-item active" data-page="dashboard">
+<i class="ri-dashboard-line"></i>
+<span>Dashboard</span>
+</a>
+<a href="#" class="nav-item" data-page="analytics">
+<i class="ri-line-chart-line"></i>
+<span>Analytics</span>
+</a>
+<a href="#" class="nav-item" data-page="tasks">
+<i class="ri-task-line"></i>
+<span>SEO Tasks</span>
+</a>
+</div>
+
+<div class="nav-section">
+<div class="nav-section-title">Content</div>
+<a href="#" class="nav-item" data-page="articles">
+<i class="ri-article-line"></i>
+<span>Articles</span>
+</a>
+<a href="#" class="nav-item" data-page="media">
+<i class="ri-image-line"></i>
+<span>Media Library</span>
+</a>
+<a href="#" class="nav-item" data-page="keywords">
+<i class="ri-key-line"></i>
+<span>Keywords</span>
+</a>
+</div>
+
+<div class="nav-section">
+<div class="nav-section-title">Tools</div>
+<a href="#" class="nav-item" data-page="audit">
+<i class="ri-bug-line"></i>
+<span>Site Audit</span>
+</a>
+<a href="#" class="nav-item" data-page="competitors">
+<i class="ri-spy-line"></i>
+<span>Competitors</span>
+</a>
+<a href="#" class="nav-item" data-page="backlinks">
+<i class="ri-links-line"></i>
+<span>Backlinks</span>
+</a>
+</div>
+
+<div class="nav-section">
+<div class="nav-section-title">System</div>
+<a href="#" class="nav-item" data-page="settings">
+<i class="ri-settings-3-line"></i>
+<span>Settings</span>
+</a>
+<a href="#" class="nav-item" data-page="help">
+<i class="ri-question-line"></i>
+<span>Help & Support</span>
+</a>
+</div>
+</nav>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content">
+<!-- Header -->
+<header class="header">
+<div class="header-left">
+<div class="search-bar">
+<i class="ri-search-line"></i>
+<input type="text" placeholder="Search...">
+</div>
+<button class="mobile-search-toggle">
+<i class="ri-search-line"></i>
+</button>
+</div>
+
+<div class="header-right">
+<button class="theme-toggle" onclick="toggleTheme()">
+<i class="ri-moon-line" id="themeIcon"></i>
+</button>
+
+<div class="user-menu-container">
+<div class="user-menu" onclick="toggleUserDropdown()">
+<div class="user-avatar">
+<span id="userInitial">U</span>
+</div>
+<div class="user-info">
+<div class="user-name">User</div>
+<div class="user-role">Administrator</div>
+</div>
+</div>
+
+<div class="user-dropdown" id="userDropdown">
+<a href="#" class="user-dropdown-item" data-page="settings">
+<i class="ri-settings-line"></i>
+<span>Settings</span>
+</a>
+
+<a href="#" class="user-dropdown-item" data-page="help">
+<i class="ri-question-line"></i>
+<span>Help & Support</span>
+</a>
+
+<div style="border-top: 1px solid var(--border); margin: 0.5rem 0;"></div>
+
+<a href="#" class="user-dropdown-item danger" onclick="logout()">
+<i class="ri-logout-box-line"></i>
+<span>Logout</span>
+</a>
+</div>
+</div>
+</div>
+</header>
+
+<!-- Mobile Search -->
+<div class="mobile-search" id="mobileSearch">
+<div style="display: flex; gap: 0.5rem;">
+<input type="text" class="form-input" placeholder="Search..." style="flex: 1;">
+<button class="btn btn-icon" onclick="closeMobileSearch()">
+<i class="ri-close-line"></i>
+</button>
+</div>
+</div>
+
+<!-- Content Area -->
+<div class="content" id="content">
+<!-- Dashboard Page -->
+<div id="dashboardPage" class="page-content">
+<!-- Stats Grid -->
+<div class="stats-grid">
+<div class="stat-card">
+<div class="stat-header">
+<div>
+<div class="stat-value">2,847</div>
+<div class="stat-label">Total Visitors</div>
+<div class="stat-change positive">
+<i class="ri-arrow-up-line"></i>
+<span>12.5%</span>
+</div>
+</div>
+<div class="stat-icon primary">
+<i class="ri-user-line"></i>
+</div>
+</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-header">
+<div>
+<div class="stat-value">18.2K</div>
+<div class="stat-label">Page Views</div>
+<div class="stat-change positive">
+<i class="ri-arrow-up-line"></i>
+<span>8.3%</span>
+</div>
+</div>
+<div class="stat-icon success">
+<i class="ri-eye-line"></i>
+</div>
+</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-header">
+<div>
+<div class="stat-value">3:42</div>
+<div class="stat-label">Avg. Duration</div>
+<div class="stat-change negative">
+<i class="ri-arrow-down-line"></i>
+<span>2.1%</span>
+</div>
+</div>
+<div class="stat-icon warning">
+<i class="ri-time-line"></i>
+</div>
+</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-header">
+<div>
+<div class="stat-value">42.8%</div>
+<div class="stat-label">Bounce Rate</div>
+<div class="stat-change positive">
+<i class="ri-arrow-down-line"></i>
+<span>5.4%</span>
+</div>
+</div>
+<div class="stat-icon info">
+<i class="ri-bar-chart-line"></i>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Analytics Overview -->
+<div class="analytics-grid">
+<div class="card">
+<div class="card-header">
+<h3 class="card-title">Traffic Overview</h3>
+<button class="btn btn-sm btn-secondary">View Details</button>
+</div>
+<div class="card-body">
+<div class="chart-container">
+<canvas id="trafficChart"></canvas>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">
+<h3 class="card-title">Top Pages</h3>
+<button class="btn btn-sm btn-secondary">View All</button>
+</div>
+<div class="card-body">
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Views</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody id="topPagesTable">
+<tr>
+<td>/home</td>
+<td>5,234</td>
+<td><span class="badge badge-success">+12%</span></td>
+</tr>
+<tr>
+<td>/blog</td>
+<td>3,421</td>
+<td><span class="badge badge-success">+8%</span></td>
+</tr>
+<tr>
+<td>/products</td>
+<td>2,156</td>
+<td><span class="badge badge-error">-3%</span></td>
+</tr>
+<tr>
+<td>/about</td>
+<td>1,842</td>
+<td><span class="badge badge-success">+5%</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Recent Tasks -->
+<div class="card">
+<div class="card-header">
+<h3 class="card-title">Recent SEO Tasks</h3>
+<button class="btn btn-primary btn-sm" onclick="showTaskModal()">
+<i class="ri-add-line"></i>
+New Task
+</button>
+</div>
+<div class="card-body">
+<div class="task-grid" id="recentTasks">
+<!-- Tasks will be loaded here -->
+</div>
+</div>
+</div>
+</div>
+
+<!-- Other Pages (hidden by default) -->
+<div id="analyticsPage" class="page-content hidden">
+<h2>Analytics</h2>
+<p>Analytics content goes here...</p>
+</div>
+
+<div id="tasksPage" class="page-content hidden">
+<h2>SEO Tasks</h2>
+<div id="tasksContent"></div>
+</div>
+
+<div id="articlesPage" class="page-content hidden">
+<h2>Articles</h2>
+<div id="articlesContent"></div>
+</div>
+
+<div id="mediaPage" class="page-content hidden">
+<h2>Media Library</h2>
+<div id="mediaContent"></div>
+</div>
+
+<div id="keywordsPage" class="page-content hidden">
+<h2>Keywords</h2>
+<p>Keywords tracking content goes here...</p>
+</div>
+
+<div id="auditPage" class="page-content hidden">
+<h2>Site Audit</h2>
+<p>Site audit tools and reports...</p>
+</div>
+
+<div id="competitorsPage" class="page-content hidden">
+<h2>Competitors Analysis</h2>
+<p>Competitor tracking and analysis...</p>
+</div>
+
+<div id="backlinksPage" class="page-content hidden">
+<h2>Backlinks</h2>
+<p>Backlink monitoring and management...</p>
+</div>
+
+<div id="settingsPage" class="page-content hidden">
+<h2>Settings</h2>
+<p>Application settings...</p>
+</div>
+
+<div id="helpPage" class="page-content hidden">
+<h2>Help & Support</h2>
+<p>Documentation and support resources...</p>
+</div>
+</div>
+</main>
+</div>
+
+<!-- Mobile Navigation -->
+<nav class="mobile-nav">
+<div class="mobile-nav-items">
+<a href="#" class="mobile-nav-item active" data-page="dashboard">
+<i class="ri-dashboard-line"></i>
+<span>Dashboard</span>
+</a>
+<a href="#" class="mobile-nav-item" data-page="analytics">
+<i class="ri-line-chart-line"></i>
+<span>Analytics</span>
+</a>
+<a href="#" class="mobile-nav-item" data-page="tasks">
+<i class="ri-task-line"></i>
+<span>Tasks</span>
+</a>
+<a href="#" class="mobile-nav-item" data-page="articles">
+<i class="ri-article-line"></i>
+<span>Articles</span>
+</a>
+<a href="#" class="mobile-nav-item" data-page="media">
+<i class="ri-image-line"></i>
+<span>Media</span>
+</a>
+</div>
+</nav>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Modal Container -->
+<div id="modalContainer"></div>
+
+<script>
+// State Management
+let currentPage = 'dashboard';
+let currentTheme = localStorage.getItem('theme') || 'light';
+let userData = null;
+let tasks = [];
+let articles = [];
+let media = [];
+
+// Initialize Application
+document.addEventListener('DOMContentLoaded', () => {
+    initializeTheme();
+    initializeNavigation();
+    initializeUserMenu();
+    initializeSearch();
+    loadDashboardData();
+    
+    // Close dropdowns on outside click
+    document.addEventListener('click', (e) => {
+        const userMenuContainer = document.querySelector('.user-menu-container');
+        const userDropdown = document.getElementById('userDropdown');
+        
+        if (!userMenuContainer.contains(e.target)) {
+            userDropdown.classList.remove('active');
+        }
+    });
+});
+
+// Theme Management
+function initializeTheme() {
+    document.body.setAttribute('data-theme', currentTheme);
+    updateThemeIcon();
+}
+
+function toggleTheme() {
+    currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.body.setAttribute('data-theme', currentTheme);
+    localStorage.setItem('theme', currentTheme);
+    updateThemeIcon();
+    
+    // Reinitialize charts if on dashboard
+    if (currentPage === 'dashboard') {
+        setTimeout(() => initializeCharts(), 100);
+    }
+}
+
+function updateThemeIcon() {
+    const icon = document.getElementById('themeIcon');
+    icon.className = currentTheme === 'light' ? 'ri-moon-line' : 'ri-sun-line';
+}
+
+// Navigation
+function initializeNavigation() {
+    // Desktop navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = item.dataset.page;
+            if (page) navigateToPage(page);
+        });
+    });
+    
+    // Mobile navigation
+    document.querySelectorAll('.mobile-nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = item.dataset.page;
+            if (page) navigateToPage(page);
+        });
+    });
+    
+    // User dropdown navigation
+    document.querySelectorAll('.user-dropdown-item[data-page]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = item.dataset.page;
+            if (page) {
+                navigateToPage(page);
+                toggleUserDropdown(); // Close dropdown after navigation
+            }
+        });
+    });
+}
+
+function navigateToPage(page) {
+    // Hide all pages
+    document.querySelectorAll('.page-content').forEach(p => {
+        p.classList.add('hidden');
+    });
+    
+    // Show selected page
+    const pageElement = document.getElementById(page + 'Page');
+    if (pageElement) {
+        pageElement.classList.remove('hidden');
+    }
+    
+    // Update active states
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.page === page);
+    });
+    
+    document.querySelectorAll('.mobile-nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.page === page);
+    });
+    
+    currentPage = page;
+    
+    // Load page-specific data
+    loadPageData(page);
+}
+
+function loadPageData(page) {
+    switch(page) {
+        case 'dashboard':
+            loadDashboardData();
+            break;
+        case 'tasks':
+            loadTasks();
+            break;
+        case 'articles':
+            loadArticles();
+            break;
+        case 'media':
+            loadMedia();
+            break;
+        default:
+            // Load other page data as needed
+            break;
+    }
+}
+
+// User Menu
+function initializeUserMenu() {
+    // Set user initial
+    const userInitial = document.getElementById('userInitial');
+    userInitial.textContent = 'U';
+}
+
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('userDropdown');
+    dropdown.classList.toggle('active');
+}
+
+// Search
+function initializeSearch() {
+    const searchInput = document.querySelector('.search-bar input');
+    const mobileSearchToggle = document.querySelector('.mobile-search-toggle');
+    const mobileSearch = document.getElementById('mobileSearch');
+    
+    if (mobileSearchToggle) {
+        mobileSearchToggle.addEventListener('click', () => {
+            mobileSearch.style.display = 'block';
+            mobileSearch.querySelector('input').focus();
+        });
+    }
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            performSearch(e.target.value);
+        });
+    }
+    
+    const mobileSearchInput = mobileSearch?.querySelector('input');
+    if (mobileSearchInput) {
+        mobileSearchInput.addEventListener('input', (e) => {
+            performSearch(e.target.value);
+        });
+    }
+}
+
+function closeMobileSearch() {
+    const mobileSearch = document.getElementById('mobileSearch');
+    mobileSearch.style.display = 'none';
+}
+
+function performSearch(query) {
+    // Implement search functionality
+    console.log('Searching for:', query);
+}
+
+// Dashboard Data
+function loadDashboardData() {
+    // Initialize charts
+    setTimeout(() => initializeCharts(), 100);
+    
+    // Load recent tasks
+    loadRecentTasks();
+}
+
+function initializeCharts() {
+    const isDark = currentTheme === 'dark';
+    const textColor = isDark ? '#e2e8f0' : '#1e293b';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+    
+    // Traffic Chart
+    const trafficCanvas = document.getElementById('trafficChart');
+    if (trafficCanvas) {
+        const ctx = trafficCanvas.getContext('2d');
+        
+        // Destroy existing chart if it exists
+        if (window.trafficChartInstance) {
+            window.trafficChartInstance.destroy();
+        }
+        
+        window.trafficChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Visitors',
+                    data: [1200, 1900, 1500, 2100, 2400, 2200, 2800],
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Page Views',
+                    data: [3200, 4100, 3800, 4500, 5200, 4800, 6100],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: textColor,
+                            usePointStyle: true,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.95)',
+                        titleColor: textColor,
+                        bodyColor: textColor,
+                        borderWidth: 1,
+                        borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: gridColor,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: textColor
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: gridColor,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: textColor
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function loadRecentTasks() {
+    const tasksContainer = document.getElementById('recentTasks');
+    if (!tasksContainer) return;
+    
+    // Sample tasks data
+    const recentTasks = [
+        {
+            id: 1,
+            title: 'Optimize meta descriptions',
+            priority: 'high',
+            status: 'in-progress',
+            dueDate: '2024-01-15'
+        },
+        {
+            id: 2,
+            title: 'Update XML sitemap',
+            priority: 'medium',
+            status: 'pending',
+            dueDate: '2024-01-18'
+        },
+        {
+            id: 3,
+            title: 'Fix broken links',
+            priority: 'high',
+            status: 'completed',
+            dueDate: '2024-01-12'
+        }
+    ];
+    
+    tasksContainer.innerHTML = recentTasks.map(task => `
+        <div class="task-card" onclick="viewTask(${task.id})">
+            <div class="task-header">
+                <span class="task-priority priority-${task.priority}">${task.priority}</span>
+                <span class="badge badge-${task.status === 'completed' ? 'success' : task.status === 'in-progress' ? 'warning' : 'primary'}">
+                    ${task.status}
+                </span>
+            </div>
+            <div class="task-title">${task.title}</div>
+            <div class="task-meta">
+                <span><i class="ri-calendar-line"></i> ${task.dueDate}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Tasks
+function loadTasks() {
+    const tasksContent = document.getElementById('tasksContent');
+    if (!tasksContent) return;
+    
+    tasksContent.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">SEO Tasks</h3>
+                <button class="btn btn-primary" onclick="showTaskModal()">
+                    <i class="ri-add-line"></i>
+                    New Task
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="task-grid" id="allTasks">
+                    <!-- Tasks will be loaded here -->
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Load all tasks
+    loadAllTasks();
+}
+
+function loadAllTasks() {
+    // This would typically fetch from an API
+    const allTasksContainer = document.getElementById('allTasks');
+    if (!allTasksContainer) return;
+    
+    // Sample data
+    tasks = [
+        {
+            id: 1,
+            title: 'Optimize meta descriptions for product pages',
+            description: 'Review and update meta descriptions to improve CTR',
+            priority: 'high',
+            status: 'in-progress',
+            dueDate: '2024-01-15',
+            assignee: 'John Doe'
+        },
+        {
+            id: 2,
+            title: 'Update XML sitemap',
+            description: 'Ensure all new pages are included in sitemap',
+            priority: 'medium',
+            status: 'pending',
+            dueDate: '2024-01-18',
+            assignee: 'Jane Smith'
+        }
+    ];
+    
+    allTasksContainer.innerHTML = tasks.map(task => `
+        <div class="task-card" onclick="viewTask(${task.id})">
+            <div class="task-header">
+                <span class="task-priority priority-${task.priority}">${task.priority}</span>
+                <span class="badge badge-${task.status === 'completed' ? 'success' : task.status === 'in-progress' ? 'warning' : 'primary'}">
+                    ${task.status}
+                </span>
+            </div>
+            <div class="task-title">${task.title}</div>
+            <div class="text-small text-muted mb-1">${task.description}</div>
+            <div class="task-meta">
+                <span><i class="ri-calendar-line"></i> ${task.dueDate}</span>
+                <span><i class="ri-user-line"></i> ${task.assignee}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function showTaskModal(taskId = null) {
+    const task = taskId ? tasks.find(t => t.id === taskId) : null;
+    
+    showModal(task ? 'Edit Task' : 'New Task', `
+        <form id="taskForm">
+            <div class="form-group">
+                <label class="form-label">Title</label>
+                <input type="text" class="form-input" name="title" value="${task?.title || ''}" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-textarea" name="description">${task?.description || ''}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Priority</label>
+                <select class="form-select" name="priority">
+                    <option value="low" ${task?.priority === 'low' ? 'selected' : ''}>Low</option>
+                    <option value="medium" ${task?.priority === 'medium' ? 'selected' : ''}>Medium</option>
+                    <option value="high" ${task?.priority === 'high' ? 'selected' : ''}>High</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Due Date</label>
+                <input type="date" class="form-input" name="dueDate" value="${task?.dueDate || ''}">
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    ${task ? 'Update' : 'Create'} Task
+                </button>
+            </div>
+        </form>
+    `);
+    
+    document.getElementById('taskForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveTask(taskId);
+    });
+}
+
+function saveTask(taskId) {
+    // Save task logic here
+    showToast('Task saved successfully', 'success');
+    closeModal();
+    loadAllTasks();
+}
+
+function viewTask(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    showModal('Task Details', `
+        <div class="detail-section">
+            <div class="detail-header">
+                <h3 class="detail-title">${task.title}</h3>
+                <span class="task-priority priority-${task.priority}">${task.priority}</span>
+            </div>
+            
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value">
+                        <span class="badge badge-${task.status === 'completed' ? 'success' : task.status === 'in-progress' ? 'warning' : 'primary'}">
+                            ${task.status}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Due Date</div>
+                    <div class="detail-value">${task.dueDate}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Assignee</div>
+                    <div class="detail-value">${task.assignee}</div>
+                </div>
+            </div>
+            
+            <div class="detail-item" style="margin-top: 1rem;">
+                <div class="detail-label">Description</div>
+                <div class="detail-value" style="font-weight: normal;">${task.description}</div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                <button class="btn btn-primary" onclick="showTaskModal(${task.id})">Edit Task</button>
+            </div>
+        </div>
+    `);
+}
+
+// Articles
+function loadArticles() {
+    const articlesContent = document.getElementById('articlesContent');
+    if (!articlesContent) return;
+    
+    articlesContent.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Articles</h3>
+                <button class="btn btn-primary" onclick="showArticleModal()">
+                    <i class="ri-add-line"></i>
+                    New Article
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Views</th>
+                                <th>Published</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="articlesTable">
+                            <!-- Articles will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    loadArticlesData();
+}
+
+function loadArticlesData() {
+    const articlesTable = document.getElementById('articlesTable');
+    if (!articlesTable) return;
+    
+    // Sample data
+    articles = [
+        {
+            id: 1,
+            title: 'SEO Best Practices for 2024',
+            status: 'published',
+            views: 1234,
+            publishedDate: '2024-01-10'
+        },
+        {
+            id: 2,
+            title: 'Understanding Core Web Vitals',
+            status: 'draft',
+            views: 0,
+            publishedDate: null
+        }
+    ];
+    
+    articlesTable.innerHTML = articles.map(article => `
+        <tr>
+            <td>${article.title}</td>
+            <td>
+                <span class="badge badge-${article.status === 'published' ? 'success' : 'warning'}">
+                    ${article.status}
+                </span>
+            </td>
+            <td>${article.views.toLocaleString()}</td>
+            <td>${article.publishedDate || '-'}</td>
+            <td>
+                <button class="btn btn-sm btn-secondary" onclick="viewArticle(${article.id})">
+                    <i class="ri-eye-line"></i>
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="showArticleModal(${article.id})">
+                    <i class="ri-edit-line"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function showArticleModal(articleId = null) {
+    const article = articleId ? articles.find(a => a.id === articleId) : null;
+    
+    showModal(article ? 'Edit Article' : 'New Article', `
+        <form id="articleForm">
+            <div class="form-group">
+                <label class="form-label">Title</label>
+                <input type="text" class="form-input" name="title" value="${article?.title || ''}" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Content</label>
+                <textarea class="form-textarea" name="content" style="min-height: 200px;">${article?.content || ''}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                    <option value="draft" ${article?.status === 'draft' ? 'selected' : ''}>Draft</option>
+                    <option value="published" ${article?.status === 'published' ? 'selected' : ''}>Published</option>
+                </select>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    ${article ? 'Update' : 'Create'} Article
+                </button>
+            </div>
+        </form>
+    `);
+    
+    document.getElementById('articleForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveArticle(articleId);
+    });
+}
+
+function saveArticle(articleId) {
+    showToast('Article saved successfully', 'success');
+    closeModal();
+    loadArticlesData();
+}
+
+function viewArticle(articleId) {
+    const article = articles.find(a => a.id === articleId);
+    if (!article) return;
+    
+    showModal('Article Details', `
+        <div class="detail-section">
+            <div class="detail-header">
+                <h3 class="detail-title">${article.title}</h3>
+                <span class="badge badge-${article.status === 'published' ? 'success' : 'warning'}">
+                    ${article.status}
+                </span>
+            </div>
+            
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Views</div>
+                    <div class="detail-value">${article.views.toLocaleString()}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Published</div>
+                    <div class="detail-value">${article.publishedDate || 'Not published'}</div>
+                </div>
+            </div>
+            
+            <div class="analytics-grid" style="margin-top: 1.5rem;">
+                <div class="analytics-card">
+                    <div class="analytics-title">Traffic Sources</div>
+                    <div class="analytics-chart">
+                        <canvas id="articleTrafficChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="analytics-card">
+                    <div class="analytics-title">Device Types</div>
+                    <div class="analytics-chart">
+                        <canvas id="articleDeviceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                <button class="btn btn-primary" onclick="showArticleModal(${article.id})">Edit Article</button>
+            </div>
+        </div>
+    `);
+    
+    // Initialize mini charts
+    setTimeout(() => {
+        initializeArticleCharts();
+    }, 100);
+}
+
+function initializeArticleCharts() {
+    const isDark = currentTheme === 'dark';
+    
+    // Traffic Sources Chart
+    const trafficCtx = document.getElementById('articleTrafficChart');
+    if (trafficCtx) {
+        new Chart(trafficCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Organic', 'Direct', 'Social', 'Referral'],
+                datasets: [{
+                    data: [45, 25, 20, 10],
+                    backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 10,
+                            font: { size: 11 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Device Types Chart
+    const deviceCtx = document.getElementById('articleDeviceChart');
+    if (deviceCtx) {
+        new Chart(deviceCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Desktop', 'Mobile', 'Tablet'],
+                datasets: [{
+                    label: 'Sessions',
+                    data: [650, 420, 130],
+                    backgroundColor: '#6366f1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+}
+
+// Media
+function loadMedia() {
+    const mediaContent = document.getElementById('mediaContent');
+    if (!mediaContent) return;
+    
+    mediaContent.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Media Library</h3>
+                <button class="btn btn-primary" onclick="showMediaUploadModal()">
+                    <i class="ri-upload-line"></i>
+                    Upload
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="media-grid" id="mediaGrid">
+                    <!-- Media items will be loaded here -->
+                </div>
+            </div>
+        </div>
+    `;
+    
+    loadMediaItems();
+}
+
+function loadMediaItems() {
+    const mediaGrid = document.getElementById('mediaGrid');
+    if (!mediaGrid) return;
+    
+    // Sample data
+    media = [
+        {
+            id: 1,
+            name: 'hero-image.jpg',
+            type: 'image',
+            size: '245 KB',
+            uploadDate: '2024-01-10'
+        },
+        {
+            id: 2,
+            name: 'product-banner.png',
+            type: 'image',
+            size: '182 KB',
+            uploadDate: '2024-01-09'
+        },
+        {
+            id: 3,
+            name: 'blog-thumbnail.jpg',
+            type: 'image',
+            size: '156 KB',
+            uploadDate: '2024-01-08'
+        }
+    ];
+    
+    mediaGrid.innerHTML = media.map(item => `
+        <div class="media-item" onclick="viewMediaItem(${item.id})">
+            <div class="media-preview">
+                <i class="ri-image-line" style="font-size: 3rem; color: var(--text-secondary);"></i>
+            </div>
+            <div class="media-info">
+                <div class="media-name">${item.name}</div>
+                <div class="media-meta">
+                    <span>${item.size}</span> • <span>${item.uploadDate}</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function showMediaUploadModal() {
+    showModal('Upload Media', `
+        <form id="mediaUploadForm">
+            <div class="form-group">
+                <label class="form-label">Select Files</label>
+                <input type="file" class="form-input" multiple accept="image/*,video/*">
+                <small class="text-muted">Maximum file size: 10MB</small>
+            </div>
+            
+            <div id="uploadPreview" style="display: none;">
+                <h4>Selected Files:</h4>
+                <div id="previewList"></div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Upload</button>
+            </div>
+        </form>
+    `);
+    
+    // File preview
+    document.querySelector('input[type="file"]').addEventListener('change', (e) => {
+        const files = e.target.files;
+        if (files.length > 0) {
+            document.getElementById('uploadPreview').style.display = 'block';
+            document.getElementById('previewList').innerHTML = Array.from(files).map(file => `
+                <div style="padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
+                    ${file.name} (${(file.size / 1024).toFixed(2)} KB)
+                </div>
+            `).join('');
+        }
+    });
+    
+    document.getElementById('mediaUploadForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        uploadMedia();
+    });
+}
+
+function uploadMedia() {
+    showToast('Media uploaded successfully', 'success');
+    closeModal();
+    loadMediaItems();
+}
+
+function viewMediaItem(mediaId) {
+    const item = media.find(m => m.id === mediaId);
+    if (!item) return;
+    
+    showModal('Media Details', `
+        <div class="detail-section">
+            <div class="detail-header">
+                <h3 class="detail-title">${item.name}</h3>
+            </div>
+            
+            <div style="text-align: center; padding: 2rem; background: var(--bg-tertiary); border-radius: var(--radius); margin-bottom: 1rem;">
+                <i class="ri-image-line" style="font-size: 5rem; color: var(--text-secondary);"></i>
+            </div>
+            
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">File Type</div>
+                    <div class="detail-value">${item.type}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">File Size</div>
+                    <div class="detail-value">${item.size}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Upload Date</div>
+                    <div class="detail-value">${item.uploadDate}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Dimensions</div>
+                    <div class="detail-value">1920 × 1080</div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                <button class="btn btn-primary">
+                    <i class="ri-download-line"></i>
+                    Download
+                </button>
+            </div>
+        </div>
+    `);
+}
+
+// Modal Functions
+function showModal(title, content) {
+    const modalContainer = document.getElementById('modalContainer');
+    modalContainer.innerHTML = `
+        <div class="modal-overlay" onclick="closeModal(event)">
+            <div class="modal" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h2 class="modal-title">${title}</h2>
+                    <button class="modal-close" onclick="closeModal()">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    ${content}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function closeModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('modalContainer').innerHTML = '';
+}
+
+// Toast Functions
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const icons = {
+        success: 'ri-checkbox-circle-line',
+        error: 'ri-error-warning-line',
+        warning: 'ri-alert-line',
+        info: 'ri-information-line'
+    };
+    
+    toast.innerHTML = `
+        <i class="${icons[type]}"></i>
+        <span>${message}</span>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Logout
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        showToast('Logging out...', 'info');
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 1000);
+    }
+}
+
+// API Helper (placeholder)
+async function api(endpoint, options = {}) {
+    // This would be replaced with actual API calls
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve({ success: true });
+        }, 500);
+    });
+}
+</script>
+
+</body>
+</html>

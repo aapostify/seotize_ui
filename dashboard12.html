@@ -1649,29 +1649,25 @@ tr:hover {
 </div>
 </div>
 <div class="mobile-menu-content">
-<div class="nav-section">
-<div class="nav-section-title">Navigation</div>
-<a href="#" class="nav-item" data-page="dashboard" onclick="closeMobileMenu()">
-<i class="ri-dashboard-line"></i>
-<span>Dashboard</span>
-</a>
-<a href="#" class="nav-item" data-page="tasks" onclick="closeMobileMenu()">
-<i class="ri-task-line"></i>
-<span>SEO Tasks</span>
-</a>
-<a href="#" class="nav-item" data-page="images" onclick="closeMobileMenu()">
-<i class="ri-image-line"></i>
-<span>Images</span>
-</a>
-<a href="#" class="nav-item" data-page="articles" onclick="closeMobileMenu()">
-<i class="ri-article-line"></i>
-<span>Articles</span>
-</a>
-<a href="#" class="nav-item" data-page="billing" onclick="closeMobileMenu()">
-<i class="ri-bank-card-line"></i>
-<span>Billing</span>
-</a>
-</div>
+    <div class="nav-section">
+        <div class="nav-section-title">Account</div>
+        <a href="#" class="nav-item" onclick="showSessionsModal(); closeMobileMenu();">
+            <i class="ri-device-line"></i>
+            <span>Active Sessions</span>
+            <span class="badge badge-primary" id="sessionCountMobile"></span>
+        </a>
+        <a href="#" class="nav-item" data-page="billing" onclick="closeMobileMenu()">
+            <i class="ri-bank-card-line"></i>
+            <span>Billing</span>
+        </a>
+    </div>
+    <div style="border-top: 1px solid var(--border); margin: 0.5rem 0;"></div>
+    <div class="nav-section">
+        <a href="#" class="nav-item danger" style="color: var(--error);" onclick="logout()">
+            <i class="ri-logout-box-line"></i>
+            <span>Logout</span>
+        </a>
+    </div>
 </div>
 </div>
 
@@ -2094,22 +2090,28 @@ function navigateTo(page) {
 
 // Update User Info
 function updateUserInfo() {
-    const user = currentData.user;
-    if (!user) return;
-    
-    const email = user.email;
-    const name = email.split('@')[0];
-    const initial = email[0].toUpperCase();
-    
-    // Update all user display elements
-    document.getElementById('userInitial').textContent = initial;
-    document.getElementById('userName').textContent = name;
-    document.getElementById('userEmail').textContent = email;
-    
-    // Update session count (excluding current session)
-    const otherSessions = getOtherSessions();
-    document.getElementById('sessionCount').textContent = otherSessions.length+1;
-    
+    const user = currentData.user;
+    if (!user) return;
+    
+    const email = user.email;
+    const name = email.split('@')[0];
+    const initial = email[0].toUpperCase();
+    
+    // Update all user display elements
+    document.getElementById('userInitial').textContent = initial;
+    document.getElementById('userName').textContent = name;
+    document.getElementById('userEmail').textContent = email;
+    
+    // Update session count (excluding current session)
+    const otherSessions = getOtherSessions();
+    const totalSessions = otherSessions.length + 1;
+
+    // Update both desktop and mobile session counts
+    const desktopCountEl = document.getElementById('sessionCount');
+    if (desktopCountEl) desktopCountEl.textContent = totalSessions;
+
+    const mobileCountEl = document.getElementById('sessionCountMobile');
+    if (mobileCountEl) mobileCountEl.textContent = totalSessions;
 }
 
 // API Helper

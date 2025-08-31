@@ -1926,9 +1926,17 @@ function getOtherSessions() {
     return sessions.filter(session => session.token !== sessionToken);
 }
 
+// Get Current Session
+function getCurrentSession() {
+    const sessions = currentData.user?.sessions || [];
+    // Find current session token
+    return sessions.find(session => session.token === sessionToken);
+}
+
 // Show Sessions Modal
 function showSessionsModal() {
     const otherSessions = getOtherSessions();
+    const currentSession = getCurrentSession();
     
     showModal('Active Sessions', `
         <div>
@@ -1939,6 +1947,34 @@ function showSessionsModal() {
             </div>
             
             <div class="sessions-section">
+                ${currentSession ? `
+                    <div class="session-item" style="background: rgba(16, 185, 129, 0.1); border: 2px solid var(--success); border-radius: var(--radius); margin-bottom: 1rem;">
+                        <div class="session-info">
+                            <div class="session-details">
+                                <div style="font-weight: 600; margin-bottom: 0.25rem; color: var(--success);">
+                                    <i class="ri-check-line"></i> Current Session - ${currentSession.country_code} - ${currentSession.ip_address}
+                                </div>
+                                <div class="session-location">
+                                    <i class="ri-time-line"></i>
+                                    Created: ${new Date(currentSession.timestamp).toLocaleDateString()} ${new Date(currentSession.timestamp).toLocaleTimeString()}
+                                </div>
+                                <div class="session-location">
+                                    <i class="ri-calendar-line"></i>
+                                    Expires: ${new Date(currentSession.expires_at).toLocaleDateString()}
+                                </div>
+                                <div style="margin-top: 0.5rem;">
+                                    <code style="font-size: 0.7rem; color: var(--success); word-break: break-all;">
+                                        ${currentSession.token.substring(0, 20)}...
+                                    </code>
+                                </div>
+                            </div>
+                            <div style="padding: 0.25rem 0.5rem; background: var(--success); color: white; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 600;">
+                                Active
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+                
                 ${otherSessions.length > 0 ? otherSessions.map(session => {
                     const createdDate = new Date(session.timestamp);
                     const expiresDate = new Date(session.expires_at);
@@ -1974,7 +2010,7 @@ function showSessionsModal() {
                         </div>
                     </div>
                     `;
-                }).join('') : `
+                }).join('') : (currentSession ? '' : `
                     <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
                         <i class="ri-device-line" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
                         <p>No other active sessions</p>
@@ -1982,7 +2018,7 @@ function showSessionsModal() {
                             You're only logged in on this device
                         </p>
                     </div>
-                `}
+                `)}
             </div>
             
             ${otherSessions.length > 0 ? `
@@ -2006,9 +2042,9 @@ async function revokeSession(token) {
     }
     
     try {
-        // Use the logout endpoint but with the specific token to revoke
+        // Use the logout endpoint with GET request (as per the user's correction)
         const response = await fetch(`${API_BASE}/logout`, {
-            method: 'POST',
+            method: 'GET',
             headers: {
                 'Session-Token': token,  // Use the token to be revoked instead of current session
                 'Content-Type': 'application/json'

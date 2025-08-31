@@ -1929,6 +1929,7 @@ function getOtherSessions() {
 // Show Sessions Modal
 function showSessionsModal() {
     const otherSessions = getOtherSessions();
+    const currentSession = (currentData.user?.sessions || []).find(s => s.token === sessionToken);
     
     showModal('Active Sessions', `
         <div>
@@ -1937,6 +1938,32 @@ function showSessionsModal() {
                     Manage your active login sessions. You can revoke access for sessions you don't recognize.
                 </p>
             </div>
+            
+            ${currentSession ? `
+            <div style="padding: 0.75rem 1rem; border: 1px solid var(--border); border-left: 3px solid var(--success); background: rgba(16, 185, 129, 0.08); border-radius: var(--radius); margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                    <div class="session-details">
+                        <div style="font-weight: 600; margin-bottom: 0.25rem;">
+                            ${currentSession.country_code || '—'} - ${currentSession.ip_address || '—'}
+                        </div>
+                        <div class="session-location">
+                            <i class="ri-time-line"></i>
+                            Created: ${new Date(currentSession.timestamp).toLocaleDateString()} ${new Date(currentSession.timestamp).toLocaleTimeString()}
+                        </div>
+                        <div class="session-location">
+                            <i class="ri-calendar-line"></i>
+                            ${currentSession.expires_at ? `Expires: ${new Date(currentSession.expires_at).toLocaleDateString()}` : 'No expiry'}
+                        </div>
+                        <div style="margin-top: 0.5rem;">
+                            <code style="font-size: 0.7rem; color: var(--success); word-break: break-all;">
+                                ${currentSession.token}
+                            </code>
+                        </div>
+                    </div>
+                    <span class="badge badge-success">Current</span>
+                </div>
+            </div>
+            ` : ''}
             
             <div class="sessions-section">
                 ${otherSessions.length > 0 ? otherSessions.map(session => {
@@ -2006,18 +2033,12 @@ async function revokeSession(token) {
     }
     
     try {
-        // Use the logout endpoint but with the specific token to revoke
-        const response = await fetch(`${API_BASE}/logout`, {
-            method: 'POST',
+        // Use the logout endpoint with GET, mirroring the logout flow
+        await api('/logout', {
             headers: {
-                'Session-Token': token,  // Use the token to be revoked instead of current session
-                'Content-Type': 'application/json'
+                'Session-Token': token
             }
         });
-        
-        if (!response.ok) {
-            throw new Error('Failed to revoke session');
-        }
         
         // Remove from local data
         if (currentData.user && currentData.user.sessions) {

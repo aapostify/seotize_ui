@@ -1985,20 +1985,6 @@ function showSessionsModal() {
                 `}
             </div>
             
-            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-                <div class="mobilearticle2" style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-weight: 600; color: var(--success); margin-bottom: 0.25rem;">
-                            Current Session
-                        </div>
-                        <div style="font-size: 0.875rem; color: var(--text-secondary);">
-                            This device
-                        </div>
-                    </div>
-                    <span class="badge badge-success">Active</span>
-                </div>
-            </div>
-            
             ${otherSessions.length > 0 ? `
                 <div style="margin-top: 1.5rem; display: flex; justify-content: center;">
                     <button class="btn btn-danger" onclick="revokeAllSessions()">
@@ -2020,10 +2006,18 @@ async function revokeSession(token) {
     }
     
     try {
-        await api('/sessions/revoke', { 
-            method: 'POST', 
-            body: JSON.stringify({ token }) 
+        // Use the logout endpoint but with the specific token to revoke
+        const response = await fetch(`${API_BASE}/logout`, {
+            method: 'POST',
+            headers: {
+                'Session-Token': token,  // Use the token to be revoked instead of current session
+                'Content-Type': 'application/json'
+            }
         });
+        
+        if (!response.ok) {
+            throw new Error('Failed to revoke session');
+        }
         
         // Remove from local data
         if (currentData.user && currentData.user.sessions) {
@@ -2480,7 +2474,7 @@ async function loadTasks(page = 1) {
 
             <div class="task-progress">
             <div class="progress-bar">
-            <div class="progress-fill" style="width: ${Math.max(0, 100 - task.remaining_percentage)}%"></div>
+            <div class="progress-fill" style="width: ${task.remaining_percentage}%; background: ${task.remaining_percentage >= 100 ? '#8b5cf6' : task.remaining_percentage >= 10 ? '#10b981' : '#ef4444'}; transition: width 0.3s ease, background-color 0.3s ease;"></div>
             </div>
             </div>
 
@@ -2507,7 +2501,59 @@ async function loadTasks(page = 1) {
                 </div>
                 ` : ''}
 
-                ${paginationState.tasks.total > paginationState.tasks.pageSize ? generatePagination('tasks', loadTasks) : ''}
+                <!-- Pagination for SEO Tasks -->
+                ${paginationState.tasks.total > paginationState.tasks.pageSize ? `
+                    <div class="pagination" style="flex-direction: column;">
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                            <button class="pagination-btn" ${paginationState.tasks.page <= 1 ? 'disabled' : ''} onclick="loadTasks(${paginationState.tasks.page - 1})">
+                                <i class="ri-arrow-left-s-line"></i> Previous
+                            </button>
+                            
+                            ${(() => {
+                                let paginationButtons = '';
+                                const totalPages = Math.ceil(paginationState.tasks.total / paginationState.tasks.pageSize);
+                                const currentPage = paginationState.tasks.page;
+                                
+                                if (totalPages <= 5) {
+                                    for (let i = 1; i <= totalPages; i++) {
+                                        paginationButtons += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="loadTasks(${i})">${i}</button>`;
+                                    }
+                                } else {
+                                    if (currentPage > 2) {
+                                        paginationButtons += `<button class="pagination-btn" onclick="loadTasks(1)">1</button>`;
+                                        if (currentPage > 3) {
+                                            paginationButtons += '<span class="pagination-info">...</span>';
+                                        }
+                                    }
+                                    
+                                    const startPage = Math.max(1, currentPage - 1);
+                                    const endPage = Math.min(totalPages, currentPage + 1);
+                                    
+                                    for (let i = startPage; i <= endPage; i++) {
+                                        paginationButtons += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="loadTasks(${i})">${i}</button>`;
+                                    }
+                                    
+                                    if (currentPage < totalPages - 1) {
+                                        if (currentPage < totalPages - 2) {
+                                            paginationButtons += '<span class="pagination-info">...</span>';
+                                        }
+                                        paginationButtons += `<button class="pagination-btn" onclick="loadTasks(${totalPages})">${totalPages}</button>`;
+                                    }
+                                }
+                                
+                                return paginationButtons;
+                            })()}
+                            
+                            <button class="pagination-btn" ${!paginationState.tasks.hasNext ? 'disabled' : ''} onclick="loadTasks(${paginationState.tasks.page + 1})">
+                                Next <i class="ri-arrow-right-s-line"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="pagination-info">
+                            Page ${paginationState.tasks.page} of ${Math.ceil(paginationState.tasks.total / paginationState.tasks.pageSize)} | Showing ${currentData.tasks.length} of ${paginationState.tasks.total} tasks
+                        </div>
+                    </div>
+                ` : ''}
                 `;
 
     } catch (error) {
@@ -2732,7 +2778,59 @@ async function loadArticles(page = 1) {
                     </div>
                 ` : ''}
 
-                ${paginationState.articles.total > paginationState.articles.pageSize ? generatePagination('articles', loadArticles) : ''}
+                <!-- Pagination for Articles -->
+                ${paginationState.articles.total > paginationState.articles.pageSize ? `
+                    <div class="pagination" style="flex-direction: column;">
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                            <button class="pagination-btn" ${paginationState.articles.page <= 1 ? 'disabled' : ''} onclick="loadArticles(${paginationState.articles.page - 1})">
+                                <i class="ri-arrow-left-s-line"></i> Previous
+                            </button>
+                            
+                            ${(() => {
+                                let paginationButtons = '';
+                                const totalPages = Math.ceil(paginationState.articles.total / paginationState.articles.pageSize);
+                                const currentPage = paginationState.articles.page;
+                                
+                                if (totalPages <= 5) {
+                                    for (let i = 1; i <= totalPages; i++) {
+                                        paginationButtons += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="loadArticles(${i})">${i}</button>`;
+                                    }
+                                } else {
+                                    if (currentPage > 2) {
+                                        paginationButtons += `<button class="pagination-btn" onclick="loadArticles(1)">1</button>`;
+                                        if (currentPage > 3) {
+                                            paginationButtons += '<span class="pagination-info">...</span>';
+                                        }
+                                    }
+                                    
+                                    const startPage = Math.max(1, currentPage - 1);
+                                    const endPage = Math.min(totalPages, currentPage + 1);
+                                    
+                                    for (let i = startPage; i <= endPage; i++) {
+                                        paginationButtons += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="loadArticles(${i})">${i}</button>`;
+                                    }
+                                    
+                                    if (currentPage < totalPages - 1) {
+                                        if (currentPage < totalPages - 2) {
+                                            paginationButtons += '<span class="pagination-info">...</span>';
+                                        }
+                                        paginationButtons += `<button class="pagination-btn" onclick="loadArticles(${totalPages})">${totalPages}</button>`;
+                                    }
+                                }
+                                
+                                return paginationButtons;
+                            })()}
+                            
+                            <button class="pagination-btn" ${!paginationState.articles.hasNext ? 'disabled' : ''} onclick="loadArticles(${paginationState.articles.page + 1})">
+                                Next <i class="ri-arrow-right-s-line"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="pagination-info">
+                            Page ${paginationState.articles.page} of ${Math.ceil(paginationState.articles.total / paginationState.articles.pageSize)} | Showing ${currentData.articles.length} of ${paginationState.articles.total} articles
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         </div>
         `;

@@ -1939,132 +1939,151 @@ function showSessionsModal() {
     const currentSession = getCurrentSession();
     
     showModal('Active Sessions', `
-        <div>
-            <div style="margin-bottom: 1.5rem;">
-                <p style="color: var(--text-secondary); font-size: 0.875rem;">
+        <div style="display: flex; flex-direction: column; height: 70vh; max-height: 600px;">
+            
+            <!-- Header -->
+            <div style="margin-bottom: 1.5rem; flex-shrink: 0;">
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin: 0;">
                     Manage your active login sessions. You can revoke access for sessions you don't recognize.
                 </p>
             </div>
             
-            <!-- Current Session Section -->
-            ${currentSession ? `
-                <div style="margin-bottom: 2rem;">
-                    <h4 style="margin-bottom: 1rem; color: var(--success); display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="ri-shield-check-line"></i> Current Session
+            <!-- Other Sessions Section (Scrollable) -->
+            <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-shrink: 0;">
+                    <h4 style="margin: 0; color: var(--text); display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
+                        <i class="ri-device-line"></i> Other Active Sessions
                     </h4>
-                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); border: 2px solid var(--success); border-radius: var(--radius-lg); padding: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                            <div>
-                                <div style="font-weight: 700; font-size: 1.1rem; color: var(--success); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                                    <i class="ri-computer-line"></i> ${currentSession.country_code} - ${currentSession.ip_address}
-                                </div>
-                                <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.75rem 1rem; font-size: 0.875rem; color: var(--text-secondary);">
-                                    <div style="display: flex; align-items: center; gap: 0.25rem;">
-                                        <i class="ri-time-line"></i> Created:
-                                    </div>
-                                    <div>${new Date(currentSession.timestamp).toLocaleDateString()} at ${new Date(currentSession.timestamp).toLocaleTimeString()}</div>
-                                    
-                                    <div style="display: flex; align-items: center; gap: 0.25rem;">
-                                        <i class="ri-calendar-line"></i> Expires:
-                                    </div>
-                                    <div>${new Date(currentSession.expires_at).toLocaleDateString()}</div>
-                                </div>
-                            </div>
-                            <div style="background: var(--success); color: white; padding: 0.5rem 1rem; border-radius: var(--radius); font-size: 0.875rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="ri-check-line"></i> Active
-                            </div>
-                        </div>
-                        <div style="background: rgba(255, 255, 255, 0.7); padding: 0.75rem; border-radius: var(--radius); border: 1px solid rgba(16, 185, 129, 0.2);">
-                            <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-bottom: 0.25rem;">Session Token:</div>
-                            <code style="font-size: 0.7rem; color: var(--success); word-break: break-all; font-family: 'Courier New', monospace;">
-                                ${currentSession.token.substring(0, 32)}...
-                            </code>
-                        </div>
-                    </div>
+                    ${otherSessions.length > 0 ? `
+                        <span style="background: var(--bg-tertiary); color: var(--text-secondary); padding: 0.375rem 0.75rem; border-radius: var(--radius); font-size: 0.8rem; font-weight: 500;">
+                            ${otherSessions.length} session${otherSessions.length !== 1 ? 's' : ''}
+                        </span>
+                    ` : ''}
                 </div>
-            ` : ''}
-            
-            <!-- Revoke All Other Sessions Button -->
-            ${otherSessions.length > 0 ? `
-                <div style="margin-bottom: 2rem; text-align: center;">
-                    <button class="btn btn-danger" onclick="revokeAllSessions()" style="padding: 0.75rem 2rem; display: inline-flex; align-items: center; gap: 0.75rem; font-weight: 600;">
-                        <i class="ri-logout-box-line"></i> Revoke All Other Sessions (${otherSessions.length})
-                    </button>
-                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">
-                        This will log you out from all other devices and locations
-                    </div>
-                </div>
-            ` : ''}
-            
-            <!-- Other Sessions List -->
-            <div>
-                <h4 style="margin-bottom: 1rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="ri-device-line"></i> Other Sessions
-                    ${otherSessions.length > 0 ? `<span style="background: var(--bg-tertiary); color: var(--text-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 500;">${otherSessions.length}</span>` : ''}
-                </h4>
                 
-                <div class="sessions-section" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-secondary);">
+                <!-- Scrollable Sessions List -->
+                <div style="flex: 1; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-secondary); min-height: 200px;">
                     ${otherSessions.length > 0 ? otherSessions.map((session, index) => {
                         const createdDate = new Date(session.timestamp);
                         const expiresDate = new Date(session.expires_at);
                         const isExpired = expiresDate < new Date();
                         
                         return `
-                        <div class="session-item" style="padding: 1.25rem; border-bottom: ${index === otherSessions.length - 1 ? 'none' : '1px solid var(--border)'};">
-                            <div class="session-info">
-                                <div class="session-details">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                                        <div style="font-weight: 600; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                                            <i class="ri-map-pin-line" style="color: var(--text-tertiary);"></i>
-                                            ${session.country_code} - ${session.ip_address}
-                                        </div>
-                                        <button class="session-delete" onclick="revokeSession('${session.token}')" style="padding: 0.375rem 0.75rem; background: var(--error); color: white; border: none; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 0.25rem;">
-                                            <i class="ri-logout-box-line"></i> Revoke
-                                        </button>
+                        <div style="padding: 1.25rem; border-bottom: ${index === otherSessions.length - 1 ? 'none' : '1px solid var(--border)'}; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='var(--card-hover)'" onmouseout="this.style.backgroundColor='transparent'">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                        <i class="ri-map-pin-line" style="color: var(--primary); font-size: 1.1rem;"></i>
+                                        <span style="font-weight: 600; font-size: 1rem;">${session.country_code}</span>
+                                        <span style="color: var(--text-secondary);">•</span>
+                                        <span style="color: var(--text-secondary); font-family: monospace; font-size: 0.9rem;">${session.ip_address}</span>
                                     </div>
                                     
-                                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+                                    <div style="display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
                                         <div style="display: flex; align-items: center; gap: 0.25rem;">
-                                            <i class="ri-time-line"></i> Created:
+                                            <i class="ri-time-line"></i>
+                                            <span>Created: ${createdDate.toLocaleDateString()} ${createdDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                                         </div>
-                                        <div>${createdDate.toLocaleDateString()} at ${createdDate.toLocaleTimeString()}</div>
-                                        
                                         <div style="display: flex; align-items: center; gap: 0.25rem;">
-                                            <i class="ri-calendar-line"></i> Status:
-                                        </div>
-                                        <div>
-                                            ${isExpired ? 
+                                            <i class="ri-calendar-line"></i>
+                                            <span>${isExpired ? 
                                                 '<span style="color: var(--error); font-weight: 500;">Expired</span>' : 
-                                                `Expires ${expiresDate.toLocaleDateString()}`
-                                            }
+                                                `Expires: ${expiresDate.toLocaleDateString()}`
+                                            }</span>
                                         </div>
                                     </div>
                                     
-                                    <div style="margin-top: 0.75rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius-sm);">
-                                        <div style="font-size: 0.7rem; color: var(--text-tertiary); margin-bottom: 0.25rem;">Token:</div>
-                                        <code style="font-size: 0.65rem; color: var(--text-secondary); word-break: break-all; font-family: 'Courier New', monospace;">
-                                            ${session.token.substring(0, 24)}...
+                                    <div style="background: var(--bg-tertiary); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                                        <div style="font-size: 0.7rem; color: var(--text-tertiary); margin-bottom: 0.25rem;">Session Token:</div>
+                                        <code style="font-size: 0.7rem; color: var(--text-secondary); word-break: break-all; font-family: 'Courier New', monospace;">
+                                            ${session.token.substring(0, 32)}...
                                         </code>
                                     </div>
                                 </div>
+                                
+                                <button onclick="revokeSession('${session.token}')" style="padding: 0.5rem 1rem; background: var(--error); color: white; border: none; border-radius: var(--radius); font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; align-self: flex-start;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='var(--error)'">
+                                    <i class="ri-logout-box-line"></i> Revoke
+                                </button>
                             </div>
                         </div>
                         `;
                     }).join('') : `
-                        <div style="text-align: center; padding: 3rem 2rem; color: var(--text-secondary);">
-                            <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">
-                                <i class="ri-device-line"></i>
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 2rem; color: var(--text-secondary); text-align: center;">
+                            <div style="font-size: 3.5rem; margin-bottom: 1rem; opacity: 0.4;">
+                                <i class="ri-shield-check-line"></i>
                             </div>
-                            <div style="font-size: 1.1rem; font-weight: 500; margin-bottom: 0.5rem;">No Other Sessions</div>
-                            <div style="font-size: 0.9rem;">
-                                You're only logged in on this device
+                            <div style="font-size: 1.2rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text);">All Clear!</div>
+                            <div style="font-size: 0.9rem; line-height: 1.4;">
+                                No other active sessions found.<br>
+                                You're only logged in on this device.
                             </div>
                         </div>
                     `}
                 </div>
             </div>
+            
+            <!-- Bottom Section: Current Session + Actions -->
+            <div style="margin-top: 2rem; flex-shrink: 0;">
+                
+                <!-- Revoke All Button (only show if there are other sessions) -->
+                ${otherSessions.length > 0 ? `
+                    <div style="text-align: center; margin-bottom: 2rem; padding: 1.5rem; background: var(--bg-tertiary); border-radius: var(--radius-lg); border: 1px solid var(--border);">
+                        <button onclick="revokeAllSessions()" style="padding: 0.875rem 2.5rem; background: var(--error); color: white; border: none; border-radius: var(--radius-lg); font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.75rem; box-shadow: var(--shadow);" onmouseover="this.style.background='#dc2626'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='var(--error)'; this.style.transform='translateY(0)'">
+                            <i class="ri-logout-box-line" style="font-size: 1.1rem;"></i>
+                            Revoke All Other Sessions (${otherSessions.length})
+                        </button>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.75rem; line-height: 1.3;">
+                            This will immediately log you out from all other devices and locations
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <!-- Current Session -->
+                ${currentSession ? `
+                    <div>
+                        <h4 style="margin-bottom: 1rem; color: var(--success); display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
+                            <i class="ri-shield-check-line"></i> Your Current Session
+                        </h4>
+                        <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.03) 100%); border: 2px solid var(--success); border-radius: var(--radius-lg); padding: 1.5rem; position: relative; overflow: hidden;">
+                            <!-- Success indicator -->
+                            <div style="position: absolute; top: 1rem; right: 1rem; background: var(--success); color: white; padding: 0.375rem 0.875rem; border-radius: var(--radius); font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.375rem;">
+                                <i class="ri-check-line"></i> Active Now
+                            </div>
+                            
+                            <div style="margin-right: 120px;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                                    <i class="ri-computer-line" style="font-size: 1.5rem; color: var(--success);"></i>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 1.2rem; color: var(--success);">${currentSession.country_code}</div>
+                                        <div style="font-family: monospace; color: var(--text-secondary); font-size: 0.9rem;">${currentSession.ip_address}</div>
+                                    </div>
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 0.5rem 1.5rem; font-size: 0.85rem; margin-bottom: 1rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.25rem; color: var(--text-secondary);">
+                                        <i class="ri-time-line"></i> Created:
+                                    </div>
+                                    <div style="font-weight: 500;">${new Date(currentSession.timestamp).toLocaleDateString()} at ${new Date(currentSession.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                                    
+                                    <div style="display: flex; align-items: center; gap: 0.25rem; color: var(--text-secondary);">
+                                        <i class="ri-calendar-line"></i> Expires:
+                                    </div>
+                                    <div style="font-weight: 500;">${new Date(currentSession.expires_at).toLocaleDateString()}</div>
+                                </div>
+                                
+                                <div style="background: rgba(255, 255, 255, 0.6); padding: 0.875rem; border-radius: var(--radius); border: 1px solid rgba(16, 185, 129, 0.2);">
+                                    <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-bottom: 0.375rem; font-weight: 500;">Session Token:</div>
+                                    <code style="font-size: 0.75rem; color: var(--success); word-break: break-all; font-family: 'Courier New', monospace; font-weight: 500;">
+                                        ${currentSession.token.substring(0, 40)}...
+                                    </code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
         </div>
-    `);
+    `, '900px');
     
     // Close dropdown
     document.getElementById('userDropdown').classList.remove('active');

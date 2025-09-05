@@ -2455,19 +2455,19 @@ async function loadDashboard(page = 1) {
                 </div>
                 
                 <!-- Stats Row -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
-                    <div style="text-align: center;">
-                        <div style="font-size: 0.65rem; color: var(--text-tertiary); margin-bottom: 0.25rem;">Keywords</div>
-                        <span class="badge badge-primary" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">${task.keywords_count}</span>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 0.65rem; color: var(--text-tertiary); margin-bottom: 0.25rem;">Views</div>
-                        <span class="badge badge-success" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">${task.views_count}</span>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 0.65rem; color: var(--text-tertiary); margin-bottom: 0.25rem;">Available</div>
-                        <div style="font-weight: 600; font-size: 0.8rem; color: var(--text);">$${availableCharge.toFixed(2)}</div>
-                    </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius-sm);">
+                 <div style="display: flex; align-items: center; gap: 0.5rem;">
+                     <span style="font-size: 0.75rem; color: var(--text-secondary);">Keywords:</span>
+                     <span class="badge badge-primary" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">${task.keywords_count}</span>
+                 </div>
+                 <div style="display: flex; align-items: center; gap: 0.5rem;">
+                     <span style="font-size: 0.75rem; color: var(--text-secondary);">Views:</span>
+                     <span class="badge badge-success" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">${task.views_count}</span>
+                 </div>
+                 <div style="display: flex; align-items: center; gap: 0.5rem;">
+                     <span style="font-size: 0.75rem; color: var(--text-secondary);">Available:</span>
+                     <span style="font-weight: 600; font-size: 0.8rem; color: var(--text);">$${availableCharge.toFixed(2)}</span>
+                 </div>
                 </div>
                 
                 <!-- Budget Progress -->

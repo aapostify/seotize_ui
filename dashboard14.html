@@ -2206,7 +2206,19 @@ async function api(endpoint, options = {}) {
     }
 }
 
-// Dashboard
+// Helper function to format numbers with K/M abbreviations
+function formatNumber(num) {
+    if (num < 1000) {
+        return num.toString();
+    } else if (num < 1000000) {
+        return (num / 1000).toFixed(1).replace('.0', '') + 'k';
+    } else if (num < 1000000000) {
+        return (num / 1000000).toFixed(1).replace('.0', '') + 'M';
+    } else {
+        return (num / 1000000000).toFixed(1).replace('.0', '') + 'B';
+    }
+}
+
 // Dashboard
 async function loadDashboard(page = 1) {
     try {
@@ -2252,7 +2264,7 @@ async function loadDashboard(page = 1) {
         <i class="ri-eye-line"></i>
         </div>
         <div class="stat-content">
-        <div class="stat-value">${user.usage_summary?.total_views || 0}</div>
+        <div class="stat-value">${formatNumber(user.usage_summary?.total_views || 0)}</div>
         <div class="stat-label">Total Views</div>
         </div>
         </div>
@@ -2377,7 +2389,7 @@ async function loadDashboard(page = 1) {
             <span class="badge badge-primary">${task.keywords_count}</span>
             </td>
             <td>
-            <span class="badge badge-success">${task.views_count}</span>
+            <span class="badge badge-success">${formatNumber(task.views_count)}</span>
             </td>
             <td>
             <div style="display: flex; flex-direction: column; gap: 0.25rem; min-width: 120px;">
@@ -2417,7 +2429,7 @@ async function loadDashboard(page = 1) {
                 minute: '2-digit'
             });
 
-            // CORRECTED: Same calculation logic as desktop version
+            // Same calculation logic as desktop version
             const totalCharge = task.total_charge;
             const availableCharge = task.available_charge;
             const remainingPercent = Math.max(0, task.remaining_percentage || 0);
@@ -2478,7 +2490,7 @@ async function loadDashboard(page = 1) {
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <span style="font-size: 0.75rem; color: var(--text-secondary);">Views:</span>
-                        <span class="badge badge-success" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">${task.views_count}</span>
+                        <span class="badge badge-success" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">${formatNumber(task.views_count)}</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <span style="font-size: 0.75rem; color: var(--text-secondary);">Available:</span>
@@ -2486,7 +2498,7 @@ async function loadDashboard(page = 1) {
                     </div>
                 </div>
                 
-                <!-- Budget Progress - CORRECTED -->
+                <!-- Budget Progress -->
                 <div style="margin-bottom: 0.75rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <span style="font-size: 0.75rem; color: var(--text-secondary);">Budget Remaining</span>

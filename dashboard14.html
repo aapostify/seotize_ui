@@ -1940,94 +1940,120 @@ function showSessionsModal() {
     
     showModal('Active Sessions', `
         <div>
-            <div style="margin-bottom: 1rem;">
+            <div style="margin-bottom: 1.5rem;">
                 <p style="color: var(--text-secondary); font-size: 0.875rem;">
                     Manage your active login sessions. You can revoke access for sessions you don't recognize.
                 </p>
             </div>
             
-            <div class="sessions-section">
-                ${currentSession ? `
-                    <div class="session-item" style="background: rgba(16, 185, 129, 0.1); border: 2px solid var(--success); border-radius: var(--radius); margin-bottom: 1rem;">
-                        <div class="session-info">
-                            <div class="session-details">
-                                <div style="font-weight: 600; margin-bottom: 0.25rem; color: var(--success);">
-                                    <i class="ri-check-line"></i> Current Session - ${currentSession.country_code} - ${currentSession.ip_address}
+            <!-- Current Session - Prominently displayed at top -->
+            ${currentSession ? `
+                <div style="margin-bottom: 2rem;">
+                    <h4 style="margin-bottom: 1rem; color: var(--success); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="ri-shield-check-line"></i> Current Session
+                    </h4>
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 2px solid var(--success); border-radius: var(--radius-lg); padding: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 1.1rem; color: var(--success); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <i class="ri-computer-line"></i>
+                                    ${currentSession.country_code} - ${currentSession.ip_address}
                                 </div>
-                                <div class="session-location">
-                                    <i class="ri-time-line"></i>
-                                    Created: ${new Date(currentSession.timestamp).toLocaleDateString()} ${new Date(currentSession.timestamp).toLocaleTimeString()}
-                                </div>
-                                <div class="session-location">
-                                    <i class="ri-calendar-line"></i>
-                                    Expires: ${new Date(currentSession.expires_at).toLocaleDateString()}
-                                </div>
-                                <div style="margin-top: 0.5rem;">
-                                    <code style="font-size: 0.7rem; color: var(--success); word-break: break-all;">
-                                        ${currentSession.token.substring(0, 20)}...
-                                    </code>
+                                <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.75rem 1rem; font-size: 0.875rem; color: var(--text-secondary);">
+                                    <span><i class="ri-time-line"></i> Created:</span>
+                                    <span>${new Date(currentSession.timestamp).toLocaleDateString()} ${new Date(currentSession.timestamp).toLocaleTimeString()}</span>
+                                    <span><i class="ri-calendar-line"></i> Expires:</span>
+                                    <span>${new Date(currentSession.expires_at).toLocaleDateString()}</span>
                                 </div>
                             </div>
-                            <div style="padding: 0.25rem 0.5rem; background: var(--success); color: white; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 600;">
-                                Active
+                            <div style="background: var(--success); color: white; padding: 0.5rem 1rem; border-radius: var(--radius); font-size: 0.875rem; font-weight: 600; white-space: nowrap;">
+                                <i class="ri-check-line"></i> Active
                             </div>
                         </div>
-                    </div>
-                ` : ''}
-                
-                ${otherSessions.length > 0 ? otherSessions.map(session => {
-                    const createdDate = new Date(session.timestamp);
-                    const expiresDate = new Date(session.expires_at);
-                    const isExpired = expiresDate < new Date();
-                    
-                    return `
-                    <div class="session-item">
-                        <div class="session-info">
-                            <div class="session-details">
-                                <div style="font-weight: 600; margin-bottom: 0.25rem;">
-                                    ${session.country_code} - ${session.ip_address}
-                                </div>
-                                <div class="session-location">
-                                    <i class="ri-time-line"></i>
-                                    Created: ${createdDate.toLocaleDateString()} ${createdDate.toLocaleTimeString()}
-                                </div>
-                                <div class="session-location">
-                                    <i class="ri-calendar-line"></i>
-                                    ${isExpired ? 
-                                        '<span style="color: var(--error);">Expired</span>' : 
-                                        `Expires: ${expiresDate.toLocaleDateString()}`
-                                    }
-                                </div>
-                                <div style="margin-top: 0.5rem;">
-                                    <code style="font-size: 0.7rem; color: var(--text-tertiary); word-break: break-all;">
-                                        ${session.token.substring(0, 20)}...
-                                    </code>
-                                </div>
-                            </div>
-                            <button class="session-delete" onclick="revokeSession('${session.token}')">
-                                Revoke
-                            </button>
+                        <div style="background: rgba(0, 0, 0, 0.1); padding: 0.75rem; border-radius: var(--radius-sm);">
+                            <div style="font-size: 0.75rem; color: var(--success); margin-bottom: 0.25rem; font-weight: 500;">Session Token:</div>
+                            <code style="font-size: 0.7rem; color: var(--success); word-break: break-all; line-height: 1.4;">
+                                ${currentSession.token.substring(0, 32)}...
+                            </code>
                         </div>
                     </div>
-                    `;
-                }).join('') : (currentSession ? '' : `
-                    <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                        <i class="ri-device-line" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-                        <p>No other active sessions</p>
-                        <p style="font-size: 0.875rem; margin-top: 0.5rem;">
-                            You're only logged in on this device
-                        </p>
-                    </div>
-                `)}
-            </div>
-            
-            ${otherSessions.length > 0 ? `
-                <div style="margin-top: 1.5rem; display: flex; justify-content: center;">
-                    <button class="btn btn-danger" onclick="revokeAllSessions()">
-                        <i class="ri-logout-box-line"></i> Revoke All Other Sessions
-                    </button>
                 </div>
             ` : ''}
+            
+            <!-- Other Sessions Section -->
+            ${otherSessions.length > 0 ? `
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="ri-device-line"></i> Other Sessions (${otherSessions.length})
+                    </h4>
+                    <div style="background: var(--bg-tertiary); border-radius: var(--radius-lg); padding: 1rem;">
+                        <div class="sessions-section" style="max-height: 300px; overflow-y: auto;">
+                            ${otherSessions.map(session => {
+                                const createdDate = new Date(session.timestamp);
+                                const expiresDate = new Date(session.expires_at);
+                                const isExpired = expiresDate < new Date();
+                                
+                                return `
+                                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.75rem; last-child:margin-bottom: 0;">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                                <i class="ri-computer-line" style="color: var(--text-secondary);"></i>
+                                                <span>${session.country_code} - ${session.ip_address}</span>
+                                            </div>
+                                            <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1rem; font-size: 0.8rem; color: var(--text-secondary);">
+                                                <span><i class="ri-time-line"></i> Created:</span>
+                                                <span>${createdDate.toLocaleDateString()} ${createdDate.toLocaleTimeString()}</span>
+                                                <span><i class="ri-calendar-line"></i> Status:</span>
+                                                <span style="color: ${isExpired ? 'var(--error)' : 'var(--success)'};">
+                                                    ${isExpired ? '⚠️ Expired' : '✅ Active until ' + expiresDate.toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                            <div style="margin-top: 0.75rem; background: var(--bg-tertiary); padding: 0.5rem; border-radius: var(--radius-sm);">
+                                                <code style="font-size: 0.65rem; color: var(--text-tertiary); word-break: break-all;">
+                                                    ${session.token.substring(0, 20)}...
+                                                </code>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            style="background: var(--error); color: white; border: none; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; font-weight: 500; white-space: nowrap; transition: var(--transition);" 
+                                            onclick="revokeSession('${session.token}')"
+                                            onmouseover="this.style.background='#dc2626'"
+                                            onmouseout="this.style.background='var(--error)'"
+                                        >
+                                            <i class="ri-logout-box-line"></i> Revoke
+                                        </button>
+                                    </div>
+                                </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Revoke All Sessions Button -->
+                <div style="text-align: center; padding: 1.5rem; background: var(--bg-tertiary); border-radius: var(--radius-lg); border: 1px solid var(--border);">
+                    <div style="margin-bottom: 1rem;">
+                        <i class="ri-logout-box-line" style="font-size: 2rem; color: var(--error); margin-bottom: 0.5rem; display: block;"></i>
+                        <h5 style="margin-bottom: 0.5rem; color: var(--text);">Revoke All Other Sessions</h5>
+                        <p style="font-size: 0.875rem; color: var(--text-secondary); margin: 0;">
+                            This will immediately log you out from all other devices and sessions. Your current session will remain active.
+                        </p>
+                    </div>
+                    <button class="btn btn-danger" onclick="revokeAllSessions()" style="padding: 0.75rem 2rem;">
+                        <i class="ri-logout-box-line"></i> Revoke All ${otherSessions.length} Other Session${otherSessions.length !== 1 ? 's' : ''}
+                    </button>
+                </div>
+            ` : `
+                <!-- No Other Sessions -->
+                <div style="text-align: center; padding: 2.5rem; background: var(--bg-tertiary); border-radius: var(--radius-lg); border: 1px solid var(--border);">
+                    <i class="ri-shield-check-line" style="font-size: 3rem; color: var(--success); margin-bottom: 1rem; display: block;"></i>
+                    <h4 style="color: var(--success); margin-bottom: 0.5rem;">Secure Account</h4>
+                    <p style="color: var(--text-secondary); margin: 0; font-size: 0.875rem;">
+                        You're only logged in on this device. No other active sessions found.
+                    </p>
+                </div>
+            `}
         </div>
     `);
     

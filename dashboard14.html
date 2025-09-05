@@ -2465,11 +2465,13 @@ async function loadTasks(page = 1) {
         const { data, pagination } = response;
         const user = data.user;
         currentData.tasks = user.tasks || [];
+        
+        // Ensure pagination state is properly set
         paginationState.tasks = {
-            page: pagination.current,
-            pageSize: pagination.size,
-            total: pagination.total,
-            hasNext: pagination.has_next
+            page: pagination.current || 1,
+            pageSize: pagination.size || 10,
+            total: pagination.total || 0,
+            hasNext: pagination.has_next || false
         };
 
         const content = document.getElementById('content');
@@ -2535,10 +2537,7 @@ async function loadTasks(page = 1) {
                 <div class="empty-state-description">Create your first SEO task to start optimizing your website</div>
                 <button class="btn btn-primary" onclick="showTaskModal()">Create First Task</button>
                 </div>
-                ` : ''}
-
-                <!-- Pagination for SEO Tasks -->
-                ${paginationState.tasks.total > paginationState.tasks.pageSize ? generatePagination('tasks', loadTasks) : ''}
+                ` : generatePagination('tasks', loadTasks)}
                 `;
 
     } catch (error) {
@@ -2761,10 +2760,7 @@ async function loadArticles(page = 1) {
                         <div class="empty-state-description">Create your first article to start publishing content</div>
                         <button class="btn btn-primary" onclick="showArticleModal()">Create First Article</button>
                     </div>
-                ` : ''}
-
-                <!-- Pagination for Articles -->
-                ${paginationState.articles.total > paginationState.articles.pageSize ? generatePagination('articles', loadArticles) : ''}
+                ` : generatePagination('articles', loadArticles)}
             </div>
         </div>
         `;
@@ -5503,52 +5499,60 @@ function updateCharts() {
 // Pagination
 function generatePagination(type, loadFunction) {
     const pagination = paginationState[type];
-    if (!pagination || pagination.total <= pagination.pageSize) return '';
+    if (!pagination) return '';
 
-    const totalPages = Math.ceil(pagination.total / pagination.pageSize);
-    const currentPage = pagination.page;
+    const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize));
+    const currentPage = pagination.page || 1;
+    const hasMultiplePages = totalPages > 1;
 
     let paginationHTML = '<div class="pagination">';
 
-    // Previous button
+    // Always show previous button (disabled if on first page)
     paginationHTML += `<button class="pagination-btn" ${currentPage <= 1 ? 'disabled' : ''} onclick="${loadFunction.name}(${currentPage - 1})">
-    <i class="ri-arrow-left-s-line"></i> Previous
+        <i class="ri-arrow-left-s-line"></i> Previous
     </button>`;
 
-    // Page numbers
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, currentPage + 2);
+    // Only show page numbers if there are multiple pages
+    if (hasMultiplePages) {
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
 
-    if (startPage > 1) {
-        paginationHTML += `<button class="pagination-btn" onclick="${loadFunction.name}(1)">1</button>`;
-        if (startPage > 2) {
-            paginationHTML += '<span class="pagination-info">...</span>';
+        if (startPage > 1) {
+            paginationHTML += `<button class="pagination-btn" onclick="${loadFunction.name}(1)">1</button>`;
+            if (startPage > 2) {
+                paginationHTML += '<span class="pagination-info">...</span>';
+            }
         }
-    }
 
-    for (let i = startPage; i <= endPage; i++) {
-        paginationHTML += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="${loadFunction.name}(${i})">${i}</button>`;
-    }
-
-    if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-            paginationHTML += '<span class="pagination-info">...</span>';
+        for (let i = startPage; i <= endPage; i++) {
+            paginationHTML += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="${loadFunction.name}(${i})">${i}</button>`;
         }
-        paginationHTML += `<button class="pagination-btn" onclick="${loadFunction.name}(${totalPages})">${totalPages}</button>`;
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                paginationHTML += '<span class="pagination-info">...</span>';
+            }
+            paginationHTML += `<button class="pagination-btn" onclick="${loadFunction.name}(${totalPages})">${totalPages}</button>`;
+        }
+    } else {
+        // Single page - show page 1 as active
+        paginationHTML += `<button class="pagination-btn active">1</button>`;
     }
 
-    // Next button
+    // Always show next button (disabled if on last page)
     paginationHTML += `<button class="pagination-btn" ${currentPage >= totalPages ? 'disabled' : ''} onclick="${loadFunction.name}(${currentPage + 1})">
-    Next <i class="ri-arrow-right-s-line"></i>
+        Next <i class="ri-arrow-right-s-line"></i>
     </button>`;
 
-    // Info
+    // Info text
+    const startItem = Math.max(1, ((currentPage - 1) * pagination.pageSize) + 1);
+    const endItem = Math.min(currentPage * pagination.pageSize, pagination.total);
+    
     paginationHTML += `<div class="pagination-info">
-    Showing ${((currentPage - 1) * pagination.pageSize) + 1} to ${Math.min(currentPage * pagination.pageSize, pagination.total)} of ${pagination.total} results
+        ${pagination.total > 0 ? `Showing ${startItem} to ${endItem} of ${pagination.total} results` : 'No results'}
     </div>`;
 
     paginationHTML += '</div>';
-
     return paginationHTML;
 }
 

@@ -3445,6 +3445,7 @@ function goToStep(step) {
 }
 
 // Fixed Website Preview with Scroll but No Navigation
+// Fixed Website Preview with Working Scroll and Click Interception
 function loadWebsitePreview(url) {
     const iframe = document.getElementById('taskPreviewFrame');
     const loader = document.getElementById('websiteLoader');
@@ -3472,41 +3473,105 @@ function loadWebsitePreview(url) {
         loader.style.display = 'none';
         iframe.style.display = 'block';
 
-        // Setup overlay to capture clicks but allow scroll
+        // Make overlay capture clicks but not block scrolling
         overlay.style.cursor = 'crosshair';
-        overlay.style.pointerEvents = 'auto';
+        overlay.style.pointerEvents = 'none'; // Start with none
         
-        // Prevent iframe interaction completely
-        iframe.style.pointerEvents = 'none';
+        // Create a click interceptor layer
+        const clickInterceptor = document.createElement('div');
+        clickInterceptor.id = 'clickInterceptor';
+        clickInterceptor.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10;
+            cursor: crosshair;
+            background: transparent;
+        `;
         
-        // Handle scroll events on the overlay and pass them to iframe
-        overlay.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            // Get iframe's content window and scroll it
-            if (iframe.contentWindow) {
-                iframe.contentWindow.scrollBy(0, e.deltaY);
-            }
-        }, { passive: false });
+        // Add the interceptor to the preview container
+        const previewContainer = document.querySelector('.website-preview');
+        if (!document.getElementById('clickInterceptor')) {
+            previewContainer.appendChild(clickInterceptor);
+        }
 
-        // Handle touch scroll for mobile
-        let touchStartY = 0;
-        overlay.addEventListener('touchstart', (e) => {
-            touchStartY = e.touches[0].clientY;
+        // Intercept all mouse events
+        clickInterceptor.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Calculate position relative to iframe
+            const rect = iframe.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            
+            // Check max locations
+            const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
+            if (currentData.selectedLocations.length >= maxLocations) {
+                showToast(`Maximum ${maxLocations} locations allowed for ${currentData.taskPriority} priority`, 'warning');
+                return;
+            }
+
+            // Generate XPath and add location
+            const xpath = generateXPath(x, y, currentData.selectedLocations.length + 1);
+            const locationId = Date.now() + Math.random();
+
+            // Add visual marker to overlay
+            const marker = document.createElement('div');
+            marker.className = 'xpath-marker';
+            marker.style.left = x + '%';
+            marker.style.top = y + '%';
+            marker.style.pointerEvents = 'auto';
+            marker.innerHTML = currentData.selectedLocations.length + 1;
+            marker.dataset.locationId = locationId;
+            marker.style.zIndex = '20';
+
+            // Add remove handler
+            marker.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeLocation(locationId);
+            });
+
+            overlay.appendChild(marker);
+            overlay.style.pointerEvents = 'none'; // Keep overlay non-blocking
+
+            // Add to locations
+            currentData.selectedLocations.push({
+                id: locationId,
+                xpath: xpath,
+                x: x,
+                y: y
+            });
+
+            updateSelectedLocationsDisplay();
+            console.log('Added location:', { id: locationId, xpath, x, y });
+        });
+
+        // Allow scrolling by temporarily hiding interceptor during wheel events
+        let scrollTimeout;
+        iframe.parentElement.addEventListener('wheel', (e) => {
+            clickInterceptor.style.pointerEvents = 'none';
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                clickInterceptor.style.pointerEvents = 'auto';
+            }, 150);
         }, { passive: true });
 
-        overlay.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            const touchY = e.touches[0].clientY;
-            const deltaY = touchStartY - touchY;
-            touchStartY = touchY;
-            
-            if (iframe.contentWindow) {
-                iframe.contentWindow.scrollBy(0, deltaY);
-            }
-        }, { passive: false });
+        // Handle touch for mobile
+        let touchScrolling = false;
+        iframe.parentElement.addEventListener('touchstart', () => {
+            touchScrolling = true;
+            clickInterceptor.style.pointerEvents = 'none';
+        }, { passive: true });
 
-        // Handle clicks for XPath selection
-        overlay.onclick = handleOverlayClick;
+        iframe.parentElement.addEventListener('touchend', () => {
+            setTimeout(() => {
+                touchScrolling = false;
+                clickInterceptor.style.pointerEvents = 'auto';
+            }, 150);
+        }, { passive: true });
 
         console.log('Website loaded - scroll to view, click to add XPath locations');
         showToast('Scroll to view the page, click anywhere to add XPath locations', 'info');

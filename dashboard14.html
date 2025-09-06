@@ -4610,38 +4610,41 @@ async function viewArticle(articleId) {
             <!-- Perfect Mobile Layout -->
             <div class="mobile-only" style="padding: 0; margin: -1.5rem; background: var(--bg);">
                 
-                <!-- Mobile Hero Header -->
-                <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 1.5rem 1rem; position: relative; overflow: hidden;">
-                    <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: translate(30px, -30px);"></div>
-                    <div style="position: relative; z-index: 2;">
-                        <h3 style="color: white; font-size: 1.2rem; font-weight: 700; margin-bottom: 0.75rem; line-height: 1.3;">${article.subject}</h3>
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; opacity: 0.9;">
-                            <div style="flex: 1; min-width: 0;">
-                                <div style="font-size: 0.8rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.25rem;">
-                                    <i class="ri-global-line"></i>
+                <!-- Compact Mobile Hero Header -->
+                <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 1rem; position: relative;">
+                    <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                        <!-- Article Info -->
+                        <div style="flex: 1; min-width: 0;">
+                            <h3 style="color: white; font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${article.subject}</h3>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem; opacity: 0.9;">
+                                <div style="font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
+                                    <i class="ri-global-line" style="font-size: 0.7rem;"></i>
                                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${article.url}</span>
                                 </div>
-                                <div style="font-size: 0.75rem; opacity: 0.8;">
-                                    <i class="ri-calendar-line"></i> ${new Date(article.creation_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                <div style="font-size: 0.7rem; opacity: 0.8; display: flex; align-items: center; gap: 0.25rem;">
+                                    <i class="ri-calendar-line" style="font-size: 0.65rem;"></i>
+                                    <span>${new Date(article.creation_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                 </div>
                             </div>
-                            <div style="text-align: center; background: rgba(255,255,255,0.15); padding: 0.75rem; border-radius: var(--radius); backdrop-filter: blur(10px);">
-                                <div style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem;">${formatNumber(article.total_views || 0)}</div>
-                                <div style="font-size: 0.7rem; opacity: 0.9; font-weight: 500;">VIEWS</div>
-                            </div>
+                        </div>
+                        
+                        <!-- Compact Views Badge -->
+                        <div style="background: rgba(255,255,255,0.2); padding: 0.6rem 0.8rem; border-radius: var(--radius); text-align: center; flex-shrink: 0; backdrop-filter: blur(5px);">
+                            <div style="font-size: 1.2rem; font-weight: 700; line-height: 1; margin-bottom: 0.15rem;">${formatNumber(article.total_views || 0)}</div>
+                            <div style="font-size: 0.65rem; opacity: 0.9; font-weight: 500; letter-spacing: 0.5px;">VIEWS</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Mobile Actions Bar -->
-                <div style="background: var(--card); padding: 1rem; border-bottom: 1px solid var(--border); display: flex; gap: 0.75rem;">
-                    <button class="btn btn-primary" onclick="window.open('https://${article.url}', '_blank')" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem;">
+                <div style="background: var(--card); padding: 0.75rem; border-bottom: 1px solid var(--border); display: flex; gap: 0.5rem;">
+                    <button class="btn btn-primary" onclick="window.open('https://${article.url}', '_blank')" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem; font-size: 0.85rem;">
                         <i class="ri-external-link-line"></i> View Live
                     </button>
-                    <button class="btn btn-secondary" onclick="editArticle('${article.article_id}')" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem;">
+                    <button class="btn btn-secondary" onclick="editArticle('${article.article_id}')" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem; font-size: 0.85rem;">
                         <i class="ri-edit-line"></i> Edit
                     </button>
-                    <button class="btn btn-danger" onclick="confirmDeleteArticle('${article.article_id}')" style="padding: 0.75rem;">
+                    <button class="btn btn-danger" onclick="confirmDeleteArticle('${article.article_id}')" style="padding: 0.625rem 0.75rem;">
                         <i class="ri-delete-bin-line"></i>
                     </button>
                 </div>

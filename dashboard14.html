@@ -4890,6 +4890,7 @@ async function uploadImages(e) {
 }
 
 // Enhanced Image Details with Real Analytics
+// Enhanced Image Details with Mobile-Optimized Layout
 async function showImageDetails(imageId) {
     try {
         // Get the image from current data
@@ -4951,7 +4952,8 @@ async function showImageDetails(imageId) {
         const topDevices = Object.entries(devices).sort(([,a], [,b]) => b - a).slice(0, 5);
 
         showModal('Image Analytics', `
-        <div style="display: grid; grid-template-columns: 300px 1fr; gap: 2rem;">
+        <!-- Desktop Layout -->
+        <div class="desktop-only" style="display: grid; grid-template-columns: 300px 1fr; gap: 2rem;">
             <!-- Image Info Panel -->
             <div>
                 <div onclick="window.open('${image.cdn_url}', '_blank')" style="cursor: pointer; position: relative; margin-bottom: 1rem;" title="Click to open full size">
@@ -4962,7 +4964,7 @@ async function showImageDetails(imageId) {
                 </div>
 
                 <div class="stat-card" style="text-align: center; margin-bottom: 1rem;">
-                    <div class="stat-value" style="font-size: 2rem; color: var(--primary);">${image.total_views}</div>
+                    <div class="stat-value" style="font-size: 2rem; color: var(--primary);">${formatNumber(image.total_views)}</div>
                     <div class="stat-label">Total Views</div>
                 </div>
 
@@ -4984,7 +4986,7 @@ async function showImageDetails(imageId) {
                         <strong>Available Formats:</strong><br>
                         ${Object.keys(image.formats || {}).length > 0 ?
                             Object.entries(image.formats).map(([format, count]) =>
-                                `${format.toUpperCase()} (${count} views)`
+                                `${format.toUpperCase()} (${formatNumber(count)} views)`
                             ).join(', ') : 'Original only'
                         }
                     </div>
@@ -5030,7 +5032,7 @@ async function showImageDetails(imageId) {
                                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                                         <span style="font-weight: 600;">${country}</span>
                                     </div>
-                                    <span class="badge badge-success">${views} views</span>
+                                    <span class="badge badge-success">${formatNumber(views)} views</span>
                                 </div>
                             `).join('') : '<div style="color: var(--text-secondary); font-size: 0.875rem; text-align: center; padding: 1rem;">No country data</div>'}
                         </div>
@@ -5047,7 +5049,7 @@ async function showImageDetails(imageId) {
                                         <i class="ri-${browser.toLowerCase() === 'firefox' ? 'firefox' : browser.toLowerCase() === 'chrome' ? 'chrome' : 'computer'}-line" style="color: var(--primary);"></i>
                                         <span style="text-transform: capitalize; font-weight: 500;">${browser}</span>
                                     </div>
-                                    <span class="badge badge-primary">${views} views</span>
+                                    <span class="badge badge-primary">${formatNumber(views)} views</span>
                                 </div>
                             `).join('') : '<div style="color: var(--text-secondary); font-size: 0.875rem; text-align: center; padding: 1rem;">No browser data</div>'}
                         </div>
@@ -5064,7 +5066,7 @@ async function showImageDetails(imageId) {
                                         <i class="ri-${device.toLowerCase() === 'android' ? 'android' : device.toLowerCase() === 'linux' ? 'ubuntu' : 'device'}-line" style="color: var(--warning);"></i>
                                         <span style="text-transform: capitalize; font-weight: 500;">${device}</span>
                                     </div>
-                                    <span class="badge badge-warning">${views} views</span>
+                                    <span class="badge badge-warning">${formatNumber(views)} views</span>
                                 </div>
                             `).join('') : '<div style="color: var(--text-secondary); font-size: 0.875rem; text-align: center; padding: 1rem;">No device data</div>'}
                         </div>
@@ -5091,13 +5093,13 @@ async function showImageDetails(imageId) {
                                         day: 'numeric'
                                     })}</div>
                                     <div>
-                                        <span class="badge badge-primary">${views} view${views !== 1 ? 's' : ''}</span>
+                                        <span class="badge badge-primary">${formatNumber(views)} view${views !== 1 ? 's' : ''}</span>
                                     </div>
                                 </div>
                             `).join('')}
                         </div>
                         <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary); text-align: center;">
-                            Total: ${sortedDates.reduce((sum, [,views]) => sum + views, 0)} views across ${sortedDates.length} days
+                            Total: ${formatNumber(sortedDates.reduce((sum, [,views]) => sum + views, 0))} views across ${sortedDates.length} days
                         </div>
                     </div>
                 ` : `
@@ -5110,8 +5112,139 @@ async function showImageDetails(imageId) {
             </div>
         </div>
 
+        <!-- Mobile Layout -->
+        <div class="mobile-only" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Mobile Image Header -->
+            <div style="text-align: center;">
+                <div onclick="window.open('${image.cdn_url}', '_blank')" style="cursor: pointer; position: relative; margin-bottom: 1rem;" title="Tap to open full size">
+                    <img src="${image.cdn_url}" style="width: 100%; max-width: 280px; border-radius: var(--radius); box-shadow: var(--shadow);" alt="${image.original_filename}">
+                    <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8); color: white; padding: 0.5rem; border-radius: var(--radius); font-size: 0.8rem;">
+                        <i class="ri-external-link-line"></i> Full Size
+                    </div>
+                </div>
+                
+                <!-- Mobile Stats Cards -->
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background: var(--primary); color: white; padding: 1rem; border-radius: var(--radius); text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">${formatNumber(image.total_views)}</div>
+                        <div style="font-size: 0.8rem; opacity: 0.9;">Total Views</div>
+                    </div>
+                    <div style="background: var(--success); color: white; padding: 1rem; border-radius: var(--radius); text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">${topCountries.length}</div>
+                        <div style="font-size: 0.8rem; opacity: 0.9;">Countries</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Image Info -->
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="ri-information-line"></i> Image Details
+                </h4>
+                <div style="font-size: 0.85rem; line-height: 1.6;">
+                    <div style="margin-bottom: 0.75rem;">
+                        <strong>Filename:</strong><br>
+                        <span style="word-break: break-all; font-family: monospace; font-size: 0.75rem; color: var(--text-secondary);">${image.original_filename}</span>
+                    </div>
+                    <div style="margin-bottom: 0.75rem;">
+                        <strong>Uploaded:</strong><br>
+                        <span style="color: var(--text-secondary);">${new Date(image.upload_date).toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        })}</span>
+                    </div>
+                    <div>
+                        <strong>Formats:</strong><br>
+                        <span style="color: var(--text-secondary);">
+                            ${Object.keys(image.formats || {}).length > 0 ?
+                                Object.entries(image.formats).map(([format, count]) =>
+                                    `${format.toUpperCase()} (${formatNumber(count)} views)`
+                                ).join(', ') : 'Original only'
+                            }
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Analytics -->
+            ${(topCountries.length > 0 || topBrowsers.length > 0 || topDevices.length > 0) ? `
+                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                    <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="ri-bar-chart-line"></i> Analytics Overview
+                    </h4>
+                    
+                    ${topCountries.length > 0 ? `
+                        <div style="margin-bottom: 1.5rem;">
+                            <h5 style="margin-bottom: 0.75rem; color: var(--success); font-size: 0.9rem;">
+                                <i class="ri-global-line"></i> Top Countries
+                            </h5>
+                            ${topCountries.slice(0, 3).map(([country, views]) => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
+                                    <span style="font-weight: 500; font-size: 0.85rem;">${country}</span>
+                                    <span class="badge badge-success" style="font-size: 0.7rem;">${formatNumber(views)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${topBrowsers.length > 0 ? `
+                        <div style="margin-bottom: 1.5rem;">
+                            <h5 style="margin-bottom: 0.75rem; color: var(--primary); font-size: 0.9rem;">
+                                <i class="ri-computer-line"></i> Top Browsers
+                            </h5>
+                            ${topBrowsers.slice(0, 3).map(([browser, views]) => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
+                                    <span style="font-weight: 500; font-size: 0.85rem; text-transform: capitalize;">${browser}</span>
+                                    <span class="badge badge-primary" style="font-size: 0.7rem;">${formatNumber(views)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${topDevices.length > 0 ? `
+                        <div>
+                            <h5 style="margin-bottom: 0.75rem; color: var(--warning); font-size: 0.9rem;">
+                                <i class="ri-device-line"></i> Top Devices
+                            </h5>
+                            ${topDevices.slice(0, 3).map(([device, views]) => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
+                                    <span style="font-weight: 500; font-size: 0.85rem; text-transform: capitalize;">${device}</span>
+                                    <span class="badge badge-warning" style="font-size: 0.7rem;">${formatNumber(views)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            ` : ''}
+
+            <!-- Mobile Views Timeline -->
+            ${sortedDates.length > 0 ? `
+                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                    <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="ri-calendar-line"></i> Recent Views
+                    </h4>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        ${sortedDates.slice(-5).map(([date, views]) => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.85rem;">
+                                <span style="color: var(--text-secondary);">${new Date(date).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric'
+                                })}</span>
+                                <span class="badge badge-primary" style="font-size: 0.7rem;">${formatNumber(views)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-secondary); text-align: center;">
+                        Total: ${formatNumber(sortedDates.reduce((sum, [,views]) => sum + views, 0))} views across ${sortedDates.length} days
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+
         <!-- Action Buttons -->
-        <div style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); justify-content: center;">
+        <div style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); justify-content: center; flex-wrap: wrap;">
             <button class="btn btn-secondary" onclick="copyToClipboard('${image.cdn_url}')">
                 <i class="ri-file-copy-line"></i> Copy URL
             </button>
@@ -5122,7 +5255,7 @@ async function showImageDetails(imageId) {
                 <i class="ri-delete-bin-line"></i> Delete Image
             </button>
         </div>
-        `);
+        `, '95vw');
 
     } catch (error) {
         console.error('Image details error:', error);

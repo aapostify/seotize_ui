@@ -875,6 +875,7 @@ tr:hover {
     pointer-events: auto;
 }
 
+
 /* Media Grid */
 .media-grid {
     display: grid;
@@ -3222,7 +3223,7 @@ async function showTaskModal() {
     <div class="spinner"></div>
     </div>
     <iframe id="taskPreviewFrame" style="display: none;"></iframe>
-    <div id="xpathOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; cursor: crosshair;"></div>
+    <div id="xpathOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; cursor: crosshair; pointer-events: auto; z-index: 15; touch-action: pan-y;"></div>
     </div>
 
     <div style="margin-top: 1rem;">
@@ -3463,34 +3464,43 @@ function loadWebsitePreview(url) {
     iframe.src = proxyUrl;
 
     iframe.onload = () => {
-        loader.style.display = 'none';
-        iframe.style.display = 'block';
-        
-        // Set iframe to 50% scale with proper dimensions
-        iframe.style.transform = 'scale(0.5)';
-        iframe.style.transformOrigin = '0 0';
-        iframe.style.width = '200%';  // Double width to compensate for 50% scale
-        iframe.style.height = '200%'; // Double height to compensate for 50% scale
+    loader.style.display = 'none';
+    iframe.style.display = 'block';
+    
+    // Set fixed 50% zoom
+    iframe.style.transform = 'scale(0.5)';
+    iframe.style.transformOrigin = '0 0';
+    iframe.style.width = '200%';
+    iframe.style.height = '200%';
 
-        // Configure overlay for scrolling at 50% scale
-        overlay.style.width = '100%';
-        overlay.style.height = '100%';
-        overlay.style.overflow = 'auto';
-        overlay.style.cursor = 'crosshair';
-        overlay.style.position = 'absolute';
-        overlay.style.top = '0';
-        overlay.style.left = '0';
-        overlay.style.zIndex = '15';
+    // Remove any existing click listeners
+    const newOverlay = overlay.cloneNode(true);
+    overlay.parentNode.replaceChild(newOverlay, overlay);
 
-        // Remove any existing click listeners
-        const newOverlay = overlay.cloneNode(true);
-        overlay.parentNode.replaceChild(newOverlay, overlay);
+    // Get the new overlay reference
+    const currentOverlay = document.getElementById('xpathOverlay');
+    currentOverlay.style.cursor = 'crosshair';
+    currentOverlay.style.background = 'rgba(99, 102, 241, 0.02)';
 
-        // Get the new overlay reference and add click listener
-        const currentOverlay = document.getElementById('xpathOverlay');
-        currentOverlay.addEventListener('click', handleOverlayClick);
-        
-        console.log('Website loaded at 50% scale with scrollable overlay'); // Debug log
+    // Setup events to allow scrolling but capture clicks
+    currentOverlay.addEventListener('click', handleOverlayClick);
+    
+    // Allow scroll events to pass through
+    currentOverlay.addEventListener('wheel', (e) => {
+        // Let scroll events pass through to iframe
+        e.stopPropagation();
+        const iframe = document.getElementById('taskPreviewFrame');
+        if (iframe.contentWindow) {
+            iframe.contentWindow.scrollBy(0, e.deltaY);
+        }
+    }, { passive: false });
+    
+    // Allow touch scroll on mobile
+    currentOverlay.addEventListener('touchmove', (e) => {
+        // Allow touch scrolling to pass through
+    }, { passive: true });
+
+    console.log('Website loaded at 50% zoom with scrolling enabled');
     };
 
     iframe.onerror = () => {
@@ -3512,19 +3522,15 @@ function loadWebsitePreview(url) {
 
 // Handle overlay clicks for XPath selection
 function handleOverlayClick(e) {
-    console.log('Overlay clicked'); // Debug log
+    // Only handle actual clicks, not scroll events
+    if (e.type !== 'click') return;
+    
+    console.log('Overlay clicked - selecting location');
 
     const overlay = document.getElementById('xpathOverlay');
     const rect = overlay.getBoundingClientRect();
-    
-    // Calculate click position relative to the overlay
-    const overlayX = e.clientX - rect.left + overlay.scrollLeft;
-    const overlayY = e.clientY - rect.top + overlay.scrollTop;
-    
-    // Convert to percentage of the actual iframe content (compensating for 50% scale)
-    // Since iframe is scaled to 50% but shows 200% width/height, we need to adjust
-    const x = (overlayX / rect.width) * 100;
-    const y = (overlayY / rect.height) * 100;
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
 
     const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
     if (currentData.selectedLocations.length >= maxLocations) {
@@ -3535,17 +3541,15 @@ function handleOverlayClick(e) {
     const xpath = generateXPath(x, y, currentData.selectedLocations.length + 1);
     const locationId = Date.now() + Math.random();
 
-    // Add visual marker at the clicked position
+    // Add visual marker
     const marker = document.createElement('div');
     marker.className = 'xpath-marker';
-    marker.style.position = 'absolute';
-    marker.style.left = overlayX + 'px';
-    marker.style.top = overlayY + 'px';
-    marker.style.transform = 'translate(-50%, -50%)';
+    marker.style.left = x + '%';
+    marker.style.top = y + '%';
     marker.innerHTML = currentData.selectedLocations.length + 1;
     marker.dataset.locationId = locationId;
+    marker.title = `Click to remove - ${xpath}`;
 
-    // Add click handler to remove marker
     marker.addEventListener('click', (e) => {
         e.stopPropagation();
         removeLocation(locationId);
@@ -3553,7 +3557,6 @@ function handleOverlayClick(e) {
 
     overlay.appendChild(marker);
 
-    // Add to locations array
     currentData.selectedLocations.push({
         id: locationId,
         xpath: xpath,
@@ -3562,7 +3565,7 @@ function handleOverlayClick(e) {
     });
 
     updateSelectedLocationsDisplay();
-    console.log('Added location:', { id: locationId, xpath, x, y }); // Debug log
+    showToast(`Added location ${currentData.selectedLocations.length}`, 'success');
 }
 
 // Manual XPath input for when preview fails

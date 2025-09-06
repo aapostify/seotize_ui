@@ -3479,28 +3479,50 @@ function loadWebsitePreview(url) {
 
     // Get the new overlay reference
     const currentOverlay = document.getElementById('xpathOverlay');
-    currentOverlay.style.cursor = 'crosshair';
-    currentOverlay.style.background = 'rgba(99, 102, 241, 0.02)';
-
-    // Setup events to allow scrolling but capture clicks
-    currentOverlay.addEventListener('click', handleOverlayClick);
     
-    // Allow scroll events to pass through
-    currentOverlay.addEventListener('wheel', (e) => {
-        // Let scroll events pass through to iframe
-        e.stopPropagation();
-        const iframe = document.getElementById('taskPreviewFrame');
-        if (iframe.contentWindow) {
-            iframe.contentWindow.scrollBy(0, e.deltaY);
+    // Start with overlay disabled for scrolling
+    currentOverlay.style.pointerEvents = 'none';
+    currentOverlay.style.background = 'transparent';
+    
+    // Add instructions
+    const instructions = document.createElement('div');
+    instructions.innerHTML = 'Hold CTRL and click to select XPath locations';
+    instructions.style.cssText = `
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        z-index: 20;
+        pointer-events: none;
+    `;
+    currentOverlay.parentElement.appendChild(instructions);
+    
+    // Enable overlay only when CTRL is held
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+            currentOverlay.style.pointerEvents = 'auto';
+            currentOverlay.style.background = 'rgba(99, 102, 241, 0.05)';
+            currentOverlay.style.cursor = 'crosshair';
+            instructions.innerHTML = 'Click to select XPath locations';
         }
-    }, { passive: false });
+    });
     
-    // Allow touch scroll on mobile
-    currentOverlay.addEventListener('touchmove', (e) => {
-        // Allow touch scrolling to pass through
-    }, { passive: true });
+    document.addEventListener('keyup', (e) => {
+        if (!e.ctrlKey && !e.metaKey) {
+            currentOverlay.style.pointerEvents = 'none';
+            currentOverlay.style.background = 'transparent';
+            currentOverlay.style.cursor = 'default';
+            instructions.innerHTML = 'Hold CTRL and click to select XPath locations';
+        }
+    });
+    
+    currentOverlay.addEventListener('click', handleOverlayClick);
 
-    console.log('Website loaded at 50% zoom with scrolling enabled');
+    console.log('Website loaded - Hold CTRL to select locations, scroll normally');
     };
 
     iframe.onerror = () => {
@@ -3522,8 +3544,10 @@ function loadWebsitePreview(url) {
 
 // Handle overlay clicks for XPath selection
 function handleOverlayClick(e) {
-    // Only handle actual clicks, not scroll events
-    if (e.type !== 'click') return;
+    // Only work if CTRL is held
+    if (!e.ctrlKey && !e.metaKey) {
+        return;
+    }
     
     console.log('Overlay clicked - selecting location');
 

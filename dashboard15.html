@@ -3444,7 +3444,7 @@ function goToStep(step) {
     }
 }
 
-// Fixed Website Preview with Markers that Stick to Content
+// Fixed Website Preview - Simple Working Solution
 function loadWebsitePreview(url) {
     const iframe = document.getElementById('taskPreviewFrame');
     const loader = document.getElementById('websiteLoader');
@@ -3472,161 +3472,113 @@ function loadWebsitePreview(url) {
         loader.style.display = 'none';
         iframe.style.display = 'block';
 
-        // Make overlay capture clicks but not block scrolling
+        // Setup overlay
         overlay.style.cursor = 'crosshair';
-        overlay.style.pointerEvents = 'none';
+        overlay.style.pointerEvents = 'none'; // Don't block scrolling
         
-        // Create a click interceptor layer
-        const clickInterceptor = document.createElement('div');
-        clickInterceptor.id = 'clickInterceptor';
-        clickInterceptor.style.cssText = `
+        // Keep iframe scrollable
+        iframe.style.pointerEvents = 'auto';
+        
+        // Add a visual indicator when hovering
+        const hoverIndicator = document.createElement('div');
+        hoverIndicator.id = 'hoverIndicator';
+        hoverIndicator.style.cssText = `
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 10;
-            cursor: crosshair;
-            background: transparent;
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+            transform: translate(-50%, -50%);
+            z-index: 15;
+            background: rgba(99, 102, 241, 0.1);
         `;
-        
-        // Add the interceptor to the preview container
+        overlay.appendChild(hoverIndicator);
+
+        // Track mouse movement to show where click will happen
         const previewContainer = document.querySelector('.website-preview');
-        if (!document.getElementById('clickInterceptor')) {
-            previewContainer.appendChild(clickInterceptor);
-        }
+        previewContainer.addEventListener('mousemove', (e) => {
+            const rect = iframe.getBoundingClientRect();
+            if (e.clientX >= rect.left && e.clientX <= rect.right &&
+                e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                hoverIndicator.style.display = 'block';
+                hoverIndicator.style.left = (e.clientX - rect.left) + 'px';
+                hoverIndicator.style.top = (e.clientY - rect.top) + 'px';
+            } else {
+                hoverIndicator.style.display = 'none';
+            }
+        });
 
-        // Function to update marker positions based on scroll
-        const updateMarkerPositions = () => {
-            if (!iframe.contentWindow) return;
+        // Capture clicks on the iframe area
+        previewContainer.addEventListener('click', (e) => {
+            const rect = iframe.getBoundingClientRect();
             
-            const scrollY = iframe.contentWindow.pageYOffset || 0;
-            const scrollX = iframe.contentWindow.pageXOffset || 0;
-            
-            currentData.selectedLocations.forEach(location => {
-                const marker = document.querySelector(`[data-location-id="${location.id}"]`);
-                if (marker) {
-                    // Calculate new position accounting for scroll
-                    const newTop = location.absoluteY - scrollY;
-                    const newLeft = location.absoluteX - scrollX;
-                    
-                    marker.style.top = newTop + 'px';
-                    marker.style.left = newLeft + 'px';
-                    
-                    // Hide marker if it's scrolled out of view
-                    const rect = iframe.getBoundingClientRect();
-                    if (newTop < 0 || newTop > rect.height || newLeft < 0 || newLeft > rect.width) {
-                        marker.style.display = 'none';
-                    } else {
-                        marker.style.display = 'flex';
-                    }
-                }
-            });
-        };
+            // Check if click is within iframe bounds
+            if (e.clientX < rect.left || e.clientX > rect.right ||
+                e.clientY < rect.top || e.clientY > rect.bottom) {
+                return;
+            }
 
-        // Listen for scroll events in the iframe
-        if (iframe.contentWindow) {
-            iframe.contentWindow.addEventListener('scroll', updateMarkerPositions);
-        }
+            // Check if clicking on an existing marker
+            if (e.target.classList.contains('xpath-marker')) {
+                return;
+            }
 
-        // Intercept all mouse events
-        clickInterceptor.addEventListener('mousedown', (e) => {
+            // Prevent default to stop navigation
             e.preventDefault();
             e.stopPropagation();
-            
-            // Calculate position relative to iframe
-            const rect = iframe.getBoundingClientRect();
-            const relativeX = e.clientX - rect.left;
-            const relativeY = e.clientY - rect.top;
-            
-            // Get scroll position of iframe content
-            const scrollY = iframe.contentWindow ? (iframe.contentWindow.pageYOffset || 0) : 0;
-            const scrollX = iframe.contentWindow ? (iframe.contentWindow.pageXOffset || 0) : 0;
-            
-            // Calculate absolute position on the page
-            const absoluteX = relativeX + scrollX;
-            const absoluteY = relativeY + scrollY;
-            
-            // Calculate percentages for XPath generation
-            const xPercent = (relativeX / rect.width) * 100;
-            const yPercent = (relativeY / rect.height) * 100;
-            
-            // Check max locations
+
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+
             const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
             if (currentData.selectedLocations.length >= maxLocations) {
                 showToast(`Maximum ${maxLocations} locations allowed for ${currentData.taskPriority} priority`, 'warning');
                 return;
             }
 
-            // Generate XPath and add location
-            const xpath = generateXPath(xPercent, yPercent, currentData.selectedLocations.length + 1);
+            const xpath = generateXPath(x, y, currentData.selectedLocations.length + 1);
             const locationId = Date.now() + Math.random();
 
-            // Add visual marker to overlay using pixel positioning
+            // Add visual marker
             const marker = document.createElement('div');
             marker.className = 'xpath-marker';
-            marker.style.position = 'absolute';
-            marker.style.left = relativeX + 'px';
-            marker.style.top = relativeY + 'px';
-            marker.style.transform = 'translate(-50%, -50%)'; // Center the marker
+            marker.style.left = x + '%';
+            marker.style.top = y + '%';
             marker.style.pointerEvents = 'auto';
             marker.innerHTML = currentData.selectedLocations.length + 1;
             marker.dataset.locationId = locationId;
-            marker.style.zIndex = '20';
 
-            // Add remove handler
+            // Add click handler to remove marker
             marker.addEventListener('click', (e) => {
                 e.stopPropagation();
                 removeLocation(locationId);
             });
 
             overlay.appendChild(marker);
-            overlay.style.pointerEvents = 'none';
+            overlay.style.pointerEvents = 'none'; // Keep overlay non-blocking
 
-            // Store both relative and absolute positions
+            // Add to locations array
             currentData.selectedLocations.push({
                 id: locationId,
                 xpath: xpath,
-                x: xPercent,
-                y: yPercent,
-                absoluteX: absoluteX,
-                absoluteY: absoluteY,
-                relativeX: relativeX,
-                relativeY: relativeY
+                x: x,
+                y: y
             });
 
             updateSelectedLocationsDisplay();
-            console.log('Added location with scroll tracking:', { 
-                id: locationId, 
-                xpath, 
-                absolute: { x: absoluteX, y: absoluteY },
-                relative: { x: relativeX, y: relativeY }
-            });
+            console.log('Added location:', { id: locationId, xpath, x, y });
+        }, true); // Use capture phase
+
+        // Prevent navigation on link clicks
+        iframe.addEventListener('load', () => {
+            // If iframe navigates, reload original URL
+            if (iframe.src !== proxyUrl) {
+                showToast('Navigation blocked - reloading original page', 'warning');
+                iframe.src = proxyUrl;
+            }
         });
-
-        // Allow scrolling by temporarily hiding interceptor during wheel events
-        let scrollTimeout;
-        iframe.parentElement.addEventListener('wheel', (e) => {
-            clickInterceptor.style.pointerEvents = 'none';
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => {
-                clickInterceptor.style.pointerEvents = 'auto';
-            }, 150);
-        }, { passive: true });
-
-        // Handle touch for mobile
-        let touchScrolling = false;
-        iframe.parentElement.addEventListener('touchstart', () => {
-            touchScrolling = true;
-            clickInterceptor.style.pointerEvents = 'none';
-        }, { passive: true });
-
-        iframe.parentElement.addEventListener('touchend', () => {
-            setTimeout(() => {
-                touchScrolling = false;
-                clickInterceptor.style.pointerEvents = 'auto';
-            }, 150);
-        }, { passive: true });
 
         console.log('Website loaded - scroll to view, click to add XPath locations');
         showToast('Scroll to view the page, click anywhere to add XPath locations', 'info');

@@ -817,7 +817,7 @@ tr:hover {
     border-radius: var(--radius);
     background: #fff;
     position: relative;
-    overflow: auto;  /* This enables scrolling */
+    overflow: hidden;
     margin-bottom: 1rem;
 }
 
@@ -857,6 +857,7 @@ tr:hover {
 
 /* XPath Marker */
 .xpath-marker {
+    position: absolute;
     width: 28px;
     height: 28px;
     background: var(--primary);
@@ -871,10 +872,9 @@ tr:hover {
     cursor: pointer;
     box-shadow: var(--shadow-lg);
     animation: pulse 2s infinite;
-    z-index: 20;
-    pointer-events: auto;
+    transform: translate(-50%, -50%);
+    z-index: 15;
 }
-
 
 /* Media Grid */
 .media-grid {
@@ -1623,7 +1623,7 @@ tr:hover {
     .desktop-only {
         display: none !important;
     }
-
+    
     .mobile-only {
         display: block !important;
     }
@@ -3223,7 +3223,12 @@ async function showTaskModal() {
     <div class="spinner"></div>
     </div>
     <iframe id="taskPreviewFrame" style="display: none;"></iframe>
-    <div id="xpathOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; cursor: crosshair; pointer-events: auto; z-index: 15; touch-action: pan-y;"></div>
+    <div class="preview-controls">
+    <button class="preview-btn" onclick="setZoom(0.5)">50%</button>
+    <button class="preview-btn" onclick="setZoom(0.75)">75%</button>
+    <button class="preview-btn" onclick="setZoom(1)">100%</button>
+    </div>
+    <div id="xpathOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; cursor: crosshair;"></div>
     </div>
 
     <div style="margin-top: 1rem;">
@@ -3439,7 +3444,7 @@ function goToStep(step) {
     }
 }
 
-// Fixed Website Preview with Complete XPath Selection
+// Fixed Website Preview with Scroll but No Navigation
 function loadWebsitePreview(url) {
     const iframe = document.getElementById('taskPreviewFrame');
     const loader = document.getElementById('websiteLoader');
@@ -3450,7 +3455,7 @@ function loadWebsitePreview(url) {
         url = 'https://' + url;
     }
 
-    // Use our Cloudflare Worker CORS proxy
+    // Use CORS proxy
     const proxyUrl = `https://cors.seotize.workers.dev/?url=${encodeURIComponent(url)}`;
 
     loader.style.display = 'flex';
@@ -3464,42 +3469,79 @@ function loadWebsitePreview(url) {
     iframe.src = proxyUrl;
 
     iframe.onload = () => {
-    loader.style.display = 'none';
-    iframe.style.display = 'block';
-    
-    // Set fixed 50% zoom
-    iframe.style.transform = 'scale(0.5)';
-    iframe.style.transformOrigin = '0 0';
-    iframe.style.width = '200%';
-    iframe.style.height = '200%';
+        loader.style.display = 'none';
+        iframe.style.display = 'block';
 
-    // Remove any existing click listeners
-    const newOverlay = overlay.cloneNode(true);
-    overlay.parentNode.replaceChild(newOverlay, overlay);
+        // Setup overlay to capture clicks but allow scroll
+        overlay.style.cursor = 'crosshair';
+        overlay.style.pointerEvents = 'auto';
+        
+        // Prevent iframe interaction completely
+        iframe.style.pointerEvents = 'none';
+        
+        // Handle scroll events on the overlay and pass them to iframe
+        overlay.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            // Get iframe's content window and scroll it
+            if (iframe.contentWindow) {
+                iframe.contentWindow.scrollBy(0, e.deltaY);
+            }
+        }, { passive: false });
 
-    // Get the new overlay reference
-    const currentOverlay = document.getElementById('xpathOverlay');
+        // Handle touch scroll for mobile
+        let touchStartY = 0;
+        overlay.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
 
-    // Add click listener to new overlay
-    currentOverlay.addEventListener('click', handleOverlayClick);
-    console.log('Website loaded at 50% zoom with corrected XPath coordinates');
+        overlay.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touchY = e.touches[0].clientY;
+            const deltaY = touchStartY - touchY;
+            touchStartY = touchY;
+            
+            if (iframe.contentWindow) {
+                iframe.contentWindow.scrollBy(0, deltaY);
+            }
+        }, { passive: false });
+
+        // Handle clicks for XPath selection
+        overlay.onclick = handleOverlayClick;
+
+        console.log('Website loaded - scroll to view, click to add XPath locations');
+        showToast('Scroll to view the page, click anywhere to add XPath locations', 'info');
+    };
+
+    iframe.onerror = () => {
+        loader.innerHTML = `
+        <div style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+            <div style="font-size: 1.1rem; margin-bottom: 1rem;">Unable to load website preview</div>
+            <div style="font-size: 0.875rem; color: var(--text-tertiary);">
+                The website may block iframe embedding or have CORS restrictions.<br>
+                You can still continue by manually specifying XPath locations.
+            </div>
+            <button class="btn btn-primary" onclick="showManualXPathInput()" style="margin-top: 1rem;">
+                <i class="ri-code-line"></i> Add XPath Manually
+            </button>
+        </div>
+        `;
     };
 }
 
-// Handle overlay clicks for XPath selection
+// Updated handleOverlayClick
 function handleOverlayClick(e) {
-    console.log('Overlay clicked - selecting location');
+    // Don't process if clicking on a marker
+    if (e.target.classList.contains('xpath-marker')) {
+        return;
+    }
+
+    console.log('Overlay clicked');
 
     const overlay = document.getElementById('xpathOverlay');
     const rect = overlay.getBoundingClientRect();
-    
-    // Calculate coordinates and adjust for 50% zoom
-    const rawX = ((e.clientX - rect.left) / rect.width) * 100;
-    const rawY = ((e.clientY - rect.top) / rect.height) * 100;
-    
-    // Adjust coordinates for 50% zoom (multiply by 2 since iframe is scaled to 0.5)
-    const x = Math.min(100, rawX * 2);
-    const y = Math.min(100, rawY * 2);
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
 
     const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
     if (currentData.selectedLocations.length >= maxLocations) {
@@ -3510,15 +3552,15 @@ function handleOverlayClick(e) {
     const xpath = generateXPath(x, y, currentData.selectedLocations.length + 1);
     const locationId = Date.now() + Math.random();
 
-    // Add visual marker at the raw position (not adjusted)
+    // Add visual marker
     const marker = document.createElement('div');
     marker.className = 'xpath-marker';
-    marker.style.left = rawX + '%';
-    marker.style.top = rawY + '%';
+    marker.style.left = x + '%';
+    marker.style.top = y + '%';
     marker.innerHTML = currentData.selectedLocations.length + 1;
     marker.dataset.locationId = locationId;
-    marker.title = `Click to remove - ${xpath}`;
 
+    // Add click handler to remove marker
     marker.addEventListener('click', (e) => {
         e.stopPropagation();
         removeLocation(locationId);
@@ -3526,17 +3568,16 @@ function handleOverlayClick(e) {
 
     overlay.appendChild(marker);
 
-    // Store the adjusted coordinates for XPath
+    // Add to locations array
     currentData.selectedLocations.push({
         id: locationId,
         xpath: xpath,
-        x: x,  // Adjusted coordinates
-        y: y   // Adjusted coordinates
+        x: x,
+        y: y
     });
 
     updateSelectedLocationsDisplay();
-    showToast(`Added location ${currentData.selectedLocations.length}`, 'success');
-    console.log('Added location with adjusted coordinates:', { rawX, rawY, adjustedX: x, adjustedY: y });
+    console.log('Added location:', { id: locationId, xpath, x, y });
 }
 
 // Manual XPath input for when preview fails
@@ -3769,6 +3810,17 @@ function generateXPath(x, y, index) {
 
     const elementIndex = Math.max(1, Math.floor((x / 100) * 10) + 1);
     return `${sections[sectionIndex]}[${elementIndex}]`;
+}
+
+// Set zoom for website preview
+function setZoom(scale) {
+    const iframe = document.getElementById('taskPreviewFrame');
+    if (iframe) {
+        iframe.style.transform = `scale(${scale})`;
+        iframe.style.transformOrigin = '0 0';
+        iframe.style.width = `${100/scale}%`;
+        iframe.style.height = `${100/scale}%`;
+    }
 }
 
 // Update estimates
@@ -4590,7 +4642,7 @@ async function viewArticle(articleId) {
 
             <!-- Perfect Mobile Layout -->
             <div class="mobile-only" style="padding: 0; margin: -1.5rem; background: var(--bg);">
-
+                
                 <!-- Compact Mobile Hero Header -->
                 <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 1rem; position: relative;">
                     <div style="display: flex; align-items: flex-start; gap: 1rem;">
@@ -4608,7 +4660,7 @@ async function viewArticle(articleId) {
                                 </div>
                             </div>
                         </div>
-
+                        
                         <!-- Compact Views Badge -->
                         <div style="background: rgba(255,255,255,0.2); padding: 0.6rem 0.8rem; border-radius: var(--radius); text-align: center; flex-shrink: 0; backdrop-filter: blur(5px);">
                             <div style="font-size: 1.2rem; font-weight: 700; line-height: 1; margin-bottom: 0.15rem;">${formatNumber(article.total_views || 0)}</div>
@@ -5279,7 +5331,7 @@ async function showImageDetails(imageId) {
                             <i class="ri-external-link-line"></i> Full Size
                         </div>
                     </div>
-
+                    
                     <!-- Mobile Stats Cards -->
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
                         <div style="background: var(--primary); color: white; padding: 1rem; border-radius: var(--radius); text-align: center;">
@@ -5331,7 +5383,7 @@ async function showImageDetails(imageId) {
                         <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="ri-bar-chart-line"></i> Analytics Overview
                         </h4>
-
+                        
                         ${topCountries.length > 0 ? `
                             <div style="margin-bottom: 1.5rem;">
                                 <h5 style="margin-bottom: 0.75rem; color: var(--success); font-size: 0.9rem;">
@@ -5345,7 +5397,7 @@ async function showImageDetails(imageId) {
                                 `).join('')}
                             </div>
                         ` : ''}
-
+                        
                         ${topBrowsers.length > 0 ? `
                             <div style="margin-bottom: 1.5rem;">
                                 <h5 style="margin-bottom: 0.75rem; color: var(--primary); font-size: 0.9rem;">
@@ -5359,7 +5411,7 @@ async function showImageDetails(imageId) {
                                 `).join('')}
                             </div>
                         ` : ''}
-
+                        
                         ${topDevices.length > 0 ? `
                             <div>
                                 <h5 style="margin-bottom: 0.75rem; color: var(--warning); font-size: 0.9rem;">

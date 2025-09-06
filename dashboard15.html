@@ -3479,104 +3479,10 @@ function loadWebsitePreview(url) {
 
     // Get the new overlay reference
     const currentOverlay = document.getElementById('xpathOverlay');
-    
-    // Always in select mode but allow scrolling
-    currentOverlay.style.pointerEvents = 'auto';
-    currentOverlay.style.background = 'rgba(99, 102, 241, 0.02)';
-    currentOverlay.style.cursor = 'crosshair';
-    
-    // Add instruction
-    const instruction = document.createElement('div');
-    instruction.innerHTML = 'Click to select XPath locations • Scroll to see more sections';
-    instruction.style.cssText = `
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: rgba(0,0,0,0.8);
-        color: white;
-        padding: 8px 12px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        z-index: 20;
-        pointer-events: none;
-    `;
-    currentOverlay.parentElement.appendChild(instruction);
-    
-    // Handle clicks for XPath selection
+
+    // Add click listener to new overlay
     currentOverlay.addEventListener('click', handleOverlayClick);
-    
-    // Allow scroll events to pass through to iframe
-    currentOverlay.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        try {
-            // Try to scroll the iframe content directly
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            iframeDoc.documentElement.scrollTop += e.deltaY;
-        } catch (error) {
-            // Fallback: scroll the iframe container
-            iframe.parentElement.scrollTop += e.deltaY;
-        }
-    }, { passive: false });
-    
-    // Disable navigation within iframe to prevent going to other pages
-    try {
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-        iframeDoc.addEventListener('click', (e) => {
-            const target = e.target;
-            if (target.tagName === 'A' || target.closest('a')) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Link click prevented to maintain page for XPath selection');
-            }
-        });
-    } catch (error) {
-        console.log('Cross-origin restriction - link prevention not available');
-    }
-
-    console.log('Website loaded - Always in select mode with scrolling enabled');
-    };
-
-    iframe.onload = () => {
-    loader.style.display = 'none';
-    iframe.style.display = 'block';
-    
-    // Set fixed 50% zoom
-    iframe.style.transform = 'scale(0.5)';
-    iframe.style.transformOrigin = '0 0';
-    iframe.style.width = '200%';
-    iframe.style.height = '200%';
-
-    // Remove any existing click listeners
-    const newOverlay = overlay.cloneNode(true);
-    overlay.parentNode.replaceChild(newOverlay, overlay);
-
-    // Get the new overlay reference
-    const currentOverlay = document.getElementById('xpathOverlay');
-    
-    // Simple overlay setup
-    currentOverlay.style.cursor = 'crosshair';
-    currentOverlay.style.background = 'rgba(99, 102, 241, 0.02)';
-    
-    // Add instruction
-    const instruction = document.createElement('div');
-    instruction.innerHTML = 'Click to select XPath locations';
-    instruction.style.cssText = `
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: rgba(0,0,0,0.8);
-        color: white;
-        padding: 8px 12px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        z-index: 20;
-        pointer-events: none;
-    `;
-    currentOverlay.parentElement.appendChild(instruction);
-    
-    currentOverlay.addEventListener('click', handleOverlayClick);
-
-    console.log('Website loaded at 50% zoom with selection enabled');
+    console.log('Website loaded and overlay click listener added');
     };
 }
 

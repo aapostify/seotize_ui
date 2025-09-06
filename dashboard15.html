@@ -3482,7 +3482,7 @@ function loadWebsitePreview(url) {
 
     // Add click listener to new overlay
     currentOverlay.addEventListener('click', handleOverlayClick);
-    console.log('Website loaded and overlay click listener added');
+    console.log('Website loaded at 50% zoom with corrected XPath coordinates');
     };
 }
 
@@ -3492,8 +3492,14 @@ function handleOverlayClick(e) {
 
     const overlay = document.getElementById('xpathOverlay');
     const rect = overlay.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    // Calculate coordinates and adjust for 50% zoom
+    const rawX = ((e.clientX - rect.left) / rect.width) * 100;
+    const rawY = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    // Adjust coordinates for 50% zoom (multiply by 2 since iframe is scaled to 0.5)
+    const x = Math.min(100, rawX * 2);
+    const y = Math.min(100, rawY * 2);
 
     const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
     if (currentData.selectedLocations.length >= maxLocations) {
@@ -3504,11 +3510,11 @@ function handleOverlayClick(e) {
     const xpath = generateXPath(x, y, currentData.selectedLocations.length + 1);
     const locationId = Date.now() + Math.random();
 
-    // Add visual marker
+    // Add visual marker at the raw position (not adjusted)
     const marker = document.createElement('div');
     marker.className = 'xpath-marker';
-    marker.style.left = x + '%';
-    marker.style.top = y + '%';
+    marker.style.left = rawX + '%';
+    marker.style.top = rawY + '%';
     marker.innerHTML = currentData.selectedLocations.length + 1;
     marker.dataset.locationId = locationId;
     marker.title = `Click to remove - ${xpath}`;
@@ -3520,15 +3526,17 @@ function handleOverlayClick(e) {
 
     overlay.appendChild(marker);
 
+    // Store the adjusted coordinates for XPath
     currentData.selectedLocations.push({
         id: locationId,
         xpath: xpath,
-        x: x,
-        y: y
+        x: x,  // Adjusted coordinates
+        y: y   // Adjusted coordinates
     });
 
     updateSelectedLocationsDisplay();
     showToast(`Added location ${currentData.selectedLocations.length}`, 'success');
+    console.log('Added location with adjusted coordinates:', { rawX, rawY, adjustedX: x, adjustedY: y });
 }
 
 // Manual XPath input for when preview fails

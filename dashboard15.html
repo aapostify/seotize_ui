@@ -817,7 +817,7 @@ tr:hover {
     border-radius: var(--radius);
     background: #fff;
     position: relative;
-    overflow: hidden;
+    overflow: auto;  /* This enables scrolling */
     margin-bottom: 1rem;
 }
 
@@ -3536,20 +3536,47 @@ function loadWebsitePreview(url) {
     console.log('Website loaded - Always in select mode with scrolling enabled');
     };
 
-    iframe.onerror = () => {
-        loader.innerHTML = `
-        <div style="text-align: center; color: var(--text-secondary); padding: 2rem;">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
-        <div style="font-size: 1.1rem; margin-bottom: 1rem;">Unable to load website preview</div>
-        <div style="font-size: 0.875rem; color: var(--text-tertiary);">
-        The website may block iframe embedding or have CORS restrictions.<br>
-        You can still continue by manually specifying XPath locations.
-        </div>
-        <button class="btn btn-primary" onclick="showManualXPathInput()" style="margin-top: 1rem;">
-        <i class="ri-code-line"></i> Add XPath Manually
-        </button>
-        </div>
-        `;
+    iframe.onload = () => {
+    loader.style.display = 'none';
+    iframe.style.display = 'block';
+    
+    // Set fixed 50% zoom
+    iframe.style.transform = 'scale(0.5)';
+    iframe.style.transformOrigin = '0 0';
+    iframe.style.width = '200%';
+    iframe.style.height = '200%';
+
+    // Remove any existing click listeners
+    const newOverlay = overlay.cloneNode(true);
+    overlay.parentNode.replaceChild(newOverlay, overlay);
+
+    // Get the new overlay reference
+    const currentOverlay = document.getElementById('xpathOverlay');
+    
+    // Simple overlay setup
+    currentOverlay.style.cursor = 'crosshair';
+    currentOverlay.style.background = 'rgba(99, 102, 241, 0.02)';
+    
+    // Add instruction
+    const instruction = document.createElement('div');
+    instruction.innerHTML = 'Click to select XPath locations';
+    instruction.style.cssText = `
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        z-index: 20;
+        pointer-events: none;
+    `;
+    currentOverlay.parentElement.appendChild(instruction);
+    
+    currentOverlay.addEventListener('click', handleOverlayClick);
+
+    console.log('Website loaded at 50% zoom with selection enabled');
     };
 }
 

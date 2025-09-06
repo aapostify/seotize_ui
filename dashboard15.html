@@ -3444,7 +3444,7 @@ function goToStep(step) {
     }
 }
 
-// Fixed Website Preview with Markers that Stick to Content Position
+// Fixed Website Preview with Markers that Stick to Content
 function loadWebsitePreview(url) {
     const iframe = document.getElementById('taskPreviewFrame');
     const loader = document.getElementById('websiteLoader');
@@ -3497,23 +3497,23 @@ function loadWebsitePreview(url) {
         }
 
         // Function to update marker positions based on scroll
-        function updateMarkerPositions() {
+        const updateMarkerPositions = () => {
             if (!iframe.contentWindow) return;
             
-            const scrollTop = iframe.contentWindow.pageYOffset || 0;
-            const scrollLeft = iframe.contentWindow.pageXOffset || 0;
+            const scrollY = iframe.contentWindow.pageYOffset || 0;
+            const scrollX = iframe.contentWindow.pageXOffset || 0;
             
             currentData.selectedLocations.forEach(location => {
                 const marker = document.querySelector(`[data-location-id="${location.id}"]`);
                 if (marker) {
-                    // Calculate new position based on scroll
-                    const newTop = location.absoluteY - scrollTop;
-                    const newLeft = location.absoluteX - scrollLeft;
+                    // Calculate new position accounting for scroll
+                    const newTop = location.absoluteY - scrollY;
+                    const newLeft = location.absoluteX - scrollX;
                     
                     marker.style.top = newTop + 'px';
                     marker.style.left = newLeft + 'px';
                     
-                    // Hide marker if it's outside the viewport
+                    // Hide marker if it's scrolled out of view
                     const rect = iframe.getBoundingClientRect();
                     if (newTop < 0 || newTop > rect.height || newLeft < 0 || newLeft > rect.width) {
                         marker.style.display = 'none';
@@ -3522,7 +3522,7 @@ function loadWebsitePreview(url) {
                     }
                 }
             });
-        }
+        };
 
         // Listen for scroll events in the iframe
         if (iframe.contentWindow) {
@@ -3540,12 +3540,12 @@ function loadWebsitePreview(url) {
             const relativeY = e.clientY - rect.top;
             
             // Get scroll position of iframe content
-            const scrollTop = iframe.contentWindow ? (iframe.contentWindow.pageYOffset || 0) : 0;
-            const scrollLeft = iframe.contentWindow ? (iframe.contentWindow.pageXOffset || 0) : 0;
+            const scrollY = iframe.contentWindow ? (iframe.contentWindow.pageYOffset || 0) : 0;
+            const scrollX = iframe.contentWindow ? (iframe.contentWindow.pageXOffset || 0) : 0;
             
-            // Calculate absolute position on the page content
-            const absoluteX = relativeX + scrollLeft;
-            const absoluteY = relativeY + scrollTop;
+            // Calculate absolute position on the page
+            const absoluteX = relativeX + scrollX;
+            const absoluteY = relativeY + scrollY;
             
             // Calculate percentages for XPath generation
             const xPercent = (relativeX / rect.width) * 100;
@@ -3562,13 +3562,13 @@ function loadWebsitePreview(url) {
             const xpath = generateXPath(xPercent, yPercent, currentData.selectedLocations.length + 1);
             const locationId = Date.now() + Math.random();
 
-            // Add visual marker to overlay
+            // Add visual marker to overlay using pixel positioning
             const marker = document.createElement('div');
             marker.className = 'xpath-marker';
             marker.style.position = 'absolute';
             marker.style.left = relativeX + 'px';
             marker.style.top = relativeY + 'px';
-            marker.style.transform = 'translate(-50%, -50%)';
+            marker.style.transform = 'translate(-50%, -50%)'; // Center the marker
             marker.style.pointerEvents = 'auto';
             marker.innerHTML = currentData.selectedLocations.length + 1;
             marker.dataset.locationId = locationId;
@@ -3596,7 +3596,12 @@ function loadWebsitePreview(url) {
             });
 
             updateSelectedLocationsDisplay();
-            console.log('Added location:', { id: locationId, xpath, absoluteX, absoluteY });
+            console.log('Added location with scroll tracking:', { 
+                id: locationId, 
+                xpath, 
+                absolute: { x: absoluteX, y: absoluteY },
+                relative: { x: relativeX, y: relativeY }
+            });
         });
 
         // Allow scrolling by temporarily hiding interceptor during wheel events

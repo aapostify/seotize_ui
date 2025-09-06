@@ -3444,7 +3444,7 @@ function goToStep(step) {
     }
 }
 
-// Fixed Website Preview with Working Scroll and XPath Selection
+// Fixed Website Preview - Both Scroll and XPath Working Together
 function loadWebsitePreview(url) {
     const iframe = document.getElementById('taskPreviewFrame');
     const loader = document.getElementById('websiteLoader');
@@ -3472,100 +3472,109 @@ function loadWebsitePreview(url) {
         loader.style.display = 'none';
         iframe.style.display = 'block';
 
-        // Create a transparent click capture layer
-        const clickLayer = document.createElement('div');
-        clickLayer.id = 'clickCaptureLayer';
-        clickLayer.style.cssText = `
+        // Setup overlay - it should not block any events initially
+        overlay.style.pointerEvents = 'none';
+        overlay.style.cursor = 'crosshair';
+
+        // Create invisible click capture layer
+        let clickCaptureLayer = document.createElement('div');
+        clickCaptureLayer.style.cssText = `
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            z-index: 5;
+            z-index: 8;
             cursor: crosshair;
-            pointer-events: none;
+            background: transparent;
+            pointer-events: auto;
         `;
-        overlay.appendChild(clickLayer);
 
-        // Make overlay non-blocking for scroll
-        overlay.style.pointerEvents = 'none';
-        overlay.style.cursor = 'crosshair';
-
-        // Add click handler to the preview container
+        // Add the click capture layer to the preview container
         const previewContainer = document.querySelector('.website-preview');
-        
-        // Remove any existing listeners
-        const newContainer = previewContainer.cloneNode(true);
-        previewContainer.parentNode.replaceChild(newContainer, previewContainer);
-        
-        // Get the new references
-        const updatedContainer = document.querySelector('.website-preview');
-        const updatedIframe = updatedContainer.querySelector('#taskPreviewFrame');
-        const updatedOverlay = updatedContainer.querySelector('#xpathOverlay');
-        
-        // Add mouse tracking for visual feedback
-        let isMouseDown = false;
-        
-        updatedContainer.addEventListener('mouseenter', () => {
-            const layer = updatedOverlay.querySelector('#clickCaptureLayer');
-            if (layer) layer.style.pointerEvents = 'auto';
-        });
+        previewContainer.style.position = 'relative';
+        previewContainer.appendChild(clickCaptureLayer);
 
-        updatedContainer.addEventListener('mouseleave', () => {
-            const layer = updatedOverlay.querySelector('#clickCaptureLayer');
-            if (layer) layer.style.pointerEvents = 'none';
-        });
+        // Variables to track interaction state
+        let isScrolling = false;
+        let scrollTimeout = null;
+        let clickPosition = null;
 
-        // Handle clicks
-        updatedContainer.addEventListener('mousedown', (e) => {
-            // Check if clicking within iframe bounds
-            const rect = updatedIframe.getBoundingClientRect();
-            if (e.clientX < rect.left || e.clientX > rect.right ||
-                e.clientY < rect.top || e.clientY > rect.bottom) {
-                return;
+        // Detect scrolling and temporarily disable click capture
+        clickCaptureLayer.addEventListener('wheel', (e) => {
+            // Allow scroll to pass through
+            clickCaptureLayer.style.pointerEvents = 'none';
+            iframe.style.pointerEvents = 'auto';
+            
+            isScrolling = true;
+            clearTimeout(scrollTimeout);
+            
+            scrollTimeout = setTimeout(() => {
+                isScrolling = false;
+                clickCaptureLayer.style.pointerEvents = 'auto';
+                iframe.style.pointerEvents = 'auto';
+            }, 150);
+        }, { passive: true });
+
+        // Handle touch scrolling for mobile
+        clickCaptureLayer.addEventListener('touchstart', (e) => {
+            // If it's a single touch, might be scroll
+            if (e.touches.length === 1) {
+                clickCaptureLayer.style.pointerEvents = 'none';
+                isScrolling = true;
             }
+        }, { passive: true });
 
-            // Check if clicking on a marker
-            if (e.target.classList.contains('xpath-marker')) {
-                return;
-            }
+        clickCaptureLayer.addEventListener('touchend', () => {
+            setTimeout(() => {
+                isScrolling = false;
+                clickCaptureLayer.style.pointerEvents = 'auto';
+            }, 150);
+        }, { passive: true });
 
-            isMouseDown = true;
+        // Handle clicks for XPath markers
+        clickCaptureLayer.addEventListener('click', (e) => {
+            // Don't process if scrolling
+            if (isScrolling) return;
+
             e.preventDefault();
             e.stopPropagation();
 
-            // Calculate position
+            const rect = iframe.getBoundingClientRect();
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             const y = ((e.clientY - rect.top) / rect.height) * 100;
 
+            // Check max locations
             const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
             if (currentData.selectedLocations.length >= maxLocations) {
                 showToast(`Maximum ${maxLocations} locations allowed for ${currentData.taskPriority} priority`, 'warning');
                 return;
             }
 
+            // Generate XPath and create location
             const xpath = generateXPath(x, y, currentData.selectedLocations.length + 1);
             const locationId = Date.now() + Math.random();
 
-            // Add visual marker
+            // Create marker element
             const marker = document.createElement('div');
             marker.className = 'xpath-marker';
             marker.style.left = x + '%';
             marker.style.top = y + '%';
             marker.style.pointerEvents = 'auto';
-            marker.style.zIndex = '15';
+            marker.style.zIndex = '20';
             marker.innerHTML = currentData.selectedLocations.length + 1;
             marker.dataset.locationId = locationId;
 
-            // Add click handler to remove marker
-            marker.onclick = (e) => {
+            // Add remove handler to marker
+            marker.addEventListener('click', (e) => {
                 e.stopPropagation();
                 removeLocation(locationId);
-            };
+            });
 
-            updatedOverlay.appendChild(marker);
+            // Add marker to overlay
+            overlay.appendChild(marker);
 
-            // Add to locations array
+            // Store location data
             currentData.selectedLocations.push({
                 id: locationId,
                 xpath: xpath,
@@ -3575,38 +3584,24 @@ function loadWebsitePreview(url) {
 
             updateSelectedLocationsDisplay();
             console.log('Added location:', { id: locationId, xpath, x, y });
+        });
 
-            // Prevent click from propagating to iframe
-            return false;
-        }, true); // Use capture phase
-
-        // Prevent mouseup from navigating
-        updatedContainer.addEventListener('mouseup', (e) => {
-            if (isMouseDown) {
+        // Prevent default link clicking in iframe
+        clickCaptureLayer.addEventListener('mousedown', (e) => {
+            if (!isScrolling) {
                 e.preventDefault();
                 e.stopPropagation();
-                isMouseDown = false;
-                return false;
             }
-        }, true);
+        });
 
-        // Prevent click events from navigating
-        updatedContainer.addEventListener('click', (e) => {
-            const rect = updatedIframe.getBoundingClientRect();
-            if (e.clientX >= rect.left && e.clientX <= rect.right &&
-                e.clientY >= rect.top && e.clientY <= rect.bottom &&
-                !e.target.classList.contains('xpath-marker')) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
+        // Add visual feedback
+        clickCaptureLayer.addEventListener('mousemove', (e) => {
+            if (!isScrolling) {
+                clickCaptureLayer.style.cursor = 'crosshair';
+            } else {
+                clickCaptureLayer.style.cursor = 'default';
             }
-        }, true);
-
-        // Allow scroll events through
-        updatedContainer.addEventListener('wheel', (e) => {
-            // Let the wheel event pass through to iframe
-            e.stopPropagation();
-        }, false);
+        });
 
         console.log('Website loaded - scroll to view, click to add XPath locations');
         showToast('Scroll to view the page, click anywhere to add XPath locations', 'info');

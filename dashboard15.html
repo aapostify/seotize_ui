@@ -3480,54 +3480,60 @@ function loadWebsitePreview(url) {
     // Get the new overlay reference
     const currentOverlay = document.getElementById('xpathOverlay');
     
-    // Start in scroll mode
-    currentData.isSelectMode = false;
-    currentOverlay.style.pointerEvents = 'none';
-    currentOverlay.style.background = 'transparent';
+    // Always in select mode but allow scrolling
+    currentOverlay.style.pointerEvents = 'auto';
+    currentOverlay.style.background = 'rgba(99, 102, 241, 0.02)';
+    currentOverlay.style.cursor = 'crosshair';
     
-    // Add toggle button
-    const toggleButton = document.createElement('button');
-    toggleButton.innerHTML = '<i class="ri-cursor-line"></i> Select Mode';
-    toggleButton.style.cssText = `
+    // Add instruction
+    const instruction = document.createElement('div');
+    instruction.innerHTML = 'Click to select XPath locations • Scroll to see more sections';
+    instruction.style.cssText = `
         position: absolute;
         top: 10px;
         left: 10px;
-        background: var(--primary);
+        background: rgba(0,0,0,0.8);
         color: white;
-        border: none;
         padding: 8px 12px;
         border-radius: 4px;
         font-size: 0.75rem;
-        cursor: pointer;
         z-index: 20;
+        pointer-events: none;
     `;
+    currentOverlay.parentElement.appendChild(instruction);
     
-    toggleButton.onclick = () => {
-        currentData.isSelectMode = !currentData.isSelectMode;
-        
-        if (currentData.isSelectMode) {
-            // Select mode
-            currentOverlay.style.pointerEvents = 'auto';
-            currentOverlay.style.background = 'rgba(99, 102, 241, 0.05)';
-            currentOverlay.style.cursor = 'crosshair';
-            toggleButton.innerHTML = '<i class="ri-hand-coin-line"></i> Scroll Mode';
-            toggleButton.style.background = 'var(--success)';
-            showToast('Select Mode: Click to place XPath locations', 'info');
-        } else {
-            // Scroll mode
-            currentOverlay.style.pointerEvents = 'none';
-            currentOverlay.style.background = 'transparent';
-            currentOverlay.style.cursor = 'default';
-            toggleButton.innerHTML = '<i class="ri-cursor-line"></i> Select Mode';
-            toggleButton.style.background = 'var(--primary)';
-            showToast('Scroll Mode: Scroll to navigate website', 'info');
-        }
-    };
-    
-    currentOverlay.parentElement.appendChild(toggleButton);
+    // Handle clicks for XPath selection
     currentOverlay.addEventListener('click', handleOverlayClick);
+    
+    // Allow scroll events to pass through to iframe
+    currentOverlay.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        try {
+            // Try to scroll the iframe content directly
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            iframeDoc.documentElement.scrollTop += e.deltaY;
+        } catch (error) {
+            // Fallback: scroll the iframe container
+            iframe.parentElement.scrollTop += e.deltaY;
+        }
+    }, { passive: false });
+    
+    // Disable navigation within iframe to prevent going to other pages
+    try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        iframeDoc.addEventListener('click', (e) => {
+            const target = e.target;
+            if (target.tagName === 'A' || target.closest('a')) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Link click prevented to maintain page for XPath selection');
+            }
+        });
+    } catch (error) {
+        console.log('Cross-origin restriction - link prevention not available');
+    }
 
-    console.log('Website loaded - Use toggle button to switch modes');
+    console.log('Website loaded - Always in select mode with scrolling enabled');
     };
 
     iframe.onerror = () => {
@@ -3549,11 +3555,6 @@ function loadWebsitePreview(url) {
 
 // Handle overlay clicks for XPath selection
 function handleOverlayClick(e) {
-    // Only work in select mode
-    if (!currentData.isSelectMode) {
-        return;
-    }
-    
     console.log('Overlay clicked - selecting location');
 
     const overlay = document.getElementById('xpathOverlay');

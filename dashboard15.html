@@ -857,7 +857,6 @@ tr:hover {
 
 /* XPath Marker */
 .xpath-marker {
-    position: absolute;
     width: 28px;
     height: 28px;
     background: var(--primary);
@@ -872,8 +871,8 @@ tr:hover {
     cursor: pointer;
     box-shadow: var(--shadow-lg);
     animation: pulse 2s infinite;
-    transform: translate(-50%, -50%);
-    z-index: 15;
+    z-index: 20;
+    pointer-events: auto;
 }
 
 /* Media Grid */
@@ -1623,67 +1622,9 @@ tr:hover {
     .desktop-only {
         display: none !important;
     }
-    
+
     .mobile-only {
         display: block !important;
-    }
-}
-/* Enhanced Preview Controls - Minimal Addition */
-.enhanced-controls {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    display: flex;
-    gap: 10px;
-    z-index: 25;
-}
-
-.mode-toggle, .scroll-controls {
-    display: flex;
-    background: rgba(0, 0, 0, 0.8);
-    border-radius: 6px;
-    padding: 4px;
-}
-
-.mode-btn, .scroll-controls button {
-    padding: 8px 12px;
-    background: transparent;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.mode-btn:hover, .scroll-controls button:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.mode-btn.active {
-    background: var(--primary);
-}
-
-.mode-btn i, .scroll-controls button i {
-    margin-right: 4px;
-}
-
-/* Update existing overlay for better visual feedback */
-#xpathOverlay {
-    transition: background 0.3s ease;
-}
-
-/* Mobile responsive */
-@media (max-width: 768px) {
-    .enhanced-controls {
-        flex-direction: column;
-        top: 5px;
-        left: 5px;
-    }
-    
-    .mode-btn, .scroll-controls button {
-        padding: 12px;
-        font-size: 0.8rem;
     }
 }
 </style>
@@ -3281,12 +3222,7 @@ async function showTaskModal() {
     <div class="spinner"></div>
     </div>
     <iframe id="taskPreviewFrame" style="display: none;"></iframe>
-    <div class="preview-controls">
-    <button class="preview-btn" onclick="setZoom(0.5)">50%</button>
-    <button class="preview-btn" onclick="setZoom(0.75)">75%</button>
-    <button class="preview-btn" onclick="setZoom(1)">100%</button>
-    </div>
-    <div id="xpathOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 15;"></div>
+    <div id="xpathOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; cursor: crosshair;"></div>
     </div>
 
     <div style="margin-top: 1rem;">
@@ -3513,6 +3449,7 @@ function loadWebsitePreview(url) {
         url = 'https://' + url;
     }
 
+    // Use our Cloudflare Worker CORS proxy
     const proxyUrl = `https://cors.seotize.workers.dev/?url=${encodeURIComponent(url)}`;
 
     loader.style.display = 'flex';
@@ -3521,19 +3458,39 @@ function loadWebsitePreview(url) {
     // Clear existing markers and locations
     overlay.innerHTML = '';
     currentData.selectedLocations = [];
-    currentData.isSelectMode = false; // Start in scroll mode
     updateSelectedLocationsDisplay();
-
-    // Add enhanced controls if not present
-    addPreviewControls();
 
     iframe.src = proxyUrl;
 
     iframe.onload = () => {
         loader.style.display = 'none';
         iframe.style.display = 'block';
-        setupOverlayModes();
-        console.log('Website loaded with enhanced controls');
+        
+        // Set iframe to 50% scale with proper dimensions
+        iframe.style.transform = 'scale(0.5)';
+        iframe.style.transformOrigin = '0 0';
+        iframe.style.width = '200%';  // Double width to compensate for 50% scale
+        iframe.style.height = '200%'; // Double height to compensate for 50% scale
+
+        // Configure overlay for scrolling at 50% scale
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.overflow = 'auto';
+        overlay.style.cursor = 'crosshair';
+        overlay.style.position = 'absolute';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.zIndex = '15';
+
+        // Remove any existing click listeners
+        const newOverlay = overlay.cloneNode(true);
+        overlay.parentNode.replaceChild(newOverlay, overlay);
+
+        // Get the new overlay reference and add click listener
+        const currentOverlay = document.getElementById('xpathOverlay');
+        currentOverlay.addEventListener('click', handleOverlayClick);
+        
+        console.log('Website loaded at 50% scale with scrollable overlay'); // Debug log
     };
 
     iframe.onerror = () => {
@@ -3555,17 +3512,19 @@ function loadWebsitePreview(url) {
 
 // Handle overlay clicks for XPath selection
 function handleOverlayClick(e) {
-    if (!currentData.isSelectMode) {
-        showToast('Switch to Select Mode to choose locations', 'info');
-        return;
-    }
-
-    console.log('Overlay clicked in select mode');
+    console.log('Overlay clicked'); // Debug log
 
     const overlay = document.getElementById('xpathOverlay');
     const rect = overlay.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    // Calculate click position relative to the overlay
+    const overlayX = e.clientX - rect.left + overlay.scrollLeft;
+    const overlayY = e.clientY - rect.top + overlay.scrollTop;
+    
+    // Convert to percentage of the actual iframe content (compensating for 50% scale)
+    // Since iframe is scaled to 50% but shows 200% width/height, we need to adjust
+    const x = (overlayX / rect.width) * 100;
+    const y = (overlayY / rect.height) * 100;
 
     const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
     if (currentData.selectedLocations.length >= maxLocations) {
@@ -3576,15 +3535,17 @@ function handleOverlayClick(e) {
     const xpath = generateXPath(x, y, currentData.selectedLocations.length + 1);
     const locationId = Date.now() + Math.random();
 
-    // Add visual marker
+    // Add visual marker at the clicked position
     const marker = document.createElement('div');
     marker.className = 'xpath-marker';
-    marker.style.left = x + '%';
-    marker.style.top = y + '%';
+    marker.style.position = 'absolute';
+    marker.style.left = overlayX + 'px';
+    marker.style.top = overlayY + 'px';
+    marker.style.transform = 'translate(-50%, -50%)';
     marker.innerHTML = currentData.selectedLocations.length + 1;
     marker.dataset.locationId = locationId;
-    marker.title = `Click to remove - XPath: ${xpath}`;
 
+    // Add click handler to remove marker
     marker.addEventListener('click', (e) => {
         e.stopPropagation();
         removeLocation(locationId);
@@ -3592,6 +3553,7 @@ function handleOverlayClick(e) {
 
     overlay.appendChild(marker);
 
+    // Add to locations array
     currentData.selectedLocations.push({
         id: locationId,
         xpath: xpath,
@@ -3600,117 +3562,7 @@ function handleOverlayClick(e) {
     });
 
     updateSelectedLocationsDisplay();
-    showToast(`Added location ${currentData.selectedLocations.length}`, 'success');
-}
-
-// Add enhanced controls to the preview
-function addPreviewControls() {
-    const previewContainer = document.querySelector('.website-preview');
-    const existingControls = previewContainer.querySelector('.enhanced-controls');
-    
-    if (existingControls) return; // Already added
-
-    const controls = document.createElement('div');
-    controls.className = 'enhanced-controls';
-    controls.innerHTML = `
-        <div class="mode-toggle">
-            <button id="scrollMode" class="mode-btn active" onclick="setPreviewMode('scroll')">
-                <i class="ri-hand-coin-line"></i> Scroll
-            </button>
-            <button id="selectMode" class="mode-btn" onclick="setPreviewMode('select')">
-                <i class="ri-cursor-line"></i> Select
-            </button>
-        </div>
-        <div class="scroll-controls">
-            <button onclick="scrollPreview('up')" title="Scroll Up"><i class="ri-arrow-up-line"></i></button>
-            <button onclick="scrollPreview('down')" title="Scroll Down"><i class="ri-arrow-down-line"></i></button>
-            <button onclick="scrollPreview('top')" title="Top"><i class="ri-skip-up-line"></i></button>
-        </div>
-    `;
-    
-    previewContainer.appendChild(controls);
-}
-
-// Setup overlay behavior modes
-function setupOverlayModes() {
-    const overlay = document.getElementById('xpathOverlay');
-    
-    // Remove existing listeners and re-attach
-    const newOverlay = overlay.cloneNode(true);
-    overlay.parentNode.replaceChild(newOverlay, overlay);
-    
-    const currentOverlay = document.getElementById('xpathOverlay');
-    currentOverlay.addEventListener('click', handleOverlayClick);
-    
-    // Set initial mode
-    setPreviewMode('scroll');
-}
-
-// Set preview mode (scroll or select)
-function setPreviewMode(mode) {
-    currentData.isSelectMode = (mode === 'select');
-    const overlay = document.getElementById('xpathOverlay');
-    const scrollBtn = document.getElementById('scrollMode');
-    const selectBtn = document.getElementById('selectMode');
-    
-    if (currentData.isSelectMode) {
-        overlay.style.pointerEvents = 'auto';
-        overlay.style.background = 'rgba(99, 102, 241, 0.05)';
-        overlay.style.cursor = 'crosshair';
-        scrollBtn.classList.remove('active');
-        selectBtn.classList.add('active');
-        showToast('Select mode: Click to add XPath locations', 'info');
-    } else {
-        overlay.style.pointerEvents = 'none';
-        overlay.style.background = 'transparent';
-        overlay.style.cursor = 'default';
-        scrollBtn.classList.add('active');
-        selectBtn.classList.remove('active');
-        showToast('Scroll mode: Navigate the website', 'info');
-    }
-}
-
-// Scroll the iframe content
-function scrollPreview(direction) {
-    const iframe = document.getElementById('taskPreviewFrame');
-    if (!iframe) return;
-    
-    try {
-        // Try direct iframe document access first
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-        const scrollAmount = 300;
-        
-        switch(direction) {
-            case 'up':
-                iframeDoc.documentElement.scrollTop -= scrollAmount;
-                break;
-            case 'down':
-                iframeDoc.documentElement.scrollTop += scrollAmount;
-                break;
-            case 'top':
-                iframeDoc.documentElement.scrollTop = 0;
-                break;
-        }
-        
-        showToast(`Scrolled ${direction}`, 'info');
-        
-    } catch (error) {
-        // Fallback for cross-origin restrictions
-        const currentTransform = iframe.style.transform || '';
-        const currentY = parseInt(currentTransform.match(/translateY\((-?\d+)px\)/) || [0, 0])[1];
-        
-        let newY = currentY;
-        switch(direction) {
-            case 'up': newY += 100; break;
-            case 'down': newY -= 100; break;
-            case 'top': newY = 0; break;
-        }
-        
-        newY = Math.max(-1500, Math.min(0, newY)); // Limit range
-        iframe.style.transform = iframe.style.transform.replace(/translateY\(-?\d+px\)/, '') + ` translateY(${newY}px)`;
-        
-        showToast(`Scrolled ${direction} (fallback)`, 'info');
-    }
+    console.log('Added location:', { id: locationId, xpath, x, y }); // Debug log
 }
 
 // Manual XPath input for when preview fails
@@ -3943,22 +3795,6 @@ function generateXPath(x, y, index) {
 
     const elementIndex = Math.max(1, Math.floor((x / 100) * 10) + 1);
     return `${sections[sectionIndex]}[${elementIndex}]`;
-}
-
-// Set zoom for website preview
-function setZoom(scale) {
-    const iframe = document.getElementById('taskPreviewFrame');
-    if (iframe) {
-        // Preserve any existing translateY
-        const currentTransform = iframe.style.transform || '';
-        const translateY = currentTransform.match(/translateY\((-?\d+)px\)/);
-        const yValue = translateY ? translateY[0] : '';
-        
-        iframe.style.transform = `scale(${scale}) ${yValue}`;
-        iframe.style.transformOrigin = '0 0';
-        iframe.style.width = `${100/scale}%`;
-        iframe.style.height = `${100/scale}%`;
-    }
 }
 
 // Update estimates
@@ -4780,7 +4616,7 @@ async function viewArticle(articleId) {
 
             <!-- Perfect Mobile Layout -->
             <div class="mobile-only" style="padding: 0; margin: -1.5rem; background: var(--bg);">
-                
+
                 <!-- Compact Mobile Hero Header -->
                 <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 1rem; position: relative;">
                     <div style="display: flex; align-items: flex-start; gap: 1rem;">
@@ -4798,7 +4634,7 @@ async function viewArticle(articleId) {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Compact Views Badge -->
                         <div style="background: rgba(255,255,255,0.2); padding: 0.6rem 0.8rem; border-radius: var(--radius); text-align: center; flex-shrink: 0; backdrop-filter: blur(5px);">
                             <div style="font-size: 1.2rem; font-weight: 700; line-height: 1; margin-bottom: 0.15rem;">${formatNumber(article.total_views || 0)}</div>
@@ -5469,7 +5305,7 @@ async function showImageDetails(imageId) {
                             <i class="ri-external-link-line"></i> Full Size
                         </div>
                     </div>
-                    
+
                     <!-- Mobile Stats Cards -->
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
                         <div style="background: var(--primary); color: white; padding: 1rem; border-radius: var(--radius); text-align: center;">
@@ -5521,7 +5357,7 @@ async function showImageDetails(imageId) {
                         <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="ri-bar-chart-line"></i> Analytics Overview
                         </h4>
-                        
+
                         ${topCountries.length > 0 ? `
                             <div style="margin-bottom: 1.5rem;">
                                 <h5 style="margin-bottom: 0.75rem; color: var(--success); font-size: 0.9rem;">
@@ -5535,7 +5371,7 @@ async function showImageDetails(imageId) {
                                 `).join('')}
                             </div>
                         ` : ''}
-                        
+
                         ${topBrowsers.length > 0 ? `
                             <div style="margin-bottom: 1.5rem;">
                                 <h5 style="margin-bottom: 0.75rem; color: var(--primary); font-size: 0.9rem;">
@@ -5549,7 +5385,7 @@ async function showImageDetails(imageId) {
                                 `).join('')}
                             </div>
                         ` : ''}
-                        
+
                         ${topDevices.length > 0 ? `
                             <div>
                                 <h5 style="margin-bottom: 0.75rem; color: var(--warning); font-size: 0.9rem;">

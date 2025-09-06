@@ -3479,68 +3479,55 @@ function loadWebsitePreview(url) {
 
     // Get the new overlay reference
     const currentOverlay = document.getElementById('xpathOverlay');
-    currentOverlay.style.cursor = 'crosshair';
-    currentOverlay.style.background = 'rgba(99, 102, 241, 0.02)';
-    currentOverlay.style.pointerEvents = 'auto';
     
-    // Add instructions
-    const instructions = document.createElement('div');
-    instructions.innerHTML = 'Click to select XPath locations • Scroll wheel to navigate';
-    instructions.style.cssText = `
+    // Start in scroll mode
+    currentData.isSelectMode = false;
+    currentOverlay.style.pointerEvents = 'none';
+    currentOverlay.style.background = 'transparent';
+    
+    // Add toggle button
+    const toggleButton = document.createElement('button');
+    toggleButton.innerHTML = '<i class="ri-cursor-line"></i> Select Mode';
+    toggleButton.style.cssText = `
         position: absolute;
         top: 10px;
         left: 10px;
-        background: rgba(0,0,0,0.8);
+        background: var(--primary);
         color: white;
+        border: none;
         padding: 8px 12px;
         border-radius: 4px;
         font-size: 0.75rem;
+        cursor: pointer;
         z-index: 20;
-        pointer-events: none;
     `;
-    currentOverlay.parentElement.appendChild(instructions);
     
-    // Handle clicks for selection
+    toggleButton.onclick = () => {
+        currentData.isSelectMode = !currentData.isSelectMode;
+        
+        if (currentData.isSelectMode) {
+            // Select mode
+            currentOverlay.style.pointerEvents = 'auto';
+            currentOverlay.style.background = 'rgba(99, 102, 241, 0.05)';
+            currentOverlay.style.cursor = 'crosshair';
+            toggleButton.innerHTML = '<i class="ri-hand-coin-line"></i> Scroll Mode';
+            toggleButton.style.background = 'var(--success)';
+            showToast('Select Mode: Click to place XPath locations', 'info');
+        } else {
+            // Scroll mode
+            currentOverlay.style.pointerEvents = 'none';
+            currentOverlay.style.background = 'transparent';
+            currentOverlay.style.cursor = 'default';
+            toggleButton.innerHTML = '<i class="ri-cursor-line"></i> Select Mode';
+            toggleButton.style.background = 'var(--primary)';
+            showToast('Scroll Mode: Scroll to navigate website', 'info');
+        }
+    };
+    
+    currentOverlay.parentElement.appendChild(toggleButton);
     currentOverlay.addEventListener('click', handleOverlayClick);
-    
-    // Handle scroll wheel events - pass them to the iframe
-    currentOverlay.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Scroll the iframe content
-        try {
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            iframeDoc.documentElement.scrollTop += e.deltaY;
-        } catch (error) {
-            // Fallback: scroll the iframe container
-            const container = iframe.parentElement;
-            container.scrollTop += e.deltaY;
-        }
-    }, { passive: false });
-    
-    // Handle touch scrolling on mobile
-    let touchStartY = 0;
-    currentOverlay.addEventListener('touchstart', (e) => {
-        touchStartY = e.touches[0].clientY;
-    }, { passive: true });
-    
-    currentOverlay.addEventListener('touchmove', (e) => {
-        const touchY = e.touches[0].clientY;
-        const deltaY = touchStartY - touchY;
-        
-        try {
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            iframeDoc.documentElement.scrollTop += deltaY;
-        } catch (error) {
-            const container = iframe.parentElement;
-            container.scrollTop += deltaY;
-        }
-        
-        touchStartY = touchY;
-    }, { passive: true });
 
-    console.log('Website loaded - Click to select, scroll wheel to navigate');
+    console.log('Website loaded - Use toggle button to switch modes');
     };
 
     iframe.onerror = () => {
@@ -3562,6 +3549,11 @@ function loadWebsitePreview(url) {
 
 // Handle overlay clicks for XPath selection
 function handleOverlayClick(e) {
+    // Only work in select mode
+    if (!currentData.isSelectMode) {
+        return;
+    }
+    
     console.log('Overlay clicked - selecting location');
 
     const overlay = document.getElementById('xpathOverlay');

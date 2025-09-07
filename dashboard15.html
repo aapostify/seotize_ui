@@ -687,7 +687,7 @@ tr:hover {
 .map-container {
     height: 280px !important;
     width: 100%;
-    border-radius: var(--radius);f
+    border-radius: var(--radius);
     overflow: hidden;
     border: 1px solid var(--border);
 }
@@ -812,7 +812,7 @@ tr:hover {
 /* Enhanced Website Preview */
 .website-preview {
     width: 100%;
-    height: 450px;
+    height: 75vh;
     border: 2px solid var(--border);
     border-radius: var(--radius);
     background: #fff;
@@ -1039,6 +1039,11 @@ tr:hover {
     margin-top: 2rem;
     padding-top: 1rem;
     border-top: 1px solid var(--border);
+    position: sticky;
+    bottom: 0;
+    background: var(--bg);
+    padding-bottom: 0.75rem;
+    z-index: 5;
 }
 
 /* Priority selector */
@@ -3217,7 +3222,7 @@ async function showTaskModal() {
     </div>
 
     <div class="step-content" id="step2">
-    <div class="website-preview" id="websitePreview" style="height: 450px; position: relative;">
+    <div class="website-preview" id="websitePreview" style="height: 75vh; position: relative;">
     <div id="websiteLoader" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f5f5f5;">
     <div class="spinner"></div>
     </div>
@@ -3465,7 +3470,104 @@ function loadWebsitePreview(url) {
     currentData.selectedLocations = [];
     updateSelectedLocationsDisplay();
 
-    iframe.src = proxyUrl;
+    // Try to fetch HTML and use srcdoc for same-origin interaction
+    (async () => {
+        try {
+            const resp = await fetch(proxyUrl, { method: 'GET' });
+            const text = await resp.text();
+
+            // Compute base href for resolving relative URLs
+            let baseHref = url;
+            try {
+                const u = new URL(url);
+                if (!/\/$/.test(u.pathname) && u.pathname.indexOf('.') > -1) {
+                    baseHref = url.substring(0, url.lastIndexOf('/') + 1);
+                } else if (!/\/$/.test(url)) {
+                    baseHref = url + '/';
+                }
+            } catch (e) {}
+
+            // Remove scripts to prevent navigation/JS execution conflicts
+            let html = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+            // Inject <base>
+            if (/<head[^>]*>/i.test(html)) {
+                html = html.replace(/<head[^>]*>/i, (m) => `${m}<base href="${baseHref}">`);
+            } else {
+                html = `<head><base href="${baseHref}"></head>` + html;
+            }
+
+            // Append instrumentation script for click + scroll + xpath
+            const instrument = `
+                <script>
+                (function(){
+                    function getAbsoluteXPath(element){
+                        if(!element || element.nodeType !== 1){ return ''; }
+                        var parts = [];
+                        while(element && element.nodeType === 1){
+                            var tag = element.nodeName.toLowerCase();
+                            if(tag === 'html' || tag === 'body'){
+                                parts.unshift('/' + tag);
+                                element = element.parentElement;
+                                continue;
+                            }
+                            var index = 1;
+                            var sibling = element.previousElementSibling;
+                            while(sibling){
+                                if(sibling.nodeName.toLowerCase() === tag){ index++; }
+                                sibling = sibling.previousElementSibling;
+                            }
+                            parts.unshift('/' + tag + '[' + index + ']');
+                            element = element.parentElement;
+                        }
+                        return parts.join('');
+                    }
+                    document.addEventListener('click', function(e){
+                        try {
+                            var target = e.target.closest('a, button, [role="button"], input, textarea, select') || e.target;
+                            var xpath = getAbsoluteXPath(target);
+                            var rect = target.getBoundingClientRect();
+                            var centerX = rect.left + rect.width / 2;
+                            var centerY = rect.top + rect.height / 2;
+                            var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                            var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                            window.parent.postMessage({
+                                type: 'iframe-xpath',
+                                xpath: xpath,
+                                viewportX: centerX,
+                                viewportY: centerY,
+                                pageX: centerX + scrollLeft,
+                                pageY: centerY + scrollTop
+                            }, '*');
+                        } catch(err) {}
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }, true);
+                    window.addEventListener('scroll', function(){
+                        try {
+                            window.parent.postMessage({
+                                type: 'iframe-scroll',
+                                scrollTop: window.pageYOffset || document.documentElement.scrollTop,
+                                scrollLeft: window.pageXOffset || document.documentElement.scrollLeft
+                            }, '*');
+                        } catch(err) {}
+                    }, { passive: true });
+                })();
+                <\/script>`;
+            if (/<\/body>/i.test(html)) {
+                html = html.replace(/<\/body>/i, instrument + '</body>');
+            } else {
+                html += instrument;
+            }
+
+            loader.style.display = 'flex';
+            iframe.style.display = 'none';
+            iframe.srcdoc = html;
+        } catch (err) {
+            // Fallback to direct proxy URL if fetch fails
+            iframe.src = proxyUrl;
+        }
+    })();
 
     iframe.onload = () => {
         loader.style.display = 'none';
@@ -3501,145 +3603,85 @@ function loadWebsitePreview(url) {
         
         const previewContainer = document.getElementById('websitePreview');
         if (!previewContainer.querySelector('[data-click-detector]')) {
-            clickDetector.setAttribute('data-click-detector', 'true');
-            previewContainer.appendChild(clickDetector);
         }
 
         // Allow iframe scrolling
         iframe.style.pointerEvents = 'auto';
         
-        // Inject script to track scroll and prevent clicks
-        try {
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            
-            const preventScript = iframeDoc.createElement('script');
-            preventScript.textContent = `
-                window.addEventListener('scroll', function() {
-                    window.parent.postMessage({
-                        type: 'iframe-scroll',
-                        scrollTop: window.pageYOffset || document.documentElement.scrollTop,
-                        scrollLeft: window.pageXOffset || document.documentElement.scrollLeft
-                    }, '*');
-                });
-                
-                document.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }, true);
-                
-                var links = document.getElementsByTagName('a');
-                for(var i = 0; i < links.length; i++) {
-                    links[i].onclick = function() { return false; };
-                    links[i].style.cursor = 'default';
-                }
-            `;
-            iframeDoc.head.appendChild(preventScript);
-            
-            const styleEl = iframeDoc.createElement('style');
-            styleEl.textContent = `
-                * {
-                    user-select: none !important;
-                    -webkit-user-select: none !important;
-                }
-                a {
-                    pointer-events: none !important;
-                }
-            `;
-            iframeDoc.head.appendChild(styleEl);
-        } catch (e) {
-            console.log('Could not access iframe content');
-        }
+        // Instrumentation injected via srcdoc handles clicks and scroll
 
         // Listen for scroll messages
-        window.addEventListener('message', function scrollListener(e) {
+        // Attach a single message listener to handle scroll and xpath events
+        if (window.__iframePreviewListener) {
+            window.removeEventListener('message', window.__iframePreviewListener);
+        }
+        window.__iframePreviewListener = function(e){
+            if (!e || !e.data || !e.data.type) return;
             if (e.data.type === 'iframe-scroll') {
                 iframeScrollTop = e.data.scrollTop;
                 iframeScrollLeft = e.data.scrollLeft;
-                
-                // Update marker positions
                 currentData.selectedLocations.forEach((location) => {
                     const marker = overlay.querySelector(`[data-location-id="${location.id}"]`);
                     if (marker) {
-                        const newY = location.y - iframeScrollTop;
-                        const newX = location.x - iframeScrollLeft;
+                        const scale = parseFloat(iframe.dataset.scale || '1');
+                        const newY = (location.y - iframeScrollTop) * scale;
+                        const newX = (location.x - iframeScrollLeft) * scale;
                         marker.style.top = `${newY}px`;
                         marker.style.left = `${newX}px`;
                     }
                 });
+            } else if (e.data.type === 'iframe-xpath') {
+                // Check max locations
+                const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
+                if (currentData.selectedLocations.length >= maxLocations) {
+                    showToast(`Maximum ${maxLocations} locations allowed for ${currentData.taskPriority} priority`, 'warning');
+                    return;
+                }
+                const locationId = Date.now() + Math.random();
+                const marker = document.createElement('div');
+                marker.className = 'xpath-marker';
+                const scale = parseFloat(iframe.dataset.scale || '1');
+                marker.style.cssText = `
+                    position: absolute;
+                    left: ${e.data.viewportX * scale}px;
+                    top: ${e.data.viewportY * scale}px;
+                    width: 28px;
+                    height: 28px;
+                    background: var(--primary);
+                    color: white;
+                    border: 3px solid white;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                    font-size: 0.875rem;
+                    cursor: pointer;
+                    box-shadow: var(--shadow-lg);
+                    animation: pulse 2s infinite;
+                    transform: translate(-50%, -50%);
+                    z-index: 25;
+                    pointer-events: auto;
+                `;
+                marker.innerHTML = currentData.selectedLocations.length + 1;
+                marker.dataset.locationId = locationId;
+                marker.onclick = (ev) => {
+                    ev.stopPropagation();
+                    removeLocation(locationId);
+                };
+                overlay.appendChild(marker);
+                currentData.selectedLocations.push({
+                    id: locationId,
+                    xpath: e.data.xpath,
+                    x: e.data.pageX,
+                    y: e.data.pageY
+                });
+                updateSelectedLocationsDisplay();
             }
-        });
-
-        // Handle clicks on detection layer
-        clickDetector.onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const rect = iframe.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
-            
-            // Calculate actual position including scroll
-            const pageX = clickX + iframeScrollLeft;
-            const pageY = clickY + iframeScrollTop;
-
-            // Check max locations
-            const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
-            if (currentData.selectedLocations.length >= maxLocations) {
-                showToast(`Maximum ${maxLocations} locations allowed for ${currentData.taskPriority} priority`, 'warning');
-                return;
-            }
-
-            const xpath = generateXPath(pageX, pageY, currentData.selectedLocations.length + 1);
-            const locationId = Date.now() + Math.random();
-
-            // Create marker
-            const marker = document.createElement('div');
-            marker.className = 'xpath-marker';
-            marker.style.cssText = `
-                position: absolute;
-                left: ${clickX}px;
-                top: ${clickY}px;
-                width: 28px;
-                height: 28px;
-                background: var(--primary);
-                color: white;
-                border: 3px solid white;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 700;
-                font-size: 0.875rem;
-                cursor: pointer;
-                box-shadow: var(--shadow-lg);
-                animation: pulse 2s infinite;
-                transform: translate(-50%, -50%);
-                z-index: 25;
-                pointer-events: auto;
-            `;
-            marker.innerHTML = currentData.selectedLocations.length + 1;
-            marker.dataset.locationId = locationId;
-
-            marker.onclick = (e) => {
-                e.stopPropagation();
-                removeLocation(locationId);
-            };
-
-            overlay.appendChild(marker);
-
-            // Store location
-            currentData.selectedLocations.push({
-                id: locationId,
-                xpath: xpath,
-                x: pageX,
-                y: pageY
-            });
-
-            updateSelectedLocationsDisplay();
         };
+        window.addEventListener('message', window.__iframePreviewListener);
 
-        showToast('Scroll to explore, click to add XPath markers', 'info');
+        showToast('Scroll to explore, click elements to capture XPath', 'info');
     };
 
     iframe.onerror = () => {
@@ -3941,6 +3983,7 @@ function setZoom(scale) {
         iframe.style.transformOrigin = '0 0';
         iframe.style.width = `${100/scale}%`;
         iframe.style.height = `${100/scale}%`;
+        iframe.dataset.scale = String(scale);
     }
 }
 

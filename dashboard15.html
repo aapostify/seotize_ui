@@ -1623,7 +1623,7 @@ tr:hover {
     .desktop-only {
         display: none !important;
     }
-    
+
     .mobile-only {
         display: block !important;
     }
@@ -3178,7 +3178,6 @@ function closeModal() {
     currentData.currentStep = 1;
 }
 
-// Enhanced Task Modal with Priority First
 async function showTaskModal() {
     showModal('Create New SEO Task', `
     <div class="step-content active" id="step1">
@@ -3218,23 +3217,23 @@ async function showTaskModal() {
     </div>
 
     <div class="step-content" id="step2">
-    <div class="website-preview" id="websitePreview">
+    <div class="website-preview" id="websitePreview" style="height: 450px; position: relative;">
     <div id="websiteLoader" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f5f5f5;">
     <div class="spinner"></div>
     </div>
-    <iframe id="taskPreviewFrame" style="display: none;"></iframe>
-    <div class="preview-controls">
+    <iframe id="taskPreviewFrame" style="display: none; width: 100%; height: 100%; border: none;"></iframe>
+    <div class="preview-controls" style="position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.8); padding: 8px; border-radius: var(--radius); z-index: 30;">
     <button class="preview-btn" onclick="setZoom(0.5)">50%</button>
     <button class="preview-btn" onclick="setZoom(0.75)">75%</button>
     <button class="preview-btn" onclick="setZoom(1)">100%</button>
     </div>
-    <div id="xpathOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; cursor: crosshair;"></div>
+    <div id="xpathOverlay"></div>
     </div>
 
     <div style="margin-top: 1rem;">
     <h4>Selected Click Locations (${currentData.selectedLocations.length}/${getPriorityMaxLocations(currentData.taskPriority)})</h4>
-    <div id="selectedLocations">
-    <p style="color: var(--text-secondary); font-size: 0.875rem;">Click on the website preview above to select clickable areas. You can select up to <span id="maxLocations">${getPriorityMaxLocations(currentData.taskPriority)}</span> locations.</p>
+    <div id="selectedLocations" style="max-height: 150px; overflow-y: auto;">
+    <p style="color: var(--text-secondary); font-size: 0.875rem;">Click on the website preview to select clickable areas.</p>
     </div>
     </div>
 
@@ -3472,77 +3471,117 @@ function loadWebsitePreview(url) {
         loader.style.display = 'none';
         iframe.style.display = 'block';
 
-        // Setup overlay - it should not block any events initially
-        overlay.style.pointerEvents = 'none';
-        overlay.style.cursor = 'crosshair';
-
-        // Create invisible click capture layer
-        let clickCaptureLayer = document.createElement('div');
-        clickCaptureLayer.style.cssText = `
+        // Setup overlay for markers
+        overlay.style.cssText = `
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            z-index: 8;
-            cursor: crosshair;
-            background: transparent;
-            pointer-events: auto;
+            pointer-events: none;
+            z-index: 20;
         `;
 
-        // Add the click capture layer to the preview container
-        const previewContainer = document.querySelector('.website-preview');
-        previewContainer.style.position = 'relative';
-        previewContainer.appendChild(clickCaptureLayer);
+        // Track scroll position
+        let iframeScrollTop = 0;
+        let iframeScrollLeft = 0;
 
-        // Variables to track interaction state
-        let isScrolling = false;
-        let scrollTimeout = null;
-        let clickPosition = null;
+        // Create click detection layer
+        const clickDetector = document.createElement('div');
+        clickDetector.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 15;
+            cursor: crosshair;
+            background: transparent;
+        `;
+        
+        const previewContainer = document.getElementById('websitePreview');
+        if (!previewContainer.querySelector('[data-click-detector]')) {
+            clickDetector.setAttribute('data-click-detector', 'true');
+            previewContainer.appendChild(clickDetector);
+        }
 
-        // Detect scrolling and temporarily disable click capture
-        clickCaptureLayer.addEventListener('wheel', (e) => {
-            // Allow scroll to pass through
-            clickCaptureLayer.style.pointerEvents = 'none';
-            iframe.style.pointerEvents = 'auto';
+        // Allow iframe scrolling
+        iframe.style.pointerEvents = 'auto';
+        
+        // Inject script to track scroll and prevent clicks
+        try {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
             
-            isScrolling = true;
-            clearTimeout(scrollTimeout);
+            const preventScript = iframeDoc.createElement('script');
+            preventScript.textContent = `
+                window.addEventListener('scroll', function() {
+                    window.parent.postMessage({
+                        type: 'iframe-scroll',
+                        scrollTop: window.pageYOffset || document.documentElement.scrollTop,
+                        scrollLeft: window.pageXOffset || document.documentElement.scrollLeft
+                    }, '*');
+                });
+                
+                document.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }, true);
+                
+                var links = document.getElementsByTagName('a');
+                for(var i = 0; i < links.length; i++) {
+                    links[i].onclick = function() { return false; };
+                    links[i].style.cursor = 'default';
+                }
+            `;
+            iframeDoc.head.appendChild(preventScript);
             
-            scrollTimeout = setTimeout(() => {
-                isScrolling = false;
-                clickCaptureLayer.style.pointerEvents = 'auto';
-                iframe.style.pointerEvents = 'auto';
-            }, 150);
-        }, { passive: true });
+            const styleEl = iframeDoc.createElement('style');
+            styleEl.textContent = `
+                * {
+                    user-select: none !important;
+                    -webkit-user-select: none !important;
+                }
+                a {
+                    pointer-events: none !important;
+                }
+            `;
+            iframeDoc.head.appendChild(styleEl);
+        } catch (e) {
+            console.log('Could not access iframe content');
+        }
 
-        // Handle touch scrolling for mobile
-        clickCaptureLayer.addEventListener('touchstart', (e) => {
-            // If it's a single touch, might be scroll
-            if (e.touches.length === 1) {
-                clickCaptureLayer.style.pointerEvents = 'none';
-                isScrolling = true;
+        // Listen for scroll messages
+        window.addEventListener('message', function scrollListener(e) {
+            if (e.data.type === 'iframe-scroll') {
+                iframeScrollTop = e.data.scrollTop;
+                iframeScrollLeft = e.data.scrollLeft;
+                
+                // Update marker positions
+                currentData.selectedLocations.forEach((location) => {
+                    const marker = overlay.querySelector(`[data-location-id="${location.id}"]`);
+                    if (marker) {
+                        const newY = location.y - iframeScrollTop;
+                        const newX = location.x - iframeScrollLeft;
+                        marker.style.top = `${newY}px`;
+                        marker.style.left = `${newX}px`;
+                    }
+                });
             }
-        }, { passive: true });
+        });
 
-        clickCaptureLayer.addEventListener('touchend', () => {
-            setTimeout(() => {
-                isScrolling = false;
-                clickCaptureLayer.style.pointerEvents = 'auto';
-            }, 150);
-        }, { passive: true });
-
-        // Handle clicks for XPath markers
-        clickCaptureLayer.addEventListener('click', (e) => {
-            // Don't process if scrolling
-            if (isScrolling) return;
-
+        // Handle clicks on detection layer
+        clickDetector.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
 
             const rect = iframe.getBoundingClientRect();
-            const x = ((e.clientX - rect.left) / rect.width) * 100;
-            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+            
+            // Calculate actual position including scroll
+            const pageX = clickX + iframeScrollLeft;
+            const pageY = clickY + iframeScrollTop;
 
             // Check max locations
             const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
@@ -3551,60 +3590,56 @@ function loadWebsitePreview(url) {
                 return;
             }
 
-            // Generate XPath and create location
-            const xpath = generateXPath(x, y, currentData.selectedLocations.length + 1);
+            const xpath = generateXPath(pageX, pageY, currentData.selectedLocations.length + 1);
             const locationId = Date.now() + Math.random();
 
-            // Create marker element
+            // Create marker
             const marker = document.createElement('div');
             marker.className = 'xpath-marker';
-            marker.style.left = x + '%';
-            marker.style.top = y + '%';
-            marker.style.pointerEvents = 'auto';
-            marker.style.zIndex = '20';
+            marker.style.cssText = `
+                position: absolute;
+                left: ${clickX}px;
+                top: ${clickY}px;
+                width: 28px;
+                height: 28px;
+                background: var(--primary);
+                color: white;
+                border: 3px solid white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 0.875rem;
+                cursor: pointer;
+                box-shadow: var(--shadow-lg);
+                animation: pulse 2s infinite;
+                transform: translate(-50%, -50%);
+                z-index: 25;
+                pointer-events: auto;
+            `;
             marker.innerHTML = currentData.selectedLocations.length + 1;
             marker.dataset.locationId = locationId;
 
-            // Add remove handler to marker
-            marker.addEventListener('click', (e) => {
+            marker.onclick = (e) => {
                 e.stopPropagation();
                 removeLocation(locationId);
-            });
+            };
 
-            // Add marker to overlay
             overlay.appendChild(marker);
 
-            // Store location data
+            // Store location
             currentData.selectedLocations.push({
                 id: locationId,
                 xpath: xpath,
-                x: x,
-                y: y
+                x: pageX,
+                y: pageY
             });
 
             updateSelectedLocationsDisplay();
-            console.log('Added location:', { id: locationId, xpath, x, y });
-        });
+        };
 
-        // Prevent default link clicking in iframe
-        clickCaptureLayer.addEventListener('mousedown', (e) => {
-            if (!isScrolling) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
-
-        // Add visual feedback
-        clickCaptureLayer.addEventListener('mousemove', (e) => {
-            if (!isScrolling) {
-                clickCaptureLayer.style.cursor = 'crosshair';
-            } else {
-                clickCaptureLayer.style.cursor = 'default';
-            }
-        });
-
-        console.log('Website loaded - scroll to view, click to add XPath locations');
-        showToast('Scroll to view the page, click anywhere to add XPath locations', 'info');
+        showToast('Scroll to explore, click to add XPath markers', 'info');
     };
 
     iframe.onerror = () => {
@@ -3613,12 +3648,9 @@ function loadWebsitePreview(url) {
             <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
             <div style="font-size: 1.1rem; margin-bottom: 1rem;">Unable to load website preview</div>
             <div style="font-size: 0.875rem; color: var(--text-tertiary);">
-                The website may block iframe embedding or have CORS restrictions.<br>
-                You can still continue by manually specifying XPath locations.
+                The website may block iframe embedding.<br>
+                You can still continue with the task setup.
             </div>
-            <button class="btn btn-primary" onclick="showManualXPathInput()" style="margin-top: 1rem;">
-                <i class="ri-code-line"></i> Add XPath Manually
-            </button>
         </div>
         `;
     };
@@ -3787,31 +3819,25 @@ function updateSelectedLocationsDisplay() {
 
     if (currentData.selectedLocations.length === 0) {
         container.innerHTML = `
-        <div style="text-align: center; padding: 1rem; color: var(--text-secondary);">
-        <p style="font-size: 0.875rem; margin-bottom: 1rem;">
-        Click on the website preview above to select clickable areas, or add XPath locations manually.
+        <p style="color: var(--text-secondary); font-size: 0.875rem;">
+            Click on the website preview to select clickable areas. 
+            You can select up to <span style="font-weight: 600; color: var(--primary);">${maxLocations}</span> locations for ${currentData.taskPriority} priority.
         </p>
-        <p style="font-size: 0.875rem; margin-bottom: 1rem;">
-        You can select up to <span id="maxLocations" style="font-weight: 600; color: var(--primary);">${maxLocations}</span> locations for ${currentData.taskPriority} priority.
-        </p>
-        <button class="btn btn-secondary btn-sm" onclick="showManualXPathInput()">
-        <i class="ri-code-line"></i> Add XPath Manually
-        </button>
-        </div>
         `;
         return;
     }
 
-    container.innerHTML = `
-    <div style="margin-bottom: 1rem;">
-    ${updateSelectedLocationsHTML()}
-    </div>
-    <div style="text-align: center;">
-    <button class="btn btn-secondary btn-sm" onclick="showManualXPathInput()">
-    <i class="ri-add-line"></i> Add More XPaths
-    </button>
-    </div>
-    `;
+    container.innerHTML = currentData.selectedLocations.map((location, index) => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius); margin-bottom: 0.5rem;">
+            <div>
+                <span style="font-weight: 500;">Location ${index + 1}:</span>
+                <code style="background: var(--bg); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-left: 0.5rem;">${location.xpath}</code>
+            </div>
+            <button class="btn btn-sm btn-danger" onclick="removeLocation('${location.id}')">
+                <i class="ri-delete-bin-line"></i>
+            </button>
+        </div>
+    `).join('');
 }
 
 // Remove location
@@ -4737,7 +4763,7 @@ async function viewArticle(articleId) {
 
             <!-- Perfect Mobile Layout -->
             <div class="mobile-only" style="padding: 0; margin: -1.5rem; background: var(--bg);">
-                
+
                 <!-- Compact Mobile Hero Header -->
                 <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 1rem; position: relative;">
                     <div style="display: flex; align-items: flex-start; gap: 1rem;">
@@ -4755,7 +4781,7 @@ async function viewArticle(articleId) {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Compact Views Badge -->
                         <div style="background: rgba(255,255,255,0.2); padding: 0.6rem 0.8rem; border-radius: var(--radius); text-align: center; flex-shrink: 0; backdrop-filter: blur(5px);">
                             <div style="font-size: 1.2rem; font-weight: 700; line-height: 1; margin-bottom: 0.15rem;">${formatNumber(article.total_views || 0)}</div>
@@ -5426,7 +5452,7 @@ async function showImageDetails(imageId) {
                             <i class="ri-external-link-line"></i> Full Size
                         </div>
                     </div>
-                    
+
                     <!-- Mobile Stats Cards -->
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
                         <div style="background: var(--primary); color: white; padding: 1rem; border-radius: var(--radius); text-align: center;">
@@ -5478,7 +5504,7 @@ async function showImageDetails(imageId) {
                         <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="ri-bar-chart-line"></i> Analytics Overview
                         </h4>
-                        
+
                         ${topCountries.length > 0 ? `
                             <div style="margin-bottom: 1.5rem;">
                                 <h5 style="margin-bottom: 0.75rem; color: var(--success); font-size: 0.9rem;">
@@ -5492,7 +5518,7 @@ async function showImageDetails(imageId) {
                                 `).join('')}
                             </div>
                         ` : ''}
-                        
+
                         ${topBrowsers.length > 0 ? `
                             <div style="margin-bottom: 1.5rem;">
                                 <h5 style="margin-bottom: 0.75rem; color: var(--primary); font-size: 0.9rem;">
@@ -5506,7 +5532,7 @@ async function showImageDetails(imageId) {
                                 `).join('')}
                             </div>
                         ` : ''}
-                        
+
                         ${topDevices.length > 0 ? `
                             <div>
                                 <h5 style="margin-bottom: 0.75rem; color: var(--warning); font-size: 0.9rem;">

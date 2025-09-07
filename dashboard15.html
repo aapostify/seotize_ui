@@ -812,7 +812,7 @@ tr:hover {
 /* Enhanced Website Preview */
 .website-preview {
     width: 100%;
-    height: 450px;
+    height: 350px;
     border: 2px solid var(--border);
     border-radius: var(--radius);
     background: #fff;
@@ -870,10 +870,33 @@ tr:hover {
     font-weight: 700;
     font-size: 0.875rem;
     cursor: pointer;
-    box-shadow: var(--shadow-lg);
-    animation: pulse 2s infinite;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: all 0.2s ease;
     transform: translate(-50%, -50%);
-    z-index: 15;
+    z-index: 30;
+    pointer-events: auto;
+}
+
+.xpath-marker:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+}
+
+/* Pulse animation for new markers */
+@keyframes markerPulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+}
 }
 
 /* Media Grid */
@@ -3217,7 +3240,7 @@ async function showTaskModal() {
     </div>
 
     <div class="step-content" id="step2">
-    <div class="website-preview" id="websitePreview" style="height: 450px; position: relative;">
+    <div class="website-preview" id="websitePreview" style="height: 350px; position: relative;">
     <div id="websiteLoader" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f5f5f5;">
     <div class="spinner"></div>
     </div>
@@ -3232,7 +3255,7 @@ async function showTaskModal() {
 
     <div style="margin-top: 1rem;">
     <h4>Selected Click Locations (${currentData.selectedLocations.length}/${getPriorityMaxLocations(currentData.taskPriority)})</h4>
-    <div id="selectedLocations" style="max-height: 150px; overflow-y: auto;">
+    <div id="selectedLocations" style="max-height: 120px; overflow-y: auto;">
     <p style="color: var(--text-secondary); font-size: 0.875rem;">Click on the website preview to select clickable areas.</p>
     </div>
     </div>
@@ -3505,72 +3528,249 @@ function loadWebsitePreview(url) {
             previewContainer.appendChild(clickDetector);
         }
 
-        // Allow iframe scrolling
-        iframe.style.pointerEvents = 'auto';
+        // Enable iframe scrolling with proper interaction
+        iframe.style.cssText = `
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: none;
+            pointer-events: auto;
+            overflow: auto;
+        `;
         
-        // Inject script to track scroll and prevent clicks
+        // Enhanced iframe content manipulation for proper scrolling
         try {
             const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
             
-            const preventScript = iframeDoc.createElement('script');
-            preventScript.textContent = `
-                window.addEventListener('scroll', function() {
-                    window.parent.postMessage({
-                        type: 'iframe-scroll',
-                        scrollTop: window.pageYOffset || document.documentElement.scrollTop,
-                        scrollLeft: window.pageXOffset || document.documentElement.scrollLeft
-                    }, '*');
-                });
-                
-                document.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }, true);
-                
-                var links = document.getElementsByTagName('a');
-                for(var i = 0; i < links.length; i++) {
-                    links[i].onclick = function() { return false; };
-                    links[i].style.cursor = 'default';
-                }
+            // Comprehensive script for scroll tracking and interaction control
+            const enhancedScript = iframeDoc.createElement('script');
+            enhancedScript.textContent = `
+                (function() {
+                    let scrollTimeout;
+                    let isUserScrolling = false;
+                    
+                    // Enhanced scroll tracking with debouncing
+                    function reportScroll() {
+                        const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+                        const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+                        
+                        window.parent.postMessage({
+                            type: 'iframe-scroll',
+                            scrollTop: scrollTop,
+                            scrollLeft: scrollLeft,
+                            isScrolling: true,
+                            documentHeight: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight),
+                            documentWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+                            viewportHeight: window.innerHeight,
+                            viewportWidth: window.innerWidth
+                        }, '*');
+                    }
+                    
+                    // Scroll event with proper handling
+                    window.addEventListener('scroll', function(e) {
+                        isUserScrolling = true;
+                        reportScroll();
+                        
+                        clearTimeout(scrollTimeout);
+                        scrollTimeout = setTimeout(function() {
+                            isUserScrolling = false;
+                            window.parent.postMessage({
+                                type: 'iframe-scroll-end',
+                                scrollTop: window.pageYOffset || document.documentElement.scrollTop || 0,
+                                scrollLeft: window.pageXOffset || document.documentElement.scrollLeft || 0
+                            }, '*');
+                        }, 150);
+                    }, { passive: true });
+                    
+                    // Prevent navigation while allowing scrolling
+                    document.addEventListener('click', function(e) {
+                        const target = e.target;
+                        
+                        // Allow scrolling but prevent navigation
+                        if (target.tagName === 'A' || target.closest('a')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return false;
+                        }
+                        
+                        // Prevent form submissions
+                        if (target.tagName === 'FORM' || target.closest('form')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return false;
+                        }
+                        
+                        // Allow other interactions for scrolling (like clicking scrollbars)
+                        if (!isUserScrolling) {
+                            // Only prevent if not scrolling
+                            const isScrollbarClick = (
+                                e.clientX > document.documentElement.clientWidth ||
+                                e.clientY > document.documentElement.clientHeight
+                            );
+                            
+                            if (!isScrollbarClick) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }
+                        }
+                    }, true);
+                    
+                    // Prevent form submissions entirely
+                    document.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }, true);
+                    
+                    // Make links non-functional but preserve visual appearance
+                    function disableNavigation() {
+                        const links = document.querySelectorAll('a');
+                        links.forEach(link => {
+                            const originalHref = link.href;
+                            link.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return false;
+                            });
+                            
+                            // Keep visual cursor but prevent navigation
+                            if (link.style.cursor !== 'pointer') {
+                                link.style.cursor = 'pointer';
+                            }
+                            
+                            // Remove href to prevent navigation but keep visual styling
+                            link.removeAttribute('href');
+                            link.setAttribute('data-original-href', originalHref);
+                        });
+                        
+                        // Disable forms
+                        const forms = document.querySelectorAll('form');
+                        forms.forEach(form => {
+                            form.addEventListener('submit', function(e) {
+                                e.preventDefault();
+                                return false;
+                            });
+                        });
+                    }
+                    
+                    // Run navigation disabling
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', disableNavigation);
+                    } else {
+                        disableNavigation();
+                    }
+                    
+                    // Also run after delays to catch dynamic content
+                    setTimeout(disableNavigation, 500);
+                    setTimeout(disableNavigation, 2000);
+                    
+                    // Enable smooth scrolling
+                    document.documentElement.style.scrollBehavior = 'smooth';
+                    
+                    // Initial scroll report
+                    setTimeout(reportScroll, 100);
+                })();
             `;
-            iframeDoc.head.appendChild(preventScript);
+            iframeDoc.head.appendChild(enhancedScript);
             
+            // Improved styles for better UX and scrolling
             const styleEl = iframeDoc.createElement('style');
             styleEl.textContent = `
-                * {
-                    user-select: none !important;
-                    -webkit-user-select: none !important;
+                html, body {
+                    overflow: auto !important;
+                    height: auto !important;
+                    scroll-behavior: smooth;
                 }
+                
+                * {
+                    -webkit-user-select: none !important;
+                    -moz-user-select: none !important;
+                    -ms-user-select: none !important;
+                    user-select: none !important;
+                }
+                
+                /* Ensure scrollbars are visible and functional */
+                ::-webkit-scrollbar {
+                    width: 12px;
+                    height: 12px;
+                }
+                
+                ::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 6px;
+                }
+                
+                ::-webkit-scrollbar-thumb {
+                    background: #888;
+                    border-radius: 6px;
+                }
+                
+                ::-webkit-scrollbar-thumb:hover {
+                    background: #555;
+                }
+                
+                ::-webkit-scrollbar-corner {
+                    background: #f1f1f1;
+                }
+                
+                /* Keep links visually normal but non-functional */
                 a {
-                    pointer-events: none !important;
+                    color: inherit !important;
+                    text-decoration: inherit !important;
+                }
+                
+                a:hover {
+                    color: inherit !important;
+                    text-decoration: underline !important;
                 }
             `;
             iframeDoc.head.appendChild(styleEl);
         } catch (e) {
-            console.log('Could not access iframe content');
+            console.log('Could not access iframe content for scroll enhancement:', e);
         }
 
-        // Listen for scroll messages
-        window.addEventListener('message', function scrollListener(e) {
-            if (e.data.type === 'iframe-scroll') {
-                iframeScrollTop = e.data.scrollTop;
-                iframeScrollLeft = e.data.scrollLeft;
+        // Enhanced message listener for scroll updates and marker positioning
+        const messageHandler = (e) => {
+            if (e.data.type === 'iframe-scroll' || e.data.type === 'iframe-scroll-end') {
+                iframeScrollTop = e.data.scrollTop || 0;
+                iframeScrollLeft = e.data.scrollLeft || 0;
                 
-                // Update marker positions
-                currentData.selectedLocations.forEach((location) => {
-                    const marker = overlay.querySelector(`[data-location-id="${location.id}"]`);
-                    if (marker) {
-                        const newY = location.y - iframeScrollTop;
-                        const newX = location.x - iframeScrollLeft;
-                        marker.style.top = `${newY}px`;
-                        marker.style.left = `${newX}px`;
-                    }
-                });
+                // Update all marker positions based on current scroll
+                updateMarkerPositions();
             }
-        });
+        };
 
-        // Handle clicks on detection layer
+        // Function to update marker positions relative to scroll
+        function updateMarkerPositions() {
+            const rect = iframe.getBoundingClientRect();
+            currentData.selectedLocations.forEach((location) => {
+                const marker = overlay.querySelector(`[data-location-id="${location.id}"]`);
+                if (marker) {
+                    // Calculate position relative to current scroll
+                    const adjustedX = location.x - iframeScrollLeft;
+                    const adjustedY = location.y - iframeScrollTop;
+                    
+                    // Only show markers that are in visible area with some buffer
+                    if (adjustedX >= -50 && adjustedY >= -50 && 
+                        adjustedX <= rect.width + 50 && adjustedY <= rect.height + 50) {
+                        marker.style.left = `${adjustedX}px`;
+                        marker.style.top = `${adjustedY}px`;
+                        marker.style.display = 'flex';
+                        marker.style.opacity = '1';
+                    } else {
+                        // Hide markers that are outside viewport
+                        marker.style.display = 'none';
+                        marker.style.opacity = '0.5';
+                    }
+                }
+            });
+        }
+
+        // Remove existing listeners and add new enhanced one
+        window.removeEventListener('message', messageHandler);
+        window.addEventListener('message', messageHandler);
+
+        // Enhanced click detection with precise positioning and XPath generation
         clickDetector.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -3579,9 +3779,9 @@ function loadWebsitePreview(url) {
             const clickX = e.clientX - rect.left;
             const clickY = e.clientY - rect.top;
             
-            // Calculate actual position including scroll
-            const pageX = clickX + iframeScrollLeft;
-            const pageY = clickY + iframeScrollTop;
+            // Calculate document position including scroll
+            const documentX = clickX + iframeScrollLeft;
+            const documentY = clickY + iframeScrollTop;
 
             // Check max locations
             const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
@@ -3590,10 +3790,34 @@ function loadWebsitePreview(url) {
                 return;
             }
 
-            const xpath = generateXPath(pageX, pageY, currentData.selectedLocations.length + 1);
+            // Generate accurate XPath using the improved function
+            let xpath;
+            try {
+                // Try to get element-based XPath first
+                const iframeDoc = iframe.contentDocument;
+                if (iframeDoc) {
+                    // Convert click coordinates to iframe viewport coordinates
+                    const viewportX = clickX;
+                    const viewportY = clickY;
+                    
+                    // Get element at point in iframe
+                    const elementAtPoint = iframeDoc.elementFromPoint(viewportX, viewportY);
+                    if (elementAtPoint && elementAtPoint !== iframeDoc.documentElement && elementAtPoint !== iframeDoc.body) {
+                        xpath = getElementXPath(elementAtPoint);
+                    } else {
+                        xpath = generatePositionalXPath(documentX, documentY, currentData.selectedLocations.length + 1);
+                    }
+                } else {
+                    xpath = generatePositionalXPath(documentX, documentY, currentData.selectedLocations.length + 1);
+                }
+            } catch (error) {
+                console.log('Error generating element-based XPath:', error);
+                xpath = generatePositionalXPath(documentX, documentY, currentData.selectedLocations.length + 1);
+            }
+
             const locationId = Date.now() + Math.random();
 
-            // Create marker
+            // Create marker with enhanced styling
             const marker = document.createElement('div');
             marker.className = 'xpath-marker';
             marker.style.cssText = `
@@ -3612,31 +3836,47 @@ function loadWebsitePreview(url) {
                 font-weight: 700;
                 font-size: 0.875rem;
                 cursor: pointer;
-                box-shadow: var(--shadow-lg);
-                animation: pulse 2s infinite;
-                transform: translate(-50%, -50%);
-                z-index: 25;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 30;
                 pointer-events: auto;
+                transition: all 0.2s ease;
+                transform: translate(-50%, -50%);
             `;
             marker.innerHTML = currentData.selectedLocations.length + 1;
             marker.dataset.locationId = locationId;
+            marker.title = `Click to remove - XPath: ${xpath}`;
 
-            marker.onclick = (e) => {
+            // Enhanced marker interactions
+            marker.addEventListener('mouseenter', () => {
+                marker.style.transform = 'translate(-50%, -50%) scale(1.2)';
+                marker.style.boxShadow = '0 6px 16px rgba(0,0,0,0.4)';
+            });
+            
+            marker.addEventListener('mouseleave', () => {
+                marker.style.transform = 'translate(-50%, -50%) scale(1)';
+                marker.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+            });
+
+            marker.addEventListener('click', (e) => {
                 e.stopPropagation();
                 removeLocation(locationId);
-            };
+            });
 
             overlay.appendChild(marker);
 
-            // Store location
+            // Store location with document coordinates
             currentData.selectedLocations.push({
                 id: locationId,
                 xpath: xpath,
-                x: pageX,
-                y: pageY
+                x: documentX,
+                y: documentY
             });
 
             updateSelectedLocationsDisplay();
+            
+            // Show success message with XPath
+            const shortXPath = xpath.length > 50 ? xpath.substring(0, 50) + '...' : xpath;
+            showToast(`Added location ${currentData.selectedLocations.length}: ${shortXPath}`, 'success');
         };
 
         showToast('Scroll to explore, click to add XPath markers', 'info');
@@ -3914,23 +4154,120 @@ function getPriorityMaxLocations(priority) {
     return limits[priority] || 3;
 }
 
-// Generate XPath based on click position
+// Generate accurate XPath based on actual DOM element at click position
 function generateXPath(x, y, index) {
-    // Enhanced XPath generation based on click position
+    try {
+        const iframe = document.getElementById('taskPreviewFrame');
+        if (!iframe || !iframe.contentDocument) {
+            // Fallback to position-based XPath generation
+            return generatePositionalXPath(x, y, index);
+        }
+
+        const iframeDoc = iframe.contentDocument;
+        const rect = iframe.getBoundingClientRect();
+        
+        // Convert click coordinates to iframe coordinates
+        const iframeX = (x / rect.width) * iframeDoc.documentElement.scrollWidth;
+        const iframeY = (y / rect.height) * iframeDoc.documentElement.scrollHeight;
+        
+        // Find the element at the click position
+        const elementAtPoint = iframeDoc.elementFromPoint(iframeX, iframeY);
+        
+        if (elementAtPoint) {
+            return getElementXPath(elementAtPoint);
+        }
+    } catch (error) {
+        console.log('Could not generate DOM-based XPath:', error);
+    }
+    
+    // Fallback to enhanced positional XPath
+    return generatePositionalXPath(x, y, index);
+}
+
+// Generate XPath from DOM element
+function getElementXPath(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) {
+        return '/html/body//a[1]';
+    }
+    
+    const segments = [];
+    let currentElement = element;
+    
+    while (currentElement && currentElement.nodeType === Node.ELEMENT_NODE) {
+        let tagName = currentElement.tagName.toLowerCase();
+        
+        if (currentElement.id) {
+            // If element has ID, use it for more specific path
+            segments.unshift(`${tagName}[@id='${currentElement.id}']`);
+            break;
+        } else {
+            // Calculate position among siblings
+            let position = 1;
+            let sibling = currentElement.previousElementSibling;
+            while (sibling) {
+                if (sibling.tagName.toLowerCase() === tagName) {
+                    position++;
+                }
+                sibling = sibling.previousElementSibling;
+            }
+            
+            segments.unshift(`${tagName}[${position}]`);
+        }
+        
+        currentElement = currentElement.parentElement;
+        
+        // Stop at html element
+        if (tagName === 'html') {
+            break;
+        }
+    }
+    
+    return '/' + segments.join('/');
+}
+
+// Enhanced positional XPath generation
+function generatePositionalXPath(x, y, index) {
+    // More accurate section detection based on typical web layouts
     const sections = [
-        '/html/body/header//a',
-        '/html/body/nav//a',
-        '/html/body/main//a',
-        '/html/body/section//a',
-        '/html/body/aside//a',
-        '/html/body/footer//a'
+        { path: '/html/body/header', weight: 0.15 },      // Top 15%
+        { path: '/html/body/nav', weight: 0.10 },         // Next 10% 
+        { path: '/html/body/main', weight: 0.50 },        // Main content 50%
+        { path: '/html/body/section', weight: 0.15 },     // Sections 15%
+        { path: '/html/body/aside', weight: 0.05 },       // Sidebar 5%
+        { path: '/html/body/footer', weight: 0.05 }       // Footer 5%
     ];
-
-    let sectionIndex = Math.floor((y / 100) * sections.length);
-    if (sectionIndex >= sections.length) sectionIndex = sections.length - 1;
-
-    const elementIndex = Math.max(1, Math.floor((x / 100) * 10) + 1);
-    return `${sections[sectionIndex]}[${elementIndex}]`;
+    
+    let cumulativeWeight = 0;
+    let selectedSection = sections[2]; // Default to main
+    
+    for (const section of sections) {
+        cumulativeWeight += section.weight;
+        if (y <= cumulativeWeight * 100) {
+            selectedSection = section;
+            break;
+        }
+    }
+    
+    // More precise element positioning
+    const elementTypes = ['div', 'a', 'button', 'span', 'p', 'h1', 'h2', 'h3', 'ul', 'li'];
+    const elementType = elementTypes[Math.floor((x / 100) * elementTypes.length)] || 'a';
+    
+    // Calculate more realistic element index based on position
+    const maxElements = elementType === 'a' ? 20 : 10;
+    const elementIndex = Math.max(1, Math.min(maxElements, Math.floor((x / 100) * maxElements) + 1));
+    
+    // Create hierarchical path for more specificity
+    if (elementType === 'a') {
+        // For links, create more specific paths
+        const subPaths = [
+            `${selectedSection.path}/div[1]/nav/ul/li[${Math.min(10, elementIndex)}]/a`,
+            `${selectedSection.path}/div[${Math.min(5, Math.ceil(elementIndex/4))}]/a[${elementIndex % 4 || 1}]`,
+            `${selectedSection.path}//a[${elementIndex}]`
+        ];
+        return subPaths[Math.floor((y / 100) * 3)] || subPaths[0];
+    } else {
+        return `${selectedSection.path}//${elementType}[${elementIndex}]`;
+    }
 }
 
 // Set zoom for website preview

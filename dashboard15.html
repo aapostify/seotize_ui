@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <!--
-Dashboard v15 Changes:
-1. Moved "Current Hosting Plan" and "Upgrade Hosting Plan" sections from billing to images/articles area
-2. Enhanced billing page to show subscription data with cancel subscription functionality
-3. Improved mobile design for Published Articles section to match dashboard page optimization
-4. Added proper display of hosting plan information and remaining resources
-5. Integrated cancel subscription functionality in billing/hosting sections
+Dashboard v13 Changes:
+1. Added detailed pagination to SEO Tasks section (matching Articles section style)
+2. Fixed mobile stats-grid to show 2 columns per row for better space utilization
+3. Adjusted stat card padding and font sizes for mobile view
+4. Articles section already had proper pagination (maintained)
+5. Enhanced pagination UI for Tasks and Articles pages to match dashboard style with vertical layout
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SEOTIZE Dashboard - Mobile Optimized v15</title>
+<title>SEOTIZE Dashboard - Mobile Optimized v13</title>
 
 <!-- Fonts & Icons -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -2691,14 +2691,8 @@ async function loadTasks(page = 1) {
 async function loadImages(page = 1) {
     try {
         showSpinner();
-        // Fetch both images data and hosting plan data
-        const [imagesResponse, planResponse] = await Promise.all([
-            api(`/images/dashboard?page=${page}&page_size=20`),
-            api('/hosting/subscription-status')
-        ]);
-        
-        const { data, pagination } = imagesResponse;
-        const planData = planResponse.data;
+        const response = await api(`/images/dashboard?page=${page}&page_size=20`);
+        const { data, pagination } = response;
 
         currentData.images = data.images || [];
         paginationState.images = {
@@ -2707,25 +2701,6 @@ async function loadImages(page = 1) {
             total: pagination.total,
             hasNext: pagination.has_next
         };
-
-        // Calculate hosting plan details
-        const planName = planData.plan || 'Free';
-        const isSubscribed = planData.is_subscription || false;
-        const imagesUsedPercent = planData.images_limit > 0 ? (planData.images_uploads / planData.images_limit) * 100 : 0;
-        const articlesUsedPercent = planData.articles_limit > 0 ? (planData.article_uploads / planData.articles_limit) * 100 : 0;
-        
-        let expiryHTML = '';
-        if (planData.expiry_date) {
-            const expiryDate = new Date(planData.expiry_date);
-            const now = new Date();
-            const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
-            
-            if (daysLeft > 0) {
-                expiryHTML = `<div style="font-size: 0.875rem; color: var(--success); margin-bottom: 0.5rem;"><i class="ri-calendar-line"></i> Expires in ${daysLeft} days</div>`;
-            } else {
-                expiryHTML = `<div style="font-size: 0.875rem; color: var(--error); margin-bottom: 0.5rem;"><i class="ri-calendar-line"></i> Plan expired</div>`;
-            }
-        }
 
         const content = document.getElementById('content');
         content.innerHTML = `
@@ -2739,67 +2714,6 @@ async function loadImages(page = 1) {
         <i class="ri-upload-line"></i> Upload Images
         </button>
         </div>
-        </div>
-
-        <!-- Hosting Plan Section -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; align-items: start; margin-bottom: 1.5rem;">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Current Hosting Plan</h3>
-                    <span class="badge badge-primary" style="text-transform: capitalize;">${planName}</span>
-                </div>
-                <div class="card-body">
-                    ${expiryHTML}
-                    <div style="margin-top: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
-                            <span>Images Used</span>
-                            <span style="color: var(--text-secondary);">${planData.images_uploads} / ${planData.images_limit || 0}</span>
-                        </div>
-                        <div class="progress-bar"><div class="progress-fill" style="width:${imagesUsedPercent}%"></div></div>
-                    </div>
-                     <div style="margin-top: 1rem;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
-                            <span>Articles Published</span>
-                            <span style="color: var(--text-secondary);">${planData.article_uploads} / ${planData.articles_limit || 0}</span>
-                        </div>
-                        <div class="progress-bar"><div class="progress-fill" style="width:${articlesUsedPercent}%"></div></div>
-                    </div>
-                    ${isSubscribed ? '<button class="btn btn-secondary" style="width:100%; margin-top:1.5rem;" onclick="cancelSubscription()">Manage Subscription</button>' : ''}
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header"><h3 class="card-title">Upgrade Hosting Plan</h3></div>
-                <div class="card-body">
-                    <div class="plan-grid">
-                        ${Object.keys(hostingConfig.packages).map(planKey => `
-                            <div class="plan-card" id="plan-${planKey}" onclick="selectPlan('${planKey}')">
-                                <h4>${hostingConfig.packages[planKey].name}</h4>
-                                <ul>${hostingConfig.packages[planKey].features.map(f => `<li>${f}</li>`).join('')}</ul>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="duration-selector">
-                        <label><input type="radio" name="duration" value="3month" onchange="selectDuration('3month')" checked><span>3 Months</span></label>
-                        <label><input type="radio" name="duration" value="6month" onchange="selectDuration('6month')"><span>6 Months</span></label>
-                        <label><input type="radio" name="duration" value="12month" onchange="selectDuration('12month')"><span>12 Months</span></label>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 1.5rem; background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-lg);">
-                         <div>
-                            <label for="payment-provider-images" style="font-size: 0.8125rem; color: var(--text-secondary); display:block; margin-bottom: 0.25rem;">Payment Method</label>
-                            <select id="payment-provider-images" class="form-select" style="padding: 0.5rem;">
-                                <option value="stripe">Card (Stripe)</option>
-                                <option value="oxapay">Crypto (OxaPay)</option>
-                            </select>
-                        </div>
-                        <div style="text-align:right">
-                            <span style="font-size: 0.875rem; color: var(--text-secondary);">Total Price</span>
-                            <div id="price-display-images" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">$0.00</div>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" style="width:100%; margin-top: 1rem; padding: 0.75rem; justify-content: center;" onclick="purchasePlan()">Purchase Plan</button>
-                </div>
-            </div>
         </div>
 
         <div class="media-grid">
@@ -2841,9 +2755,6 @@ async function loadImages(page = 1) {
                 ${paginationState.images.total > paginationState.images.pageSize ? generatePagination('images', loadImages) : ''}
                 `;
 
-        // Initialize the interactive plan selection
-        selectPlan('professional');
-
     } catch (error) {
         console.error('Images error:', error);
         showErrorState('Failed to load images');
@@ -2855,14 +2766,9 @@ async function loadArticles(page = 1) {
     try {
         showSpinner();
 
-        // Fetch both articles data and hosting plan data
-        const [articlesResponse, planResponse] = await Promise.all([
-            api(`/dashboard/articles?page=${page}&page_size=10`),
-            api('/hosting/subscription-status')
-        ]);
-        
-        const { data, pagination } = articlesResponse;
-        const planData = planResponse.data;
+        // Single API call gets both articles and domains
+        const response = await api(`/dashboard/articles?page=${page}&page_size=10`);
+        const { data, pagination } = response;
 
         // Extract articles and domains from the response
         currentData.articles = data.articles || [];
@@ -2876,25 +2782,6 @@ async function loadArticles(page = 1) {
             hasNext: pagination.has_next || false
         };
 
-        // Calculate hosting plan details
-        const planName = planData.plan || 'Free';
-        const isSubscribed = planData.is_subscription || false;
-        const imagesUsedPercent = planData.images_limit > 0 ? (planData.images_uploads / planData.images_limit) * 100 : 0;
-        const articlesUsedPercent = planData.articles_limit > 0 ? (planData.article_uploads / planData.articles_limit) * 100 : 0;
-        
-        let expiryHTML = '';
-        if (planData.expiry_date) {
-            const expiryDate = new Date(planData.expiry_date);
-            const now = new Date();
-            const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
-            
-            if (daysLeft > 0) {
-                expiryHTML = `<div style="font-size: 0.875rem; color: var(--success); margin-bottom: 0.5rem;"><i class="ri-calendar-line"></i> Expires in ${daysLeft} days</div>`;
-            } else {
-                expiryHTML = `<div style="font-size: 0.875rem; color: var(--error); margin-bottom: 0.5rem;"><i class="ri-calendar-line"></i> Plan expired</div>`;
-            }
-        }
-
         const content = document.getElementById('content');
         content.innerHTML = `
         <div class="mobilearticle2" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -2906,67 +2793,6 @@ async function loadArticles(page = 1) {
                 <button class="btn btn-primary" onclick="showArticleModal()">
                     <i class="ri-add-line"></i> Create Article
                 </button>
-            </div>
-        </div>
-
-        <!-- Hosting Plan Section -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; align-items: start; margin-bottom: 1.5rem;">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Current Hosting Plan</h3>
-                    <span class="badge badge-primary" style="text-transform: capitalize;">${planName}</span>
-                </div>
-                <div class="card-body">
-                    ${expiryHTML}
-                    <div style="margin-top: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
-                            <span>Images Used</span>
-                            <span style="color: var(--text-secondary);">${planData.images_uploads} / ${planData.images_limit || 0}</span>
-                        </div>
-                        <div class="progress-bar"><div class="progress-fill" style="width:${imagesUsedPercent}%"></div></div>
-                    </div>
-                     <div style="margin-top: 1rem;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
-                            <span>Articles Published</span>
-                            <span style="color: var(--text-secondary);">${planData.article_uploads} / ${planData.articles_limit || 0}</span>
-                        </div>
-                        <div class="progress-bar"><div class="progress-fill" style="width:${articlesUsedPercent}%"></div></div>
-                    </div>
-                    ${isSubscribed ? '<button class="btn btn-secondary" style="width:100%; margin-top:1.5rem;" onclick="cancelSubscription()">Manage Subscription</button>' : ''}
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header"><h3 class="card-title">Upgrade Hosting Plan</h3></div>
-                <div class="card-body">
-                    <div class="plan-grid">
-                        ${Object.keys(hostingConfig.packages).map(planKey => `
-                            <div class="plan-card" id="plan-${planKey}" onclick="selectPlan('${planKey}')">
-                                <h4>${hostingConfig.packages[planKey].name}</h4>
-                                <ul>${hostingConfig.packages[planKey].features.map(f => `<li>${f}</li>`).join('')}</ul>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="duration-selector">
-                        <label><input type="radio" name="duration" value="3month" onchange="selectDuration('3month')" checked><span>3 Months</span></label>
-                        <label><input type="radio" name="duration" value="6month" onchange="selectDuration('6month')"><span>6 Months</span></label>
-                        <label><input type="radio" name="duration" value="12month" onchange="selectDuration('12month')"><span>12 Months</span></label>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 1.5rem; background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-lg);">
-                         <div>
-                            <label for="payment-provider-articles" style="font-size: 0.8125rem; color: var(--text-secondary); display:block; margin-bottom: 0.25rem;">Payment Method</label>
-                            <select id="payment-provider-articles" class="form-select" style="padding: 0.5rem;">
-                                <option value="stripe">Card (Stripe)</option>
-                                <option value="oxapay">Crypto (OxaPay)</option>
-                            </select>
-                        </div>
-                        <div style="text-align:right">
-                            <span style="font-size: 0.875rem; color: var(--text-secondary);">Total Price</span>
-                            <div id="price-display-articles" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">$0.00</div>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" style="width:100%; margin-top: 1rem; padding: 0.75rem; justify-content: center;" onclick="purchasePlan()">Purchase Plan</button>
-                </div>
             </div>
         </div>
 
@@ -3056,7 +2882,7 @@ async function loadArticles(page = 1) {
                                             <button class="btn btn-sm" onclick="window.open('https://${article.url}', '_blank')" title="View Live">
                                                 <i class="ri-external-link-line"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-danger" onclick="deleteArticle('${article.article_id}')" title="Delete">
+                                            <button class="btn btn-sm btn-danger" onclick="if(confirm('Are you sure you want to delete this article? This action cannot be undone.')) deleteArticle('${article.article_id}')" title="Delete">
                                                 <i class="ri-delete-bin-line"></i>
                                             </button>
                                         </div>
@@ -3069,48 +2895,72 @@ async function loadArticles(page = 1) {
 
                 <!-- Mobile Card Version -->
                 <div class="mobile-only">
-                    ${currentData.articles.map(article => `
-                        <div class="mobilearticle1" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 1rem; box-shadow: var(--shadow-sm);">
+                    ${currentData.articles.length > 0 ? currentData.articles.map(article => {
+                        const publishedDate = new Date(article.creation_date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: new Date(article.creation_date).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                        });
+
+                        return `
+                        <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1rem; cursor: pointer; transition: var(--transition);" onclick="viewArticle('${article.article_id}')" ontouchstart="this.style.background='var(--card-hover)'" ontouchend="this.style.background='var(--bg-secondary)'">
+
+                            <!-- Header: Title and Domain -->
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
                                 <div style="flex: 1; min-width: 0;">
-                                    <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--text); line-height: 1.3; word-break: break-word;">${article.subject}</h4>
-                                    <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-bottom: 0.5rem;">ID: ${article.article_id}</div>
-                                    <a href="https://${article.url}" target="_blank" class="badge badge-primary" style="text-decoration: none; font-size: 0.75rem;">
-                                        <i class="ri-global-line"></i> ${article.url}
-                                    </a>
+                                    <h4 style="margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 600; line-height: 1.3; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${article.subject}</h4>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                        <a href="https://${article.url}" target="_blank" style="color: var(--primary); text-decoration: none; font-size: 0.85rem; font-weight: 500;" onclick="event.stopPropagation()">
+                                            <i class="ri-global-line" style="font-size: 0.8rem;"></i> ${article.url}
+                                        </a>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: var(--text-tertiary);">
+                                        Published ${publishedDate}
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
-                                <div style="text-align: center; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); border: 1px solid var(--border);">
-                                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--success); margin-bottom: 0.25rem;">${article.total_views || 0}</div>
-                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Views</div>
+
+                            <!-- Stats Row -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius-sm);">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="font-size: 0.75rem; color: var(--text-secondary);">Views:</span>
+                                    <span class="badge badge-success" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">${formatNumber(article.total_views || 0)}</span>
                                 </div>
-                                <div style="text-align: center; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); border: 1px solid var(--border);">
-                                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--warning); margin-bottom: 0.25rem;">${(article.images || []).length}</div>
-                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Images</div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="font-size: 0.75rem; color: var(--text-secondary);">Images:</span>
+                                    <span class="badge badge-warning" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">${(article.images || []).length}</span>
                                 </div>
-                                <div style="text-align: center; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); border: 1px solid var(--border);">
-                                    <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem;">${new Date(article.creation_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Published</div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="font-size: 0.75rem; color: var(--text-secondary);">ID:</span>
+                                    <code style="font-size: 0.65rem; background: var(--bg); padding: 0.2rem 0.4rem; border-radius: 3px;">${article.article_id.substring(0, 8)}...</code>
                                 </div>
                             </div>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr) auto; gap: 0.5rem;">
-                                <button class="btn btn-sm btn-primary" onclick="viewArticle('${article.article_id}')" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.5rem; font-size: 0.8rem;">
-                                    <i class="ri-eye-line"></i> View
+
+                            <!-- Actions -->
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-sm" onclick="event.stopPropagation(); viewArticle('${article.article_id}')" style="flex: 1; font-size: 0.75rem; padding: 0.4rem 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem;">
+                                    <i class="ri-eye-line"></i> Details
                                 </button>
-                                <button class="btn btn-sm btn-secondary" onclick="editArticle('${article.article_id}')" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.5rem; font-size: 0.8rem;">
+                                <button class="btn btn-sm" onclick="event.stopPropagation(); editArticle('${article.article_id}')" style="flex: 1; font-size: 0.75rem; padding: 0.4rem 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem;">
                                     <i class="ri-edit-line"></i> Edit
                                 </button>
-                                <button class="btn btn-sm" onclick="window.open('https://${article.url}', '_blank')" style="padding: 0.5rem 0.75rem;">
-                                    <i class="ri-external-link-line"></i>
+                                <button class="btn btn-sm" onclick="event.stopPropagation(); window.open('https://${article.url}', '_blank')" style="flex: 1; font-size: 0.75rem; padding: 0.4rem 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem;">
+                                    <i class="ri-external-link-line"></i> Live
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); if(confirm('Are you sure you want to delete this article? This action cannot be undone.')) deleteArticle('${article.article_id}')" style="padding: 0.4rem 0.6rem; font-size: 0.75rem;">
+                                    <i class="ri-delete-bin-line"></i>
                                 </button>
                             </div>
                         </div>
-                    `).join('')}
+                        `;
+                    }).join('') : `
+                        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                            <i class="ri-article-line" style="font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                            <p style="margin: 0; font-weight: 500;">No articles published</p>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem;">Create your first article to start publishing content</p>
+                        </div>
+                    `}
                 </div>
-            </div>
 
                 ${currentData.articles.length === 0 ? `
                     <div class="empty-state">
@@ -3126,15 +2976,11 @@ async function loadArticles(page = 1) {
         </div>
         `;
 
-        // Initialize the interactive plan selection
-        selectPlan('professional');
-
     } catch (error) {
         console.error('Articles error:', error);
         showErrorState('Failed to load articles and domains');
     }
 }
-
 // Upgraded Billing Function
 async function loadBilling(page = 1, type = 'all') {
     try {
@@ -3199,29 +3045,63 @@ async function loadBilling(page = 1, type = 'all') {
             <h2 style="font-size: 1.5rem; font-weight: 700;">Billing & Plans</h2>
         </div>
 
-        <!-- Current Subscription Status -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-            <div class="card-header">
-                <h3 class="card-title">Current Hosting Plan</h3>
-                <span class="badge badge-primary" style="text-transform: capitalize;">${planName}</span>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; align-items: start; margin-bottom: 1.5rem;">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Current Hosting Plan</h3>
+                    <span class="badge badge-primary" style="text-transform: capitalize;">${planName}</span>
+                </div>
+                <div class="card-body">
+                    ${expiryHTML}
+                    <div style="margin-top: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                            <span>Images Used</span>
+                            <span style="color: var(--text-secondary);">${planData.images_uploads} / ${planData.images_limit || 0}</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" style="width:${imagesUsedPercent}%"></div></div>
+                    </div>
+                     <div style="margin-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                            <span>Articles Published</span>
+                            <span style="color: var(--text-secondary);">${planData.article_uploads} / ${planData.articles_limit || 0}</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" style="width:${articlesUsedPercent}%"></div></div>
+                    </div>
+                    ${isSubscribed ? '<button class="btn btn-secondary" style="width:100%; margin-top:1.5rem;" onclick="cancelSubscription()">Manage Subscription</button>' : ''}
+                </div>
             </div>
-            <div class="card-body">
-                ${expiryHTML}
-                <div style="margin-top: 1.5rem;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
-                        <span>Images Used</span>
-                        <span style="color: var(--text-secondary);">${planData.images_uploads} / ${planData.images_limit || 0}</span>
+
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">Upgrade Hosting Plan</h3></div>
+                <div class="card-body">
+                    <div class="plan-grid">
+                        ${Object.keys(hostingConfig.packages).map(planKey => `
+                            <div class="plan-card" id="plan-${planKey}" onclick="selectPlan('${planKey}')">
+                                <h4>${hostingConfig.packages[planKey].name}</h4>
+                                <ul>${hostingConfig.packages[planKey].features.map(f => `<li>${f}</li>`).join('')}</ul>
+                            </div>
+                        `).join('')}
                     </div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:${imagesUsedPercent}%"></div></div>
-                </div>
-                <div style="margin-top: 1rem;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
-                        <span>Articles Published</span>
-                        <span style="color: var(--text-secondary);">${planData.article_uploads} / ${planData.articles_limit || 0}</span>
+                    <div class="duration-selector">
+                        <label><input type="radio" name="duration" value="3month" onchange="selectDuration('3month')" checked><span>3 Months</span></label>
+                        <label><input type="radio" name="duration" value="6month" onchange="selectDuration('6month')"><span>6 Months</span></label>
+                        <label><input type="radio" name="duration" value="12month" onchange="selectDuration('12month')"><span>12 Months</span></label>
                     </div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:${articlesUsedPercent}%"></div></div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 1.5rem; background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-lg);">
+                         <div>
+                            <label for="payment-provider" style="font-size: 0.8125rem; color: var(--text-secondary); display:block; margin-bottom: 0.25rem;">Payment Method</label>
+                            <select id="payment-provider" class="form-select" style="padding: 0.5rem;">
+                                <option value="stripe">Card (Stripe)</option>
+                                <option value="oxapay">Crypto (OxaPay)</option>
+                            </select>
+                        </div>
+                        <div style="text-align:right">
+                            <span style="font-size: 0.875rem; color: var(--text-secondary);">Total Price</span>
+                            <div id="price-display" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">$0.00</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width:100%; margin-top: 1rem; padding: 0.75rem;    justify-content: center;" onclick="purchasePlan()">Purchase Plan</button>
                 </div>
-                ${isSubscribed ? '<button class="btn btn-danger" style="width:100%; margin-top:1.5rem;" onclick="cancelSubscription()"><i class="ri-close-line"></i> Cancel Subscription</button>' : ''}
             </div>
         </div>
 
@@ -3271,8 +3151,7 @@ async function loadBilling(page = 1, type = 'all') {
                                     <td><span class="badge badge-${statusClass}">${statusText}</span></td>
                                     <td>
                                         <button class="btn btn-sm" onclick="viewPaymentDetails('${payment.billing_id}')"><i class="ri-eye-line"></i> Details</button>
-                                        ${payment.subscription && payment.subscription.subscription_id && payment.status === 'paid' && payment.subscription.details && payment.subscription.details.status === 'active' ? 
-                                            `<button class="btn btn-sm btn-danger" onclick="cancelSubscriptionFromHistory('${payment.subscription.subscription_id}')" style="margin-left: 0.25rem;"><i class="ri-close-line"></i> Cancel</button>` : ''}
+                                        ${payment.payment_url ? `<button class="btn btn-sm btn-primary" onclick="window.open('${payment.payment_url}', '_blank')" style="margin-left: 0.25rem;"><i class="ri-external-link-line"></i> Pay</button>` : ''}
                                     </td>
                                 </tr>`;
                             }).join('')}
@@ -6259,20 +6138,10 @@ function selectDuration(duration) {
 function updatePriceDisplay() {
     if (!purchaseSelection.plan || !purchaseSelection.duration) return;
     const price = hostingConfig.packages[purchaseSelection.plan]?.price[purchaseSelection.duration];
-    
-    // Update all price displays on the page
-    const priceDisplays = [
-        'price-display',
-        'price-display-images', 
-        'price-display-articles'
-    ];
-    
-    priceDisplays.forEach(displayId => {
-        const priceDisplay = document.getElementById(displayId);
-        if (priceDisplay) {
-            priceDisplay.textContent = `$${price.toFixed(2)}`;
-        }
-    });
+    const priceDisplay = document.getElementById('price-display');
+    if (priceDisplay) {
+        priceDisplay.textContent = `$${price.toFixed(2)}`;
+    }
 }
 
 async function purchasePlan() {
@@ -6281,26 +6150,10 @@ async function purchasePlan() {
         return;
     }
 
-    // Get payment provider from any available select
-    const paymentProviderSelects = [
-        'payment-provider',
-        'payment-provider-images',
-        'payment-provider-articles'
-    ];
-    
-    let paymentProvider = 'stripe'; // default
-    for (const selectId of paymentProviderSelects) {
-        const select = document.getElementById(selectId);
-        if (select) {
-            paymentProvider = select.value;
-            break;
-        }
-    }
-
     const payload = {
         package: purchaseSelection.plan,
         duration: purchaseSelection.duration,
-        provider: paymentProvider,
+        provider: document.getElementById('payment-provider').value,
         subscription: false,
         cancel_previous: true
     };
@@ -6320,19 +6173,6 @@ async function purchasePlan() {
 
 async function cancelSubscription() {
     if (confirm("Are you sure you want to cancel your subscription? Your plan will remain active until the end of the current billing period.")) {
-        try {
-            await api('/hosting/cancel-subscription');
-            showToast('Subscription cancelled successfully.', 'success');
-            loadBilling(); // Reload the billing page to show updated status
-        } catch (error) {
-            console.error('Failed to cancel subscription:', error);
-            showToast('Failed to cancel subscription: ' + error.message, 'error');
-        }
-    }
-}
-
-async function cancelSubscriptionFromHistory(subscriptionId) {
-    if (confirm("Are you sure you want to cancel this subscription? The plan will remain active until the end of the current billing period.")) {
         try {
             await api('/hosting/cancel-subscription');
             showToast('Subscription cancelled successfully.', 'success');

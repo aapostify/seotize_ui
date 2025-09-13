@@ -3513,8 +3513,7 @@ function goToStep(step) {
     }
 }
 
-// Fixed Website Preview with Complete XPath Selection
-// Fixed Website Preview with Complete XPath Selection
+// Fixed Website Preview with Accurate XPath Generation
 function loadWebsitePreview(url) {
     const iframe = document.getElementById('taskPreviewFrame');
     const loader = document.getElementById('websiteLoader');
@@ -3575,11 +3574,12 @@ function loadWebsitePreview(url) {
                         window.xpathSelectedElements = [];
                         window.xpathMaxLocations = ${getPriorityMaxLocations(currentData.taskPriority)};
 
-                        // Accurate XPath generator
+                        // Accurate XPath generator - creates proper hierarchical paths
                         function generateRealXPath(element) {
                             if (!element || element.nodeType !== 1) return '';
                             
-                            if (element.id) {
+                            // Use ID if available for more stable XPath
+                            if (element.id && element.id.trim() !== '') {
                                 return '//*[@id="' + element.id + '"]';
                             }
                             
@@ -3615,24 +3615,37 @@ function loadWebsitePreview(url) {
                             return '/' + parts.join('/');
                         }
 
-                        // Find clickable element
+                        // Find clickable element with improved detection
                         function findClickableElement(element) {
-                            const clickableTags = ['a', 'button', 'input', 'select', 'textarea'];
+                            const clickableTags = ['a', 'button', 'input', 'select', 'textarea', 'label'];
+                            const clickableRoles = ['button', 'link', 'menuitem', 'tab'];
                             let current = element;
                             let depth = 0;
                             
-                            while (current && depth < 3) {
+                            while (current && depth < 5) {
                                 const tagName = current.tagName ? current.tagName.toLowerCase() : '';
+                                const role = current.getAttribute('role');
+                                const cursor = getComputedStyle(current).cursor;
+                                
+                                // Check for various clickable indicators
                                 if (clickableTags.includes(tagName) || 
+                                    clickableRoles.includes(role) ||
                                     current.onclick || 
                                     current.getAttribute('onclick') ||
-                                    current.getAttribute('role') === 'button' ||
-                                    getComputedStyle(current).cursor === 'pointer') {
+                                    cursor === 'pointer' ||
+                                    current.hasAttribute('data-toggle') ||
+                                    current.hasAttribute('data-target') ||
+                                    current.classList.contains('btn') ||
+                                    current.classList.contains('button') ||
+                                    current.classList.contains('link')) {
                                     return current;
                                 }
+                                
                                 current = current.parentElement;
                                 depth++;
                             }
+                            
+                            // If no clickable parent found, return original element
                             return element;
                         }
 
@@ -3684,22 +3697,25 @@ function loadWebsitePreview(url) {
                             
                             window.xpathSelectedElements.push(target);
                             
-                            // Send to parent
+                            // Send to parent with enhanced element info
                             window.parent.postMessage({
                                 type: 'xpathSelected',
                                 xpath: xpath,
                                 locationId: locationId,
                                 elementInfo: {
                                     tagName: target.tagName,
-                                    text: (target.textContent || '').substring(0, 50),
+                                    text: (target.textContent || target.innerText || '').substring(0, 100).trim(),
                                     href: target.href || '',
                                     id: target.id || '',
-                                    className: target.className || ''
+                                    className: target.className || '',
+                                    type: target.type || '',
+                                    role: target.getAttribute('role') || '',
+                                    title: target.title || target.getAttribute('aria-label') || ''
                                 }
                             }, '*');
                         });
 
-                        // Message handler
+                        // Message handler for removal
                         window.addEventListener('message', function(e) {
                             if (e.data.type === 'removeXPath') {
                                 const marker = document.querySelector('[data-location-id="' + e.data.locationId + '"]');
@@ -3756,7 +3772,7 @@ function loadWebsitePreview(url) {
             } catch (error) {
                 console.log('Iframe not accessible, using fallback overlay method');
                 
-                // Fallback to overlay method
+                // Fallback to overlay method with improved XPath generation
                 overlay.style.pointerEvents = 'auto';
                 overlay.style.cursor = 'crosshair';
                 
@@ -3775,11 +3791,8 @@ function loadWebsitePreview(url) {
         <div style="font-size: 1.1rem; margin-bottom: 1rem;">Unable to load website preview</div>
         <div style="font-size: 0.875rem; color: var(--text-tertiary);">
         The website may block iframe embedding or have CORS restrictions.<br>
-        You can still continue by manually specifying XPath locations.
+        Please continue by entering XPath locations in the next step.
         </div>
-        <button class="btn btn-primary" onclick="showManualXPathInput()" style="margin-top: 1rem;">
-        <i class="ri-code-line"></i> Add XPath Manually
-        </button>
         </div>
         `;
     };

@@ -1623,7 +1623,7 @@ tr:hover {
     .desktop-only {
         display: none !important;
     }
-    
+
     .mobile-only {
         display: block !important;
     }
@@ -4151,66 +4151,363 @@ async function viewTaskDetails(taskId) {
 
         const task = response.data;
 
+        // Calculate budget metrics
+        const totalCharge = task.total_charge || 0;
+        const availableCharge = task.available_charge || 0;
+        const usedCharge = totalCharge - availableCharge;
+        const usedPercentage = totalCharge > 0 ? ((usedCharge / totalCharge) * 100) : 0;
+        const remainingPercentage = totalCharge > 0 ? ((availableCharge / totalCharge) * 100) : 0;
+
+        // Process views by date data
+        const viewsByDate = task.views_by_date || {};
+        const sortedViewDates = Object.entries(viewsByDate).sort(([a], [b]) => new Date(a) - new Date(b));
+        const totalViews = Object.values(viewsByDate).reduce((sum, views) => sum + views, 0);
+
+        // Calculate priority display
+        const priorityRate = parseFloat(task.task_priority) || 0.12;
+        const priorityName = priorityRate <= 0.10 ? 'Basic' : priorityRate <= 0.12 ? 'Standard' : 'Premium';
+
         showModal('Task Details', `
-        <div style="display: grid; gap: 1.5rem;">
         <div>
-        <h4 style="margin-bottom: 1rem;">${task.url}</h4>
-        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
-        ${(task.keywords || []).map(keyword => `<span class="badge badge-primary">${keyword}</span>`).join('')}
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
-        <div class="stat-card">
-        <div class="stat-value">${task.views_count || 0}</div>
-        <div class="stat-label">Total Views</div>
-        </div>
-        <div class="stat-card">
-        <div class="stat-value">$${task.total_charge.toFixed(2)}</div>
-        <div class="stat-label">Total Budget</div>
-        </div>
-        <div class="stat-card">
-        <div class="stat-value">$${task.available_charge.toFixed(2)}</div>
-        <div class="stat-label">Available</div>
-        </div>
-        <div class="stat-card">
-        <div class="stat-value">${task.task_priority}</div>
-        <div class="stat-label">Priority</div>
-        </div>
-        </div>
-        </div>
-
-        ${task.country_visits ? `
-            <div>
-            <h4>Country Performance</h4>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 1rem;">
-            ${Object.entries(task.country_visits).map(([country, visits]) => `
-                <div class="badge badge-success">${country}: ${visits}</div>
-                `).join('')}
-                </div>
-                </div>
-                ` : ''}
-
-                ${task.views_by_date ? `
+            <!-- Desktop Layout -->
+            <div class="desktop-only">
+                <div style="display: grid; grid-template-columns: 1fr 300px; gap: 2rem;">
+                    
+                    <!-- Main Content -->
                     <div>
-                    <h4>Daily Performance</h4>
-                    <div style="margin-top: 1rem;">
-                    ${Object.entries(task.views_by_date).map(([date, views]) => `
-                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
-                        <span>${new Date(date).toLocaleDateString()}</span>
-                        <span class="badge badge-primary">${views} views</span>
+                        <!-- Task Header -->
+                        <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 1.5rem; border-radius: var(--radius-lg); margin-bottom: 2rem;">
+                            <h3 style="color: white; margin-bottom: 0.75rem; font-size: 1.25rem; word-break: break-all;">${task.url}</h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                                ${(task.keywords || []).map(keyword => `<span style="background: rgba(255,255,255,0.2); color: white; padding: 0.375rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.875rem; font-weight: 500;">${keyword}</span>`).join('')}
+                            </div>
+                            <div style="display: flex; gap: 2rem; font-size: 0.875rem; opacity: 0.9;">
+                                <div><i class="ri-calendar-line"></i> Created: ${new Date(task.date_created).toLocaleDateString('en-US', { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}</div>
+                                <div><i class="ri-key-line"></i> Task ID: ${task._id}</div>
+                            </div>
                         </div>
-                        `).join('')}
-                        </div>
-                        </div>
-                        ` : ''}
 
-                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                        <button class="btn btn-primary" onclick="rechargeTask('${taskId}')">
-                        <i class="ri-wallet-line"></i> Recharge Task
+                        <!-- Budget Overview -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                            <div class="stat-card" style="background: var(--success); color: white;">
+                                <div class="stat-value">$${totalCharge.toFixed(2)}</div>
+                                <div class="stat-label" style="color: rgba(255,255,255,0.9);">Total Budget</div>
+                            </div>
+                            <div class="stat-card" style="background: var(--primary); color: white;">
+                                <div class="stat-value">$${availableCharge.toFixed(2)}</div>
+                                <div class="stat-label" style="color: rgba(255,255,255,0.9);">Available</div>
+                            </div>
+                            <div class="stat-card" style="background: var(--warning); color: white;">
+                                <div class="stat-value">$${usedCharge.toFixed(2)}</div>
+                                <div class="stat-label" style="color: rgba(255,255,255,0.9);">Used (${usedPercentage.toFixed(1)}%)</div>
+                            </div>
+                            <div class="stat-card" style="background: var(--info); color: white;">
+                                <div class="stat-value">${formatNumber(totalViews)}</div>
+                                <div class="stat-label" style="color: rgba(255,255,255,0.9);">Total Views</div>
+                            </div>
+                        </div>
+
+                        <!-- Budget Progress Bar -->
+                        <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <h4 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                                    <i class="ri-wallet-line" style="color: var(--primary);"></i>
+                                    Budget Usage
+                                </h4>
+                                <span style="font-size: 1.25rem; font-weight: 700; color: ${remainingPercentage >= 50 ? 'var(--success)' : remainingPercentage >= 20 ? 'var(--warning)' : 'var(--error)'};">
+                                    ${remainingPercentage.toFixed(1)}% Remaining
+                                </span>
+                            </div>
+                            <div class="progress-bar" style="height: 12px; margin-bottom: 1rem;">
+                                <div class="progress-fill" style="width: ${remainingPercentage}%; background: ${remainingPercentage >= 50 ? 'var(--success)' : remainingPercentage >= 20 ? 'var(--warning)' : 'var(--error)'}; transition: all 0.3s ease;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; color: var(--text-secondary);">
+                                <span>Used: $${usedCharge.toFixed(2)} (${usedPercentage.toFixed(1)}%)</span>
+                                <span>Available: $${availableCharge.toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <!-- Views Analytics -->
+                        ${sortedViewDates.length > 0 ? `
+                            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem;">
+                                <h4 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <i class="ri-line-chart-line" style="color: var(--primary);"></i>
+                                    Views by Date
+                                </h4>
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; font-weight: 600; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius-sm); margin-bottom: 1rem;">
+                                        <div>Date</div>
+                                        <div>Views</div>
+                                    </div>
+                                    ${sortedViewDates.map(([date, views]) => `
+                                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; padding: 0.75rem; border-bottom: 1px solid var(--border);">
+                                            <div style="font-weight: 500;">${new Date(date).toLocaleDateString('en-US', {
+                                                weekday: 'short',
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric'
+                                            })}</div>
+                                            <div>
+                                                <span class="badge badge-primary">${formatNumber(views)} view${views !== 1 ? 's' : ''}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--text-secondary);">
+                                    Total: <strong style="color: var(--text);">${formatNumber(totalViews)}</strong> views across <strong style="color: var(--text);">${sortedViewDates.length}</strong> days
+                                </div>
+                            </div>
+                        ` : `
+                            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;"><i class="ri-bar-chart-line"></i></div>
+                                <h4 style="margin-bottom: 0.5rem; color: var(--text);">No Views Yet</h4>
+                                <p style="margin: 0;">Your SEO task will start receiving views once the campaign is active.</p>
+                            </div>
+                        `}
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        
+                        <!-- Task Configuration -->
+                        <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem;">
+                            <h4 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="ri-settings-line" style="color: var(--primary);"></i>
+                                Task Configuration
+                            </h4>
+                            <div style="space-y: 1rem;">
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Priority</div>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span class="badge badge-${priorityName.toLowerCase() === 'basic' ? 'warning' : priorityName.toLowerCase() === 'standard' ? 'primary' : 'success'}">${priorityName}</span>
+                                        <span style="font-size: 0.875rem; color: var(--text-secondary);">($${priorityRate.toFixed(3)}/click)</span>
+                                    </div>
+                                </div>
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Email</div>
+                                    <div style="font-size: 0.875rem; color: var(--text-secondary); word-break: break-all;">${task.email}</div>
+                                </div>
+                                ${task.sitekey ? `
+                                    <div style="margin-bottom: 1rem;">
+                                        <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Site Key</div>
+                                        <code style="font-size: 0.75rem; word-break: break-all; background: var(--bg-tertiary); padding: 0.5rem; border-radius: var(--radius-sm); display: block;">${task.sitekey}</code>
+                                    </div>
+                                ` : ''}
+                                <div>
+                                    <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Keywords</div>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                                        ${(task.keywords || []).map(keyword => `<span class="badge badge-primary" style="font-size: 0.75rem;">${keyword}</span>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- HTML Locations -->
+                        <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem;">
+                            <h4 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="ri-cursor-line" style="color: var(--warning);"></i>
+                                Click Locations
+                                <span class="badge badge-warning" style="font-size: 0.7rem;">${(task.html_locations || []).length}</span>
+                            </h4>
+                            ${(task.html_locations || []).length > 0 ? `
+                                <div style="max-height: 200px; overflow-y: auto; space-y: 0.75rem;">
+                                    ${task.html_locations.map((location, index) => `
+                                        <div style="margin-bottom: 0.75rem;">
+                                            <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); margin-bottom: 0.25rem;">Location ${index + 1}:</div>
+                                            <code style="font-size: 0.7rem; word-break: break-all; background: var(--bg-tertiary); padding: 0.5rem; border-radius: var(--radius-sm); display: block; line-height: 1.4;">${location}</code>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : `
+                                <div style="text-align: center; color: var(--text-secondary); font-size: 0.875rem;">
+                                    No click locations configured
+                                </div>
+                            `}
+                        </div>
+
+                        <!-- Actions -->
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button class="btn btn-primary" onclick="rechargeTask('${task._id}')" style="width: 100%; justify-content: center;">
+                                <i class="ri-wallet-line"></i> Recharge Task
+                            </button>
+                            <button class="btn btn-secondary" onclick="window.open('${task.url}', '_blank')" style="width: 100%; justify-content: center;">
+                                <i class="ri-external-link-line"></i> View Website
+                            </button>
+                            <button class="btn btn-secondary" onclick="closeModal()" style="width: 100%; justify-content: center;">
+                                Close Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Layout -->
+            <div class="mobile-only" style="padding: 0; margin: -1.5rem; background: var(--bg);">
+                
+                <!-- Mobile Header -->
+                <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 1.25rem;">
+                    <h3 style="color: white; margin-bottom: 0.75rem; font-size: 1.1rem; word-break: break-all; line-height: 1.3;">${task.url}</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                        ${(task.keywords || []).map(keyword => `<span style="background: rgba(255,255,255,0.25); color: white; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 500;">${keyword}</span>`).join('')}
+                    </div>
+                    <div style="font-size: 0.8rem; opacity: 0.9; display: flex; flex-direction: column; gap: 0.25rem;">
+                        <div><i class="ri-calendar-line"></i> ${new Date(task.date_created).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</div>
+                        <div><i class="ri-key-line"></i> ID: ${task._id.substring(0, 12)}...</div>
+                    </div>
+                </div>
+
+                <!-- Mobile Stats -->
+                <div style="padding: 1rem; background: var(--bg);">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; padding: 1.25rem; border-radius: var(--radius-lg); text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem;">$${totalCharge.toFixed(2)}</div>
+                            <div style="font-size: 0.75rem; opacity: 0.9; font-weight: 500;">Total Budget</div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 1.25rem; border-radius: var(--radius-lg); text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem;">$${availableCharge.toFixed(2)}</div>
+                            <div style="font-size: 0.75rem; opacity: 0.9; font-weight: 500;">Available</div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%); color: white; padding: 1.25rem; border-radius: var(--radius-lg); text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem;">$${usedCharge.toFixed(2)}</div>
+                            <div style="font-size: 0.75rem; opacity: 0.9; font-weight: 500;">Used (${usedPercentage.toFixed(1)}%)</div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, var(--info) 0%, #2563eb 100%); color: white; padding: 1.25rem; border-radius: var(--radius-lg); text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem;">${formatNumber(totalViews)}</div>
+                            <div style="font-size: 0.75rem; opacity: 0.9; font-weight: 500;">Total Views</div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Budget Progress -->
+                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem;">
+                        <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1rem;">
+                            <i class="ri-wallet-line" style="color: var(--primary);"></i>
+                            Budget Progress
+                        </h4>
+                        <div style="margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <span style="font-size: 0.85rem; color: var(--text-secondary);">Remaining</span>
+                                <span style="font-size: 1.1rem; font-weight: 700; color: ${remainingPercentage >= 50 ? 'var(--success)' : remainingPercentage >= 20 ? 'var(--warning)' : 'var(--error)'};">
+                                    ${remainingPercentage.toFixed(1)}%
+                                </span>
+                            </div>
+                            <div class="progress-bar" style="height: 10px;">
+                                <div class="progress-fill" style="width: ${remainingPercentage}%; background: ${remainingPercentage >= 50 ? 'var(--success)' : remainingPercentage >= 20 ? 'var(--warning)' : 'var(--error)'}; transition: all 0.3s ease;"></div>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.85rem;">
+                            <div style="text-align: center; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius-sm);">
+                                <div style="font-weight: 600; color: var(--text);">Used</div>
+                                <div style="color: var(--text-secondary);">$${usedCharge.toFixed(2)}</div>
+                            </div>
+                            <div style="text-align: center; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius-sm);">
+                                <div style="font-weight: 600; color: var(--text);">Available</div>
+                                <div style="color: var(--text-secondary);">$${availableCharge.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Task Configuration -->
+                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem;">
+                        <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1rem;">
+                            <i class="ri-settings-line" style="color: var(--primary);"></i>
+                            Configuration
+                        </h4>
+                        <div style="space-y: 1rem;">
+                            <div style="margin-bottom: 1rem;">
+                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Priority & Rate</div>
+                                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <span class="badge badge-${priorityName.toLowerCase() === 'basic' ? 'warning' : priorityName.toLowerCase() === 'standard' ? 'primary' : 'success'}" style="width: fit-content;">${priorityName}</span>
+                                    <span style="font-size: 0.8rem; color: var(--text-secondary);">$${priorityRate.toFixed(3)} per click</span>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Account Email</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary); word-break: break-all;">${task.email}</div>
+                            </div>
+                            ${task.sitekey ? `
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Site Key</div>
+                                    <code style="font-size: 0.7rem; word-break: break-all; background: var(--bg-tertiary); padding: 0.75rem; border-radius: var(--radius-sm); display: block; line-height: 1.4;">${task.sitekey}</code>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Mobile HTML Locations -->
+                    ${(task.html_locations || []).length > 0 ? `
+                        <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem;">
+                            <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1rem;">
+                                <i class="ri-cursor-line" style="color: var(--warning);"></i>
+                                Click Locations
+                                <span class="badge badge-warning" style="font-size: 0.7rem;">${task.html_locations.length}</span>
+                            </h4>
+                            <div style="max-height: 250px; overflow-y: auto;">
+                                ${task.html_locations.map((location, index) => `
+                                    <div style="margin-bottom: 1rem; padding-bottom: 1rem; ${index < task.html_locations.length - 1 ? 'border-bottom: 1px solid var(--border);' : ''}">
+                                        <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); margin-bottom: 0.5rem;">Location ${index + 1}:</div>
+                                        <code style="font-size: 0.7rem; word-break: break-all; background: var(--bg-tertiary); padding: 0.75rem; border-radius: var(--radius-sm); display: block; line-height: 1.4;">${location}</code>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Mobile Views Analytics -->
+                    ${sortedViewDates.length > 0 ? `
+                        <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem;">
+                            <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1rem;">
+                                <i class="ri-line-chart-line" style="color: var(--primary);"></i>
+                                Recent Views
+                            </h4>
+                            <div style="max-height: 200px; overflow-y: auto;">
+                                ${sortedViewDates.slice(-7).map(([date, views]) => `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border-bottom: 1px solid var(--border);">
+                                        <span style="font-size: 0.85rem; color: var(--text-secondary);">${new Date(date).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric'
+                                        })}</span>
+                                        <span class="badge badge-primary" style="font-size: 0.75rem;">${formatNumber(views)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.85rem; color: var(--text-secondary);">
+                                Total: <strong style="color: var(--text);">${formatNumber(totalViews)}</strong> views across <strong style="color: var(--text);">${sortedViewDates.length}</strong> days
+                            </div>
+                        </div>
+                    ` : `
+                        <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; text-align: center; color: var(--text-secondary); margin-bottom: 1.5rem;">
+                            <div style="background: var(--bg-tertiary); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                                <i class="ri-bar-chart-line" style="font-size: 2rem; opacity: 0.5;"></i>
+                            </div>
+                            <h5 style="margin-bottom: 0.5rem; color: var(--text);">No Views Yet</h5>
+                            <p style="font-size: 0.85rem; margin: 0;">Analytics will appear once your SEO campaign receives traffic.</p>
+                        </div>
+                    `}
+
+                    <!-- Mobile Actions -->
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <button class="btn btn-primary" onclick="rechargeTask('${task._id}')" style="width: 100%; justify-content: center; padding: 0.875rem;">
+                            <i class="ri-wallet-line"></i> Recharge Task Budget
                         </button>
-                        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
-                        </div>
-                        </div>
-                        `);
+                        <button class="btn btn-secondary" onclick="window.open('${task.url}', '_blank')" style="width: 100%; justify-content: center; padding: 0.875rem;">
+                            <i class="ri-external-link-line"></i> View Live Website
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `, '95vw');
 
     } catch (error) {
         console.error('Task details error:', error);
@@ -4678,7 +4975,7 @@ async function viewArticle(articleId) {
 
             <!-- Perfect Mobile Layout -->
             <div class="mobile-only" style="padding: 0; margin: -1.5rem; background: var(--bg);">
-                
+
                 <!-- Compact Mobile Hero Header -->
                 <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 1rem; position: relative;">
                     <div style="display: flex; align-items: flex-start; gap: 1rem;">
@@ -4696,7 +4993,7 @@ async function viewArticle(articleId) {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Compact Views Badge -->
                         <div style="background: rgba(255,255,255,0.2); padding: 0.6rem 0.8rem; border-radius: var(--radius); text-align: center; flex-shrink: 0; backdrop-filter: blur(5px);">
                             <div style="font-size: 1.2rem; font-weight: 700; line-height: 1; margin-bottom: 0.15rem;">${formatNumber(article.total_views || 0)}</div>
@@ -5367,7 +5664,7 @@ async function showImageDetails(imageId) {
                             <i class="ri-external-link-line"></i> Full Size
                         </div>
                     </div>
-                    
+
                     <!-- Mobile Stats Cards -->
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
                         <div style="background: var(--primary); color: white; padding: 1rem; border-radius: var(--radius); text-align: center;">
@@ -5419,7 +5716,7 @@ async function showImageDetails(imageId) {
                         <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="ri-bar-chart-line"></i> Analytics Overview
                         </h4>
-                        
+
                         ${topCountries.length > 0 ? `
                             <div style="margin-bottom: 1.5rem;">
                                 <h5 style="margin-bottom: 0.75rem; color: var(--success); font-size: 0.9rem;">
@@ -5433,7 +5730,7 @@ async function showImageDetails(imageId) {
                                 `).join('')}
                             </div>
                         ` : ''}
-                        
+
                         ${topBrowsers.length > 0 ? `
                             <div style="margin-bottom: 1.5rem;">
                                 <h5 style="margin-bottom: 0.75rem; color: var(--primary); font-size: 0.9rem;">
@@ -5447,7 +5744,7 @@ async function showImageDetails(imageId) {
                                 `).join('')}
                             </div>
                         ` : ''}
-                        
+
                         ${topDevices.length > 0 ? `
                             <div>
                                 <h5 style="margin-bottom: 0.75rem; color: var(--warning); font-size: 0.9rem;">

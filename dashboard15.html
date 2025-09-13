@@ -3514,6 +3514,7 @@ function goToStep(step) {
 }
 
 // Fixed Website Preview with Complete XPath Selection
+// Fixed Website Preview with Complete XPath Selection
 function loadWebsitePreview(url) {
     const iframe = document.getElementById('taskPreviewFrame');
     const loader = document.getElementById('websiteLoader');
@@ -3541,259 +3542,230 @@ function loadWebsitePreview(url) {
         loader.style.display = 'none';
         iframe.style.display = 'block';
 
-        // Try to inject real XPath detection
-        try {
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            if (iframeDoc) {
-                // Success - inject real XPath detection
-                overlay.style.pointerEvents = 'none';
-                overlay.style.background = 'transparent';
+        // Wait a moment for iframe content to fully load
+        setTimeout(() => {
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                 
-                // Inject CSS for element highlighting
-                const style = iframeDoc.createElement('style');
-                style.textContent = `
-                    .xpath-hover-highlight {
-                        outline: 3px solid #6366f1 !important;
-                        outline-offset: 2px !important;
-                        background-color: rgba(99, 102, 241, 0.1) !important;
-                        cursor: pointer !important;
-                        position: relative !important;
-                    }
-                    .xpath-selected-highlight {
-                        outline: 3px solid #10b981 !important;
-                        outline-offset: 2px !important;
-                        background-color: rgba(16, 185, 129, 0.2) !important;
-                    }
-                    .xpath-marker-number {
-                        position: absolute !important;
-                        top: -15px !important;
-                        left: -15px !important;
-                        background: #6366f1 !important;
-                        color: white !important;
-                        width: 24px !important;
-                        height: 24px !important;
-                        border-radius: 50% !important;
-                        display: flex !important;
-                        align-items: center !important;
-                        justify-content: center !important;
-                        font-size: 12px !important;
-                        font-weight: bold !important;
-                        z-index: 10000 !important;
-                        pointer-events: none !important;
-                    }
-                `;
-                iframeDoc.head.appendChild(style);
+                // Test if we can access the iframe document
+                if (iframeDoc && iframeDoc.body) {
+                    console.log('Iframe accessible, injecting real XPath detection');
+                    
+                    // Hide overlay since we'll use direct iframe interaction
+                    overlay.style.pointerEvents = 'none';
+                    overlay.style.background = 'transparent';
+                    
+                    // Clear any existing styles/scripts
+                    const existingStyle = iframeDoc.getElementById('xpath-detection-style');
+                    if (existingStyle) existingStyle.remove();
+                    
+                    // Inject CSS
+                    const style = iframeDoc.createElement('style');
+                    style.id = 'xpath-detection-style';
+                    style.textContent = `
+                        .xpath-hover { outline: 2px solid #6366f1 !important; background-color: rgba(99, 102, 241, 0.1) !important; }
+                        .xpath-selected { outline: 2px solid #10b981 !important; background-color: rgba(16, 185, 129, 0.2) !important; position: relative !important; }
+                        .xpath-number { position: absolute !important; top: -12px !important; left: -12px !important; background: #6366f1 !important; color: white !important; width: 20px !important; height: 20px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 11px !important; font-weight: bold !important; z-index: 999999 !important; }
+                    `;
+                    iframeDoc.head.appendChild(style);
 
-                // Inject JavaScript for accurate XPath detection
-                const script = iframeDoc.createElement('script');
-                script.textContent = `
-                    (function() {
-                        let selectedElements = [];
-                        let maxLocations = ${getPriorityMaxLocations(currentData.taskPriority)};
-                        
-                        // Generate accurate XPath for element
-                        function getElementXPath(element) {
-                            if (element.id !== '') {
+                    // Inject XPath detection script
+                    const script = iframeDoc.createElement('script');
+                    script.textContent = `
+                        window.xpathSelectedElements = [];
+                        window.xpathMaxLocations = ${getPriorityMaxLocations(currentData.taskPriority)};
+
+                        // Accurate XPath generator
+                        function generateRealXPath(element) {
+                            if (!element || element.nodeType !== 1) return '';
+                            
+                            if (element.id) {
                                 return '//*[@id="' + element.id + '"]';
                             }
                             
-                            if (element === document.body) {
-                                return '/html/body';
-                            }
-                            
-                            let path = '';
+                            const parts = [];
                             let current = element;
                             
-                            while (current && current.nodeType === Node.ELEMENT_NODE) {
-                                let tagName = current.nodeName.toLowerCase();
-                                let parent = current.parentNode;
+                            while (current && current.nodeType === 1) {
+                                let tagName = current.tagName.toLowerCase();
                                 
-                                if (parent) {
-                                    let siblings = Array.from(parent.children).filter(child => 
-                                        child.nodeName.toLowerCase() === tagName
+                                if (current === document.documentElement) {
+                                    parts.unshift('html');
+                                    break;
+                                }
+                                
+                                if (current.parentNode) {
+                                    const siblings = Array.from(current.parentNode.children).filter(
+                                        sibling => sibling.tagName.toLowerCase() === tagName
                                     );
                                     
                                     if (siblings.length > 1) {
-                                        let index = siblings.indexOf(current) + 1;
-                                        path = '/' + tagName + '[' + index + ']' + path;
+                                        const index = siblings.indexOf(current) + 1;
+                                        parts.unshift(tagName + '[' + index + ']');
                                     } else {
-                                        path = '/' + tagName + path;
+                                        parts.unshift(tagName);
                                     }
                                 } else {
-                                    path = '/' + tagName + path;
+                                    parts.unshift(tagName);
                                 }
                                 
-                                current = parent;
-                                if (current === document.documentElement) {
-                                    path = '/html' + path;
-                                    break;
-                                }
+                                current = current.parentNode;
                             }
                             
-                            return path;
+                            return '/' + parts.join('/');
                         }
-                        
-                        // Check if element is clickable
-                        function isClickableElement(element) {
+
+                        // Find clickable element
+                        function findClickableElement(element) {
                             const clickableTags = ['a', 'button', 'input', 'select', 'textarea'];
-                            const tagName = element.tagName.toLowerCase();
-                            
-                            if (clickableTags.includes(tagName)) return true;
-                            if (element.onclick || element.getAttribute('onclick')) return true;
-                            if (element.style.cursor === 'pointer') return true;
-                            if (element.getAttribute('role') === 'button') return true;
-                            
-                            const styles = window.getComputedStyle(element);
-                            if (styles.cursor === 'pointer') return true;
-                            
-                            return false;
-                        }
-                        
-                        // Find the best clickable parent
-                        function findClickableParent(element) {
                             let current = element;
                             let depth = 0;
                             
-                            while (current && depth < 5) {
-                                if (isClickableElement(current)) {
+                            while (current && depth < 3) {
+                                const tagName = current.tagName ? current.tagName.toLowerCase() : '';
+                                if (clickableTags.includes(tagName) || 
+                                    current.onclick || 
+                                    current.getAttribute('onclick') ||
+                                    current.getAttribute('role') === 'button' ||
+                                    getComputedStyle(current).cursor === 'pointer') {
                                     return current;
                                 }
                                 current = current.parentElement;
                                 depth++;
                             }
-                            
                             return element;
                         }
-                        
-                        // Handle hover effects
-                        document.addEventListener('mouseover', function(e) {
-                            if (selectedElements.includes(e.target)) return;
-                            
-                            document.querySelectorAll('.xpath-hover-highlight').forEach(el => {
-                                el.classList.remove('xpath-hover-highlight');
+
+                        // Remove all hover effects
+                        function clearHovers() {
+                            document.querySelectorAll('.xpath-hover').forEach(el => {
+                                el.classList.remove('xpath-hover');
                             });
+                        }
+
+                        // Mouseover handler
+                        document.addEventListener('mouseover', function(e) {
+                            if (window.xpathSelectedElements.includes(e.target)) return;
                             
-                            const clickableElement = findClickableParent(e.target);
-                            clickableElement.classList.add('xpath-hover-highlight');
+                            clearHovers();
+                            const target = findClickableElement(e.target);
+                            if (!window.xpathSelectedElements.includes(target)) {
+                                target.classList.add('xpath-hover');
+                            }
                         });
-                        
-                        // Handle click events
+
+                        // Click handler
                         document.addEventListener('click', function(e) {
                             e.preventDefault();
                             e.stopPropagation();
                             
-                            if (selectedElements.length >= maxLocations) {
-                                alert('Maximum ' + maxLocations + ' locations allowed for ${currentData.taskPriority} priority');
+                            if (window.xpathSelectedElements.length >= window.xpathMaxLocations) {
+                                alert('Maximum ' + window.xpathMaxLocations + ' locations allowed');
                                 return;
                             }
                             
-                            const clickableElement = findClickableParent(e.target);
+                            const target = findClickableElement(e.target);
+                            if (window.xpathSelectedElements.includes(target)) return;
                             
-                            if (selectedElements.includes(clickableElement)) {
-                                return;
-                            }
-                            
-                            const xpath = getElementXPath(clickableElement);
+                            // Generate accurate XPath
+                            const xpath = generateRealXPath(target);
                             const locationId = Date.now() + Math.random();
                             
-                            clickableElement.classList.remove('xpath-hover-highlight');
-                            clickableElement.classList.add('xpath-selected-highlight');
+                            // Visual feedback
+                            target.classList.remove('xpath-hover');
+                            target.classList.add('xpath-selected');
                             
-                            const marker = document.createElement('div');
-                            marker.className = 'xpath-marker-number';
-                            marker.textContent = selectedElements.length + 1;
-                            marker.dataset.locationId = locationId;
-                            clickableElement.style.position = 'relative';
-                            clickableElement.appendChild(marker);
+                            // Add number marker
+                            const numberEl = document.createElement('div');
+                            numberEl.className = 'xpath-number';
+                            numberEl.textContent = window.xpathSelectedElements.length + 1;
+                            numberEl.dataset.locationId = locationId;
+                            target.appendChild(numberEl);
                             
-                            selectedElements.push(clickableElement);
+                            window.xpathSelectedElements.push(target);
                             
-                            // Send to parent window
+                            // Send to parent
                             window.parent.postMessage({
                                 type: 'xpathSelected',
                                 xpath: xpath,
                                 locationId: locationId,
                                 elementInfo: {
-                                    tagName: clickableElement.tagName,
-                                    text: clickableElement.textContent?.substring(0, 50) || '',
-                                    href: clickableElement.href || '',
-                                    id: clickableElement.id || '',
-                                    className: clickableElement.className || ''
+                                    tagName: target.tagName,
+                                    text: (target.textContent || '').substring(0, 50),
+                                    href: target.href || '',
+                                    id: target.id || '',
+                                    className: target.className || ''
                                 }
                             }, '*');
                         });
-                        
-                        // Handle removal and updates from parent
+
+                        // Message handler
                         window.addEventListener('message', function(e) {
                             if (e.data.type === 'removeXPath') {
-                                const locationId = e.data.locationId;
-                                const marker = document.querySelector('[data-location-id="' + locationId + '"]');
-                                
+                                const marker = document.querySelector('[data-location-id="' + e.data.locationId + '"]');
                                 if (marker && marker.parentElement) {
                                     const element = marker.parentElement;
-                                    element.classList.remove('xpath-selected-highlight');
+                                    element.classList.remove('xpath-selected');
                                     marker.remove();
                                     
-                                    const index = selectedElements.indexOf(element);
+                                    const index = window.xpathSelectedElements.indexOf(element);
                                     if (index > -1) {
-                                        selectedElements.splice(index, 1);
+                                        window.xpathSelectedElements.splice(index, 1);
+                                        
+                                        // Renumber remaining elements
+                                        window.xpathSelectedElements.forEach((el, idx) => {
+                                            const num = el.querySelector('.xpath-number');
+                                            if (num) num.textContent = idx + 1;
+                                        });
                                     }
-                                    
-                                    selectedElements.forEach((el, idx) => {
-                                        const marker = el.querySelector('.xpath-marker-number');
-                                        if (marker) {
-                                            marker.textContent = idx + 1;
-                                        }
-                                    });
                                 }
                             }
                             
                             if (e.data.type === 'updateMaxLocations') {
-                                maxLocations = e.data.maxLocations;
+                                window.xpathMaxLocations = e.data.maxLocations;
                             }
                         });
-                    })();
-                `;
-                iframeDoc.head.appendChild(script);
+                    `;
+                    iframeDoc.body.appendChild(script);
 
-                // Listen for messages from iframe
-                window.addEventListener('message', function(e) {
-                    if (e.data.type === 'xpathSelected') {
-                        const { xpath, locationId, elementInfo } = e.data;
-                        
-                        currentData.selectedLocations.push({
-                            id: locationId,
-                            xpath: xpath,
-                            x: 0,
-                            y: 0,
-                            elementInfo: elementInfo
-                        });
-                        
-                        updateSelectedLocationsDisplay();
-                        console.log('Added accurate XPath location:', xpath, elementInfo);
-                    }
-                });
+                    // Listen for XPath selections
+                    const messageHandler = function(e) {
+                        if (e.data.type === 'xpathSelected') {
+                            const { xpath, locationId, elementInfo } = e.data;
+                            
+                            currentData.selectedLocations.push({
+                                id: locationId,
+                                xpath: xpath,
+                                x: 0,
+                                y: 0,
+                                elementInfo: elementInfo
+                            });
+                            
+                            updateSelectedLocationsDisplay();
+                            console.log('Real XPath added:', xpath);
+                        }
+                    };
 
-                console.log('Real XPath detection injected successfully');
-            } else {
-                throw new Error('Cannot access iframe document');
+                    // Remove existing listener and add new one
+                    window.removeEventListener('message', messageHandler);
+                    window.addEventListener('message', messageHandler);
+
+                } else {
+                    throw new Error('Cannot access iframe content');
+                }
+            } catch (error) {
+                console.log('Iframe not accessible, using fallback overlay method');
+                
+                // Fallback to overlay method
+                overlay.style.pointerEvents = 'auto';
+                overlay.style.cursor = 'crosshair';
+                
+                const newOverlay = overlay.cloneNode(true);
+                overlay.parentNode.replaceChild(newOverlay, overlay);
+                const currentOverlay = document.getElementById('xpathOverlay');
+                currentOverlay.addEventListener('click', handleOverlayClick);
             }
-        } catch (error) {
-            console.log('Cross-origin detected, falling back to overlay method');
-            
-            // Fallback to overlay method
-            overlay.style.pointerEvents = 'auto';
-            overlay.style.cursor = 'crosshair';
-            
-            // Remove any existing click listeners
-            const newOverlay = overlay.cloneNode(true);
-            overlay.parentNode.replaceChild(newOverlay, overlay);
-
-            // Get the new overlay reference and add click listener
-            const currentOverlay = document.getElementById('xpathOverlay');
-            currentOverlay.addEventListener('click', handleOverlayClick);
-            console.log('Fallback overlay click listener added');
-        }
+        }, 500); // Wait 500ms for content to load
     };
 
     iframe.onerror = () => {

@@ -3513,7 +3513,7 @@ function goToStep(step) {
     }
 }
 
-// Complete Website Preview with Accurate XPath Generation
+// Complete Website Preview with Perfect XPath Generation
 function loadWebsitePreview(url) {
     const iframe = document.getElementById('taskPreviewFrame');
     const loader = document.getElementById('websiteLoader');
@@ -3552,7 +3552,7 @@ function loadWebsitePreview(url) {
     };
 }
 
-// Initialize direct iframe interaction
+// Initialize direct iframe interaction with perfect XPath
 function initializeIframeInteraction(doc) {
     const style = doc.createElement('style');
     style.textContent = `
@@ -3571,26 +3571,65 @@ function initializeIframeInteraction(doc) {
         window.selectedElements = [];
         window.maxLocations = ${getPriorityMaxLocations(currentData.taskPriority)};
 
-        function getAccurateXPath(el) {
-            if (!el || el.nodeType !== 1) return '';
-            const parts = [];
-            while (el && el.nodeType === 1 && el !== document.documentElement) {
-                let tag = el.tagName.toLowerCase();
-                const siblings = Array.from(el.parentNode?.children || []).filter(s => s.tagName.toLowerCase() === tag);
-                if (siblings.length > 1) {
-                    tag += '[' + (siblings.indexOf(el) + 1) + ']';
+        function getPerfectXPath(element) {
+            if (!element || element.nodeType !== 1) return '';
+            
+            // Build complete path from element to html
+            const path = [];
+            let current = element;
+            
+            while (current && current.nodeType === 1) {
+                if (current.tagName.toLowerCase() === 'html') {
+                    path.unshift('html');
+                    break;
                 }
-                parts.unshift(tag);
-                el = el.parentNode;
+                
+                const tagName = current.tagName.toLowerCase();
+                const parent = current.parentNode;
+                
+                if (parent) {
+                    // Get ALL children elements (not just same tag)
+                    const allSiblings = Array.from(parent.children);
+                    
+                    // Get siblings with same tag name
+                    const sameTags = allSiblings.filter(sibling => 
+                        sibling.tagName.toLowerCase() === tagName
+                    );
+                    
+                    // Find position among same-tag siblings
+                    const position = sameTags.indexOf(current) + 1;
+                    
+                    // Add index only if there are multiple same-tag siblings
+                    if (sameTags.length > 1) {
+                        path.unshift(tagName + '[' + position + ']');
+                    } else {
+                        path.unshift(tagName);
+                    }
+                } else {
+                    path.unshift(tagName);
+                }
+                
+                current = parent;
             }
-            return '/html/' + parts.join('/');
+            
+            return '/' + path.join('/');
         }
 
-        function testXPath(xpath, element) {
+        function verifyXPath(xpath, originalElement) {
             try {
-                const result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-                return result.singleNodeValue === element;
-            } catch (e) { return false; }
+                const result = document.evaluate(
+                    xpath, 
+                    document, 
+                    null, 
+                    XPathResult.FIRST_ORDERED_NODE_TYPE, 
+                    null
+                );
+                const found = result.singleNodeValue;
+                return found === originalElement;
+            } catch (e) {
+                console.error('XPath verification error:', e);
+                return false;
+            }
         }
 
         document.addEventListener('mouseover', e => {
@@ -3605,15 +3644,23 @@ function initializeIframeInteraction(doc) {
             e.stopPropagation();
             
             if (window.selectedElements.length >= window.maxLocations) {
-                alert('Maximum locations reached');
+                alert('Maximum locations reached for this priority level');
                 return;
             }
             
             if (window.selectedElements.includes(e.target)) return;
             
-            const xpath = getAccurateXPath(e.target);
-            if (!xpath || !testXPath(xpath, e.target)) {
-                alert('Cannot generate accurate XPath for this element');
+            const xpath = getPerfectXPath(e.target);
+            
+            if (!xpath) {
+                alert('Could not generate XPath for this element');
+                return;
+            }
+            
+            // Verify the XPath is 100% accurate
+            if (!verifyXPath(xpath, e.target)) {
+                console.error('XPath verification failed:', xpath);
+                alert('Generated XPath is not accurate. Please try a different element.');
                 return;
             }
             
@@ -3628,12 +3675,17 @@ function initializeIframeInteraction(doc) {
             
             window.selectedElements.push(e.target);
             
+            console.log('Element selected:', e.target);
+            console.log('Generated XPath:', xpath);
+            console.log('XPath verified:', verifyXPath(xpath, e.target));
+            
             window.parent.postMessage({
                 type: 'xpathSelected',
                 xpath: xpath,
                 locationId: marker.dataset.locationId,
                 text: (e.target.textContent || '').trim().substring(0, 50),
-                tag: e.target.tagName.toLowerCase()
+                tag: e.target.tagName.toLowerCase(),
+                verified: true
             }, '*');
         }, true);
 
@@ -3664,7 +3716,8 @@ function initializeIframeInteraction(doc) {
                 id: e.data.locationId,
                 xpath: e.data.xpath,
                 text: e.data.text,
-                tag: e.data.tag
+                tag: e.data.tag,
+                verified: e.data.verified
             });
             updateSelectedLocationsDisplay();
         }
@@ -3711,21 +3764,21 @@ function enableOverlayMode() {
     };
 }
 
-// Generate fallback XPath based on position
+// Generate fallback XPath
 function generateFallbackXPath(x, y) {
     const patterns = [
-        ['/html/body/header/nav/ul/li[INDEX]/a', y < 20],
-        ['/html/body/footer/nav/ul/li[INDEX]/a', y > 80],
-        ['/html/body/aside/ul/li[INDEX]/a', x > 75],
-        ['/html/body/main/section/a[INDEX]', true]
+        ['/html/body/header/div/nav/ul/li[INDEX]/a[1]', y < 20],
+        ['/html/body/footer/div/nav/ul/li[INDEX]/a[1]', y > 80],
+        ['/html/body/div[1]/aside/ul/li[INDEX]/a[1]', x > 75],
+        ['/html/body/main/div[1]/section/a[INDEX]', true]
     ];
     
     const pattern = patterns.find(p => p[1])[0];
-    const index = Math.max(1, Math.min(8, Math.floor((x + y) / 25) + 1));
+    const index = Math.max(1, Math.min(10, Math.floor((x + y) / 20) + 1));
     return pattern.replace('INDEX', index);
 }
 
-// Update display without manual input
+// Updated display without counter text
 function updateSelectedLocationsDisplay() {
     const container = document.getElementById('selectedLocations');
     if (!container) return;
@@ -3737,25 +3790,22 @@ function updateSelectedLocationsDisplay() {
         container.innerHTML = `
             <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
                 <div style="font-size:2rem;margin-bottom:1rem">👆</div>
-                <h4 style="margin-bottom:1rem">Select Clickable Elements</h4>
-                <p style="margin-bottom:1rem">Click on elements in the preview above to select them.</p>
-                <p>Maximum ${max} locations for ${currentData.taskPriority} priority.</p>
+                <h4 style="margin-bottom:1rem">Click Elements to Select</h4>
+                <p style="margin-bottom:1rem">Click directly on clickable elements in the website preview above.</p>
+                <p>You can select up to ${max} locations for ${currentData.taskPriority} priority.</p>
             </div>`;
         return;
     }
 
     container.innerHTML = `
         <div>
-            <h4 style="margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem">
-                <span style="background:var(--success);color:white;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem">${count}</span>
-                Selected Locations (${count}/${max})
-            </h4>
             ${currentData.selectedLocations.map((loc, i) => `
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;border-left:4px solid var(--success)">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;border-left:4px solid ${loc.verified ? 'var(--success)' : 'var(--warning)'}">
                     <div style="flex:1">
                         <div style="font-weight:600;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem">
                             <span style="background:var(--primary);color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem">${i+1}</span>
                             ${loc.tag ? loc.tag.toUpperCase() + ' Element' : 'Location ' + (i+1)}
+                            ${loc.verified ? '<span style="background:var(--success);color:white;padding:0.2rem 0.4rem;border-radius:4px;font-size:0.7rem">✓ Verified</span>' : ''}
                             ${loc.approximated ? '<span style="background:var(--warning);color:white;padding:0.2rem 0.4rem;border-radius:4px;font-size:0.7rem">Approximated</span>' : ''}
                         </div>
                         ${loc.text ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;padding:0.5rem;background:var(--bg-tertiary);border-radius:4px">"${loc.text}"</div>` : ''}
@@ -3766,6 +3816,10 @@ function updateSelectedLocationsDisplay() {
                     </button>
                 </div>
             `).join('')}
+            
+            <div style="text-align:center;margin-top:1rem;padding:1rem;background:var(--bg-tertiary);border-radius:var(--radius);font-size:0.85rem;color:var(--text-secondary)">
+                ${count < max ? `You can add ${max - count} more location${max - count !== 1 ? 's' : ''}` : 'Maximum locations reached'}
+            </div>
         </div>`;
 }
 
@@ -3776,13 +3830,13 @@ function removeLocation(locationId) {
     
     const location = currentData.selectedLocations[index];
     
-    // Remove from iframe if possible
+    // Remove from iframe
     try {
         const iframe = document.getElementById('taskPreviewFrame');
         iframe.contentWindow?.postMessage({ type: 'removeXPath', locationId }, '*');
     } catch (e) {}
     
-    // Remove marker from overlay if exists
+    // Remove marker from overlay
     if (location.marker) location.marker.remove();
     
     // Remove from array

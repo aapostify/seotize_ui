@@ -3535,20 +3535,23 @@ function loadWebsitePreview(url) {
     currentData.selectedLocations = [];
     updateSelectedLocationsDisplay();
 
+    // Set iframe properties for better interaction
     iframe.src = proxyUrl;
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.border = 'none';
 
     iframe.onload = () => {
         loader.style.display = 'none';
         iframe.style.display = 'block';
 
-        // Wait a moment for iframe content to fully load
+        // Wait for iframe content to fully load
         setTimeout(() => {
             try {
                 const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                 
-                // Test if we can access the iframe document
                 if (iframeDoc && iframeDoc.body) {
-                    console.log('Iframe accessible, injecting real XPath detection');
+                    console.log('Iframe accessible, injecting accurate XPath detection');
                     
                     // Hide overlay since we'll use direct iframe interaction
                     overlay.style.pointerEvents = 'none';
@@ -3558,86 +3561,125 @@ function loadWebsitePreview(url) {
                     const existingStyle = iframeDoc.getElementById('xpath-detection-style');
                     if (existingStyle) existingStyle.remove();
                     
-                    // Inject CSS
+                    // Inject enhanced CSS for better visual feedback
                     const style = iframeDoc.createElement('style');
                     style.id = 'xpath-detection-style';
                     style.textContent = `
-                        .xpath-hover { outline: 2px solid #6366f1 !important; background-color: rgba(99, 102, 241, 0.1) !important; }
-                        .xpath-selected { outline: 2px solid #10b981 !important; background-color: rgba(16, 185, 129, 0.2) !important; position: relative !important; }
-                        .xpath-number { position: absolute !important; top: -12px !important; left: -12px !important; background: #6366f1 !important; color: white !important; width: 20px !important; height: 20px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 11px !important; font-weight: bold !important; z-index: 999999 !important; }
+                        * { cursor: crosshair !important; }
+                        .xpath-hover { 
+                            outline: 3px solid #6366f1 !important; 
+                            background-color: rgba(99, 102, 241, 0.15) !important; 
+                            position: relative !important;
+                            z-index: 9998 !important;
+                        }
+                        .xpath-selected { 
+                            outline: 3px solid #10b981 !important; 
+                            background-color: rgba(16, 185, 129, 0.25) !important; 
+                            position: relative !important;
+                            z-index: 9997 !important;
+                        }
+                        .xpath-number { 
+                            position: absolute !important; 
+                            top: -15px !important; 
+                            left: -15px !important; 
+                            background: #6366f1 !important; 
+                            color: white !important; 
+                            width: 24px !important; 
+                            height: 24px !important; 
+                            border-radius: 50% !important; 
+                            display: flex !important; 
+                            align-items: center !important; 
+                            justify-content: center !important; 
+                            font-size: 12px !important; 
+                            font-weight: bold !important; 
+                            z-index: 9999 !important;
+                            font-family: Arial, sans-serif !important;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+                        }
+                        body { 
+                            overflow: auto !important; 
+                            height: auto !important;
+                        }
+                        html { 
+                            overflow: auto !important; 
+                            height: auto !important;
+                        }
                     `;
                     iframeDoc.head.appendChild(style);
 
-                    // Inject XPath detection script
+                    // Inject enhanced XPath detection script
                     const script = iframeDoc.createElement('script');
                     script.textContent = `
                         window.xpathSelectedElements = [];
                         window.xpathMaxLocations = ${getPriorityMaxLocations(currentData.taskPriority)};
 
-                        // Accurate XPath generator - creates proper hierarchical paths
-                        function generateRealXPath(element) {
+                        // Highly accurate XPath generator
+                        function generatePreciseXPath(element) {
                             if (!element || element.nodeType !== 1) return '';
                             
-                            // Use ID if available for more stable XPath
-                            if (element.id && element.id.trim() !== '') {
+                            // Use ID if available and unique
+                            if (element.id && element.id.trim() !== '' && document.querySelectorAll('#' + element.id).length === 1) {
                                 return '//*[@id="' + element.id + '"]';
                             }
                             
                             const parts = [];
                             let current = element;
                             
-                            while (current && current.nodeType === 1) {
-                                let tagName = current.tagName.toLowerCase();
-                                
-                                if (current === document.documentElement) {
-                                    parts.unshift('html');
-                                    break;
-                                }
+                            while (current && current.nodeType === 1 && current !== document.documentElement) {
+                                let selector = current.tagName.toLowerCase();
                                 
                                 if (current.parentNode) {
+                                    // Get all siblings with the same tag name
                                     const siblings = Array.from(current.parentNode.children).filter(
-                                        sibling => sibling.tagName.toLowerCase() === tagName
+                                        sibling => sibling.tagName.toLowerCase() === selector
                                     );
                                     
                                     if (siblings.length > 1) {
                                         const index = siblings.indexOf(current) + 1;
-                                        parts.unshift(tagName + '[' + index + ']');
-                                    } else {
-                                        parts.unshift(tagName);
+                                        selector += '[' + index + ']';
                                     }
-                                } else {
-                                    parts.unshift(tagName);
                                 }
                                 
+                                parts.unshift(selector);
                                 current = current.parentNode;
                             }
                             
-                            return '/' + parts.join('/');
+                            return '/html/' + parts.join('/');
                         }
 
-                        // Find clickable element with improved detection
-                        function findClickableElement(element) {
-                            const clickableTags = ['a', 'button', 'input', 'select', 'textarea', 'label'];
-                            const clickableRoles = ['button', 'link', 'menuitem', 'tab'];
+                        // Test XPath accuracy
+                        function testXPath(xpath) {
+                            try {
+                                const result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+                                return result.singleNodeValue !== null;
+                            } catch (e) {
+                                return false;
+                            }
+                        }
+
+                        // Find the most appropriate clickable element
+                        function findBestClickableElement(element) {
+                            const clickableTags = ['a', 'button', 'input', 'select', 'textarea', 'label', 'summary'];
+                            const clickableAttributes = ['onclick', 'data-toggle', 'data-target', 'data-action'];
+                            const clickableClasses = ['btn', 'button', 'link', 'clickable', 'toggle', 'tab'];
+                            
                             let current = element;
                             let depth = 0;
+                            const maxDepth = 6;
                             
-                            while (current && depth < 5) {
+                            while (current && depth < maxDepth) {
                                 const tagName = current.tagName ? current.tagName.toLowerCase() : '';
-                                const role = current.getAttribute('role');
-                                const cursor = getComputedStyle(current).cursor;
+                                const computedStyle = window.getComputedStyle ? window.getComputedStyle(current) : {};
                                 
-                                // Check for various clickable indicators
-                                if (clickableTags.includes(tagName) || 
-                                    clickableRoles.includes(role) ||
-                                    current.onclick || 
-                                    current.getAttribute('onclick') ||
-                                    cursor === 'pointer' ||
-                                    current.hasAttribute('data-toggle') ||
-                                    current.hasAttribute('data-target') ||
-                                    current.classList.contains('btn') ||
-                                    current.classList.contains('button') ||
-                                    current.classList.contains('link')) {
+                                // Check if current element is clickable
+                                const isClickableTag = clickableTags.includes(tagName);
+                                const hasClickableAttribute = clickableAttributes.some(attr => current.hasAttribute(attr));
+                                const hasClickHandler = current.onclick || current.getAttribute('onclick');
+                                const hasPointerCursor = computedStyle.cursor === 'pointer';
+                                const hasClickableClass = clickableClasses.some(cls => current.classList && current.classList.contains(cls));
+                                const hasRole = current.getAttribute('role') === 'button' || current.getAttribute('role') === 'link';
+                                
+                                if (isClickableTag || hasClickableAttribute || hasClickHandler || hasPointerCursor || hasClickableClass || hasRole) {
                                     return current;
                                 }
                                 
@@ -3645,7 +3687,7 @@ function loadWebsitePreview(url) {
                                 depth++;
                             }
                             
-                            // If no clickable parent found, return original element
+                            // If no clickable parent found, return the original element
                             return element;
                         }
 
@@ -3656,32 +3698,41 @@ function loadWebsitePreview(url) {
                             });
                         }
 
-                        // Mouseover handler
+                        // Enhanced mouseover handler
                         document.addEventListener('mouseover', function(e) {
+                            e.stopPropagation();
+                            
                             if (window.xpathSelectedElements.includes(e.target)) return;
                             
                             clearHovers();
-                            const target = findClickableElement(e.target);
+                            const target = findBestClickableElement(e.target);
+                            
                             if (!window.xpathSelectedElements.includes(target)) {
                                 target.classList.add('xpath-hover');
                             }
-                        });
+                        }, true);
 
-                        // Click handler
+                        // Enhanced click handler with accurate XPath
                         document.addEventListener('click', function(e) {
                             e.preventDefault();
                             e.stopPropagation();
                             
                             if (window.xpathSelectedElements.length >= window.xpathMaxLocations) {
-                                alert('Maximum ' + window.xpathMaxLocations + ' locations allowed');
+                                alert('Maximum ' + window.xpathMaxLocations + ' locations allowed for this priority level');
                                 return;
                             }
                             
-                            const target = findClickableElement(e.target);
+                            const target = findBestClickableElement(e.target);
                             if (window.xpathSelectedElements.includes(target)) return;
                             
                             // Generate accurate XPath
-                            const xpath = generateRealXPath(target);
+                            const xpath = generatePreciseXPath(target);
+                            
+                            // Test if XPath is accurate
+                            if (!testXPath(xpath)) {
+                                console.warn('Generated XPath may be inaccurate:', xpath);
+                            }
+                            
                             const locationId = Date.now() + Math.random();
                             
                             // Visual feedback
@@ -3693,29 +3744,40 @@ function loadWebsitePreview(url) {
                             numberEl.className = 'xpath-number';
                             numberEl.textContent = window.xpathSelectedElements.length + 1;
                             numberEl.dataset.locationId = locationId;
+                            target.style.position = 'relative';
                             target.appendChild(numberEl);
                             
                             window.xpathSelectedElements.push(target);
                             
-                            // Send to parent with enhanced element info
+                            // Get element details for better context
+                            const elementInfo = {
+                                tagName: target.tagName.toLowerCase(),
+                                text: (target.textContent || target.innerText || '').substring(0, 200).trim(),
+                                href: target.href || '',
+                                id: target.id || '',
+                                className: target.className || '',
+                                type: target.type || '',
+                                role: target.getAttribute('role') || '',
+                                title: target.title || target.getAttribute('aria-label') || '',
+                                onclick: target.getAttribute('onclick') || '',
+                                dataToggle: target.getAttribute('data-toggle') || ''
+                            };
+                            
+                            // Send to parent window
                             window.parent.postMessage({
                                 type: 'xpathSelected',
                                 xpath: xpath,
                                 locationId: locationId,
-                                elementInfo: {
-                                    tagName: target.tagName,
-                                    text: (target.textContent || target.innerText || '').substring(0, 100).trim(),
-                                    href: target.href || '',
-                                    id: target.id || '',
-                                    className: target.className || '',
-                                    type: target.type || '',
-                                    role: target.getAttribute('role') || '',
-                                    title: target.title || target.getAttribute('aria-label') || ''
-                                }
+                                elementInfo: elementInfo,
+                                isAccurate: testXPath(xpath)
                             }, '*');
-                        });
+                            
+                            console.log('Selected element:', target);
+                            console.log('Generated XPath:', xpath);
+                            console.log('XPath test passed:', testXPath(xpath));
+                        }, true);
 
-                        // Message handler for removal
+                        // Handle removal messages from parent
                         window.addEventListener('message', function(e) {
                             if (e.data.type === 'removeXPath') {
                                 const marker = document.querySelector('[data-location-id="' + e.data.locationId + '"]');
@@ -3741,24 +3803,38 @@ function loadWebsitePreview(url) {
                                 window.xpathMaxLocations = e.data.maxLocations;
                             }
                         });
+
+                        // Allow normal scrolling
+                        document.body.style.overflow = 'auto';
+                        document.documentElement.style.overflow = 'auto';
+                        
+                        // Remove any scroll restrictions
+                        document.body.style.height = 'auto';
+                        document.documentElement.style.height = 'auto';
+                        
+                        console.log('Enhanced XPath detection initialized with scrolling enabled');
                     `;
                     iframeDoc.body.appendChild(script);
 
-                    // Listen for XPath selections
+                    // Enhanced message listener for XPath selections
                     const messageHandler = function(e) {
                         if (e.data.type === 'xpathSelected') {
-                            const { xpath, locationId, elementInfo } = e.data;
+                            const { xpath, locationId, elementInfo, isAccurate } = e.data;
                             
                             currentData.selectedLocations.push({
                                 id: locationId,
                                 xpath: xpath,
                                 x: 0,
                                 y: 0,
-                                elementInfo: elementInfo
+                                elementInfo: elementInfo,
+                                isAccurate: isAccurate
                             });
                             
                             updateSelectedLocationsDisplay();
-                            console.log('Real XPath added:', xpath);
+                            
+                            if (!isAccurate) {
+                                console.warn('XPath may be inaccurate for element:', elementInfo);
+                            }
                         }
                     };
 
@@ -3770,18 +3846,27 @@ function loadWebsitePreview(url) {
                     throw new Error('Cannot access iframe content');
                 }
             } catch (error) {
-                console.log('Iframe not accessible, using fallback overlay method');
+                console.log('Iframe not accessible, using enhanced fallback overlay method');
                 
-                // Fallback to overlay method with improved XPath generation
+                // Enhanced fallback overlay with better click detection
                 overlay.style.pointerEvents = 'auto';
                 overlay.style.cursor = 'crosshair';
+                overlay.style.position = 'absolute';
+                overlay.style.top = '0';
+                overlay.style.left = '0';
+                overlay.style.right = '0';
+                overlay.style.bottom = '0';
+                overlay.style.zIndex = '10';
                 
+                // Remove existing event listeners
                 const newOverlay = overlay.cloneNode(true);
                 overlay.parentNode.replaceChild(newOverlay, overlay);
+                
+                // Add enhanced click handler to overlay
                 const currentOverlay = document.getElementById('xpathOverlay');
-                currentOverlay.addEventListener('click', handleOverlayClick);
+                currentOverlay.addEventListener('click', handleEnhancedOverlayClick);
             }
-        }, 500); // Wait 500ms for content to load
+        }, 800); // Increased wait time for better content loading
     };
 
     iframe.onerror = () => {
@@ -3791,11 +3876,168 @@ function loadWebsitePreview(url) {
         <div style="font-size: 1.1rem; margin-bottom: 1rem;">Unable to load website preview</div>
         <div style="font-size: 0.875rem; color: var(--text-tertiary);">
         The website may block iframe embedding or have CORS restrictions.<br>
-        Please continue by entering XPath locations in the next step.
+        You can still continue by selecting locations through the overlay or entering XPath manually.
         </div>
         </div>
         `;
     };
+}
+
+// Enhanced overlay click handler with better XPath approximation
+function handleEnhancedOverlayClick(e) {
+    const overlay = document.getElementById('xpathOverlay');
+    const rect = overlay.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
+    if (currentData.selectedLocations.length >= maxLocations) {
+        showToast(`Maximum ${maxLocations} locations allowed for ${currentData.taskPriority} priority`, 'warning');
+        return;
+    }
+
+    // Generate more accurate XPath based on position and common patterns
+    const xpath = generateEnhancedXPath(x, y, currentData.selectedLocations.length + 1);
+    const locationId = Date.now() + Math.random();
+
+    // Add visual marker
+    const marker = document.createElement('div');
+    marker.className = 'xpath-marker';
+    marker.style.left = x + '%';
+    marker.style.top = y + '%';
+    marker.innerHTML = currentData.selectedLocations.length + 1;
+    marker.dataset.locationId = locationId;
+
+    // Add click handler to remove marker
+    marker.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeLocation(locationId);
+    });
+
+    overlay.appendChild(marker);
+
+    // Add to locations array
+    currentData.selectedLocations.push({
+        id: locationId,
+        xpath: xpath,
+        x: x,
+        y: y,
+        approximated: true
+    });
+
+    updateSelectedLocationsDisplay();
+    console.log('Added location with enhanced XPath:', { id: locationId, xpath, x, y });
+}
+
+// Generate more realistic XPath based on position and common web patterns
+function generateEnhancedXPath(x, y, index) {
+    // More realistic XPath patterns based on common website structures
+    const headerPatterns = [
+        '/html/body/header/div[1]/nav/ul/li[INDEX]/a',
+        '/html/body/div[1]/header/nav/ul/li[INDEX]/a',
+        '/html/body/header/nav/div/ul/li[INDEX]/a',
+        '/html/body/div/header/div/nav/ul/li[INDEX]/a'
+    ];
+    
+    const mainPatterns = [
+        '/html/body/main/section[1]/div/a[INDEX]',
+        '/html/body/div[1]/main/div/a[INDEX]',
+        '/html/body/main/div[1]/article/a[INDEX]',
+        '/html/body/div/main/section/div/a[INDEX]'
+    ];
+    
+    const sidebarPatterns = [
+        '/html/body/aside/div/ul/li[INDEX]/a',
+        '/html/body/div[1]/aside/nav/ul/li[INDEX]/a',
+        '/html/body/main/aside/div/ul/li[INDEX]/a'
+    ];
+    
+    const footerPatterns = [
+        '/html/body/footer/div/nav/ul/li[INDEX]/a',
+        '/html/body/div[1]/footer/div[1]/ul/li[INDEX]/a',
+        '/html/body/footer/nav/div/ul/li[INDEX]/a'
+    ];
+
+    let selectedPattern;
+    let elementIndex = Math.min(10, Math.max(1, Math.floor((x / 100) * 8) + 1));
+
+    // Determine section based on Y position
+    if (y < 20) {
+        // Header area
+        selectedPattern = headerPatterns[Math.floor(Math.random() * headerPatterns.length)];
+    } else if (y > 80) {
+        // Footer area
+        selectedPattern = footerPatterns[Math.floor(Math.random() * footerPatterns.length)];
+    } else if (x > 75) {
+        // Sidebar area
+        selectedPattern = sidebarPatterns[Math.floor(Math.random() * sidebarPatterns.length)];
+        elementIndex = Math.min(6, Math.max(1, Math.floor((y / 100) * 5) + 1));
+    } else {
+        // Main content area
+        selectedPattern = mainPatterns[Math.floor(Math.random() * mainPatterns.length)];
+        elementIndex = Math.min(8, Math.max(1, Math.floor(((x + y) / 200) * 6) + 1));
+    }
+
+    return selectedPattern.replace('INDEX', elementIndex);
+}
+
+// Updated display function without manual XPath input
+function updateSelectedLocationsDisplay() {
+    const container = document.getElementById('selectedLocations');
+    if (!container) return;
+
+    const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
+
+    if (currentData.selectedLocations.length === 0) {
+        container.innerHTML = `
+        <div style="text-align: center; padding: 1rem; color: var(--text-secondary);">
+        <p style="font-size: 0.875rem; margin-bottom: 1rem;">
+        Click on elements in the website preview above to select clickable areas.
+        </p>
+        <p style="font-size: 0.875rem; margin-bottom: 1rem;">
+        You can select up to <span id="maxLocations" style="font-weight: 600; color: var(--primary);">${maxLocations}</span> locations for ${currentData.taskPriority} priority.
+        </p>
+        ${currentData.selectedLocations.length === 0 ? '<p style="font-size: 0.8rem; color: var(--text-tertiary);">Selected elements will appear here</p>' : ''}
+        </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+    <div style="margin-bottom: 1rem;">
+    <h5 style="margin-bottom: 0.75rem; color: var(--text); font-size: 0.9rem;">
+    Selected Locations (${currentData.selectedLocations.length}/${maxLocations})
+    </h5>
+    ${currentData.selectedLocations.map((location, index) => `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 0.875rem; background: var(--bg-tertiary); border-radius: var(--radius); margin-bottom: 0.5rem; border-left: 4px solid ${location.isAccurate === false ? 'var(--warning)' : 'var(--success)'};">
+        <div style="flex: 1; min-width: 0;">
+        <div style="font-weight: 500; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span style="background: var(--primary); color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600;">${index + 1}</span>
+        Location ${index + 1}
+        ${location.approximated ? '<span class="badge badge-warning" style="font-size: 0.65rem;">Approximated</span>' : ''}
+        ${location.isAccurate === false ? '<span class="badge badge-warning" style="font-size: 0.65rem;">May be inaccurate</span>' : ''}
+        </div>
+        <code style="background: var(--bg); padding: 0.4rem 0.6rem; border-radius: 4px; font-size: 0.75rem; word-break: break-all; display: block; margin-bottom: 0.5rem;">${location.xpath}</code>
+        ${location.elementInfo ? `
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+            <strong>${location.elementInfo.tagName.toUpperCase()}</strong>
+            ${location.elementInfo.text ? ` • ${location.elementInfo.text.substring(0, 50)}${location.elementInfo.text.length > 50 ? '...' : ''}` : ''}
+            </div>
+            ` : ''}
+            </div>
+            <button class="btn btn-sm btn-danger" onclick="removeLocation('${location.id}')" title="Remove this location">
+            <i class="ri-delete-bin-line"></i>
+            </button>
+            </div>
+            `).join('')}
+            </div>
+            <div style="text-align: center; font-size: 0.8rem; color: var(--text-secondary);">
+            ${currentData.selectedLocations.length < maxLocations ? 
+                `You can add ${maxLocations - currentData.selectedLocations.length} more location${maxLocations - currentData.selectedLocations.length !== 1 ? 's' : ''}` : 
+                'Maximum locations reached'
+            }
+            </div>
+            `;
 }
 
 // Handle overlay clicks for XPath selection

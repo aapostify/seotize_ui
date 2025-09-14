@@ -3518,106 +3518,81 @@ function loadWebsitePreview(url) {
     const loader = document.getElementById('websiteLoader');
     const overlay = document.getElementById('xpathOverlay');
     
-    // State management
-    const state = {
-        selectedElements: [],
-        isReady: false,
-        zoomLevel: 1,
-        maxSelections: getPriorityMaxLocations(currentData.taskPriority),
-        eventController: new AbortController(),
-        messageHandlers: new Set()
-    };
+    // State
+    let selectedElements = [];
+    let maxSelections = getPriorityMaxLocations(currentData.taskPriority);
+    let zoomLevel = 1;
+    let isReady = false;
     
-    // Reset everything
+    // Reset
     if (!url.startsWith('http')) url = 'https://' + url;
     loader.style.display = 'flex';
     iframe.style.display = 'none';
     overlay.innerHTML = '';
     overlay.style.display = 'none';
     currentData.selectedLocations = [];
+    selectedElements = [];
     
-    // Clear any existing handlers
-    if (iframe.xpathCleanup) iframe.xpathCleanup();
+    // Clear any existing
+    const existingContainer = document.getElementById('selectedLocations');
+    if (existingContainer) existingContainer.innerHTML = '';
     
-    // XPath generation utilities
-    const XPathGenerator = {
-        generate(element) {
-            if (!element || element.nodeType !== Node.ELEMENT_NODE) return null;
-            
-            // Try ID first if unique
-            if (element.id && this.isUniqueId(element.id)) {
-                return `//*[@id="${element.id}"]`;
-            }
-            
-            // Build path from element to root
-            const path = [];
-            let current = element;
-            
-            while (current && current.nodeType === Node.ELEMENT_NODE && current !== document.documentElement) {
-                let selector = current.tagName.toLowerCase();
-                
-                // Add class if present and stable
-                if (current.className && typeof current.className === 'string') {
-                    const classes = current.className.trim();
-                    if (classes && !classes.includes('xpath-')) {
-                        selector += `[@class="${classes}"]`;
-                    }
-                }
-                
-                // Add position if needed for uniqueness
-                const siblings = Array.from(current.parentElement?.children || [])
-                    .filter(s => s.tagName === current.tagName);
-                
-                if (siblings.length > 1) {
-                    const index = siblings.indexOf(current) + 1;
-                    if (index > 0) selector += `[${index}]`;
-                }
-                
-                path.unshift(selector);
-                current = current.parentElement;
-            }
-            
-            return '//' + path.join('/');
-        },
+    // XPath utilities
+    function generateXPath(element) {
+        if (!element || element.nodeType !== 1) return null;
         
-        isUniqueId(id) {
-            try {
-                return document.querySelectorAll(`#${CSS.escape(id)}`).length === 1;
-            } catch {
-                return false;
-            }
-        },
-        
-        validate(xpath) {
-            try {
-                document.evaluate(xpath, document.createElement('div'), null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-                return true;
-            } catch {
-                return false;
-            }
+        if (element.id && document.querySelectorAll('#' + CSS.escape(element.id)).length === 1) {
+            return `//*[@id="${element.id}"]`;
         }
-    };
+        
+        const path = [];
+        let current = element;
+        
+        while (current && current.nodeType === 1 && current !== document.documentElement) {
+            let selector = current.tagName.toLowerCase();
+            
+            if (current.className && typeof current.className === 'string') {
+                const classes = current.className.trim();
+                if (classes && !classes.includes('xpath-')) {
+                    selector += `[@class="${classes}"]`;
+                }
+            }
+            
+            const siblings = Array.from(current.parentElement?.children || [])
+                .filter(s => s.tagName === current.tagName);
+            
+            if (siblings.length > 1) {
+                const index = siblings.indexOf(current) + 1;
+                if (index > 0) selector += `[${index}]`;
+            }
+            
+            path.unshift(selector);
+            current = current.parentElement;
+        }
+        
+        return '//' + path.join('/');
+    }
     
     // Display management
     function updateDisplay() {
-        requestAnimationFrame(() => {
-            const container = document.getElementById('selectedLocations');
-            if (!container) return;
-            
-            const count = state.selectedElements.length;
-            const max = state.maxSelections;
-            
-            container.innerHTML = count === 0 ? `
+        const container = document.getElementById('selectedLocations');
+        if (!container) return;
+        
+        const count = selectedElements.length;
+        
+        if (count === 0) {
+            container.innerHTML = `
                 <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
                     <h4 style="margin-bottom:1rem">Click Elements to Select</h4>
-                    <p>Click on any element in the website preview above to select it.</p>
-                    <p>You can select up to ${max} locations for ${currentData.taskPriority} priority.</p>
-                    <p><small>Use zoom controls above or Ctrl/Cmd + +/- to zoom</small></p>
+                    <p>Click on any element in the website preview above.</p>
+                    <p>You can select up to ${maxSelections} locations for ${currentData.taskPriority} priority.</p>
                 </div>
-            ` : `
+            `;
+        } else {
+            container.innerHTML = `
                 <div>
-                    <h4 style="margin-bottom:1rem;color:var(--text)">Selected Click Locations (${count}/${max})</h4>
-                    ${state.selectedElements.map((loc, i) => `
+                    <h4 style="margin-bottom:1rem;color:var(--text)">Selected Click Locations (${count}/${maxSelections})</h4>
+                    ${selectedElements.map((loc, i) => `
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;border-left:4px solid var(--success)">
                             <div style="flex:1">
                                 <div style="font-weight:600;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem">
@@ -3628,385 +3603,319 @@ function loadWebsitePreview(url) {
                                 ${loc.text ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;padding:0.5rem;background:var(--bg-tertiary);border-radius:4px">"${loc.text}"</div>` : ''}
                                 <code style="background:var(--bg);padding:0.5rem;border-radius:4px;font-size:0.75rem;word-break:break-all;display:block;border:1px solid var(--border)">${loc.xpath}</code>
                             </div>
-                            <button class="btn btn-sm btn-danger" onclick="removeXPathLocation('${loc.id}')" style="margin-left:1rem">
+                            <button class="btn btn-sm btn-danger" onclick="removeXPathElement('${loc.id}')" style="margin-left:1rem">
                                 <i class="ri-delete-bin-line"></i>
                             </button>
                         </div>
                     `).join('')}
                 </div>
             `;
-            
-            updateZoomControls();
-        });
-    }
-    
-    // Zoom functionality
-    function setZoom(scale) {
-        state.zoomLevel = Math.max(0.25, Math.min(4, scale));
-        iframe.style.transform = `scale(${state.zoomLevel})`;
-        iframe.style.transformOrigin = '0 0';
-        iframe.style.width = `${100/state.zoomLevel}%`;
-        iframe.style.height = `${100/state.zoomLevel}%`;
+        }
+        
         updateZoomControls();
     }
     
+    // Zoom controls
     function updateZoomControls() {
         const previewControls = document.getElementById('preview-controls');
         if (!previewControls) return;
         
         previewControls.innerHTML = `
             <div style="display:flex;gap:8px;align-items:center;justify-content:center;padding:8px;background:var(--card);border-radius:var(--radius);border:1px solid var(--border);">
-                <button onclick="adjustZoom(-0.25)" style="background:var(--primary);color:white;border:none;width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;" title="Zoom Out">−</button>
-                <span style="display:flex;align-items:center;padding:0 12px;font-size:14px;color:var(--text);min-width:50px;justify-content:center;font-weight:500;">${Math.round(state.zoomLevel * 100)}%</span>
-                <button onclick="adjustZoom(0.25)" style="background:var(--primary);color:white;border:none;width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;" title="Zoom In">+</button>
-                <button onclick="resetZoom()" style="background:var(--secondary);color:white;border:none;width:40px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;" title="Reset Zoom">Reset</button>
+                <button onclick="adjustXPathZoom(-0.25)" style="background:var(--primary);color:white;border:none;width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">−</button>
+                <span style="display:flex;align-items:center;padding:0 12px;font-size:14px;color:var(--text);min-width:50px;justify-content:center;font-weight:500;">${Math.round(zoomLevel * 100)}%</span>
+                <button onclick="adjustXPathZoom(0.25)" style="background:var(--primary);color:white;border:none;width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">+</button>
+                <button onclick="resetXPathZoom()" style="background:var(--secondary);color:white;border:none;width:40px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;">Reset</button>
             </div>
         `;
     }
     
+    function setZoom(scale) {
+        zoomLevel = Math.max(0.25, Math.min(4, scale));
+        iframe.style.transform = `scale(${zoomLevel})`;
+        iframe.style.transformOrigin = '0 0';
+        iframe.style.width = `${100/zoomLevel}%`;
+        iframe.style.height = `${100/zoomLevel}%`;
+        updateZoomControls();
+    }
+    
     // Element management
-    function addSelectedElement(data) {
-        if (!XPathGenerator.validate(data.xpath)) {
-            console.error('Invalid XPath:', data.xpath);
-            return false;
-        }
-        
-        // Check for duplicates
-        if (state.selectedElements.some(el => el.xpath === data.xpath)) {
-            return false;
-        }
-        
-        // Check max limit
-        if (state.selectedElements.length >= state.maxSelections) {
-            console.warn('Maximum selections reached');
-            return false;
-        }
+    function addElement(data) {
+        if (selectedElements.length >= maxSelections) return;
+        if (selectedElements.some(el => el.xpath === data.xpath)) return;
         
         const element = {
-            id: data.id || 'xpath_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            id: data.id || 'el_' + Date.now(),
             xpath: data.xpath,
             text: (data.text || '').slice(0, 50),
-            tag: data.tag || 'unknown',
-            timestamp: Date.now()
+            tag: data.tag || 'unknown'
         };
         
-        state.selectedElements.push(element);
-        currentData.selectedLocations = [...state.selectedElements];
+        selectedElements.push(element);
+        currentData.selectedLocations = [...selectedElements];
         updateDisplay();
         
         if (window.showToast) {
             showToast(`Selected ${element.tag.toUpperCase()} element`, 'success');
         }
-        
-        return true;
     }
     
-    function removeSelectedElement(id) {
-        const index = state.selectedElements.findIndex(el => el.id === id);
+    function removeElement(id) {
+        const index = selectedElements.findIndex(el => el.id === id);
         if (index === -1) return;
         
-        // Remove from iframe
-        sendToIframe({ type: 'remove_element', id });
+        try {
+            iframe.contentWindow?.postMessage({ type: 'remove', id }, '*');
+        } catch (e) {}
         
-        state.selectedElements.splice(index, 1);
-        currentData.selectedLocations = [...state.selectedElements];
+        selectedElements.splice(index, 1);
+        currentData.selectedLocations = [...selectedElements];
         updateDisplay();
         
-        if (window.showToast) {
-            showToast('Element removed', 'info');
-        }
+        if (window.showToast) showToast('Element removed', 'info');
     }
     
-    // Communication with iframe
-    function sendToIframe(message) {
-        try {
-            iframe.contentWindow?.postMessage(message, '*');
-        } catch (e) {
-            console.warn('Failed to send message to iframe:', e);
-        }
-    }
-    
-    // Message handler for iframe communication
+    // Message handling
     function handleMessage(event) {
         if (event.source !== iframe.contentWindow) return;
         
-        const { type, data } = event.data;
+        const data = event.data;
         
-        switch (type) {
-            case 'iframe_ready':
-                state.isReady = true;
-                console.log('Iframe XPath selector ready');
-                updateDisplay();
-                break;
-                
-            case 'element_selected':
-                addSelectedElement(data);
-                break;
-                
-            case 'scroll_update':
-                // Just acknowledge scroll - don't interfere
-                break;
-                
-            default:
-                // Handle legacy message format
-                if (event.data.xpath) {
-                    addSelectedElement({
-                        xpath: event.data.xpath,
-                        text: event.data.text,
-                        tag: event.data.tag,
-                        id: event.data.id
-                    });
-                }
-        }
-    }
-    
-    // Setup iframe
-    function setupIframe() {
-        iframe.src = `https://cors.seotize.workers.dev/?url=${encodeURIComponent(url)}`;
-        iframe.setAttribute('scrolling', 'yes');
-        iframe.style.cssText = 'width:100%;height:100%;border:none;overflow:auto;-webkit-overflow-scrolling:touch;';
-        
-        // Add message listener
-        window.addEventListener('message', handleMessage, { signal: state.eventController.signal });
-        
-        iframe.onload = () => {
-            loader.style.display = 'none';
-            iframe.style.display = 'block';
-            
-            setTimeout(() => initializeSelector(), 1000);
-        };
-        
-        iframe.onerror = () => {
-            loader.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--danger)">Failed to load website preview</div>';
-        };
-    }
-    
-    // Initialize XPath selector in iframe
-    function initializeSelector() {
-        const selectorScript = `
-            (function() {
-                console.log('Initializing XPath selector in iframe...');
-                
-                // State
-                let selectedElements = new Map();
-                let isActive = true;
-                let maxSelections = ${state.maxSelections};
-                
-                // Clean up existing
-                if (window.xpathSelectorCleanup) {
-                    window.xpathSelectorCleanup();
-                }
-                
-                // XPath generator
-                function generateXPath(element) {
-                    if (!element || element.nodeType !== 1) return null;
-                    
-                    if (element.id && document.querySelectorAll('#' + CSS.escape(element.id)).length === 1) {
-                        return '//*[@id="' + element.id + '"]';
-                    }
-                    
-                    const path = [];
-                    let current = element;
-                    
-                    while (current && current.nodeType === 1 && current !== document.documentElement) {
-                        let selector = current.tagName.toLowerCase();
-                        
-                        if (current.className && typeof current.className === 'string') {
-                            const classes = current.className.trim();
-                            if (classes && !classes.includes('xpath-')) {
-                                selector += '[@class="' + classes + '"]';
-                            }
-                        }
-                        
-                        const siblings = Array.from(current.parentElement?.children || [])
-                            .filter(s => s.tagName === current.tagName);
-                        
-                        if (siblings.length > 1) {
-                            const index = siblings.indexOf(current) + 1;
-                            if (index > 0) selector += '[' + index + ']';
-                        }
-                        
-                        path.unshift(selector);
-                        current = current.parentElement;
-                    }
-                    
-                    return '//' + path.join('/');
-                }
-                
-                // Styles
-                const style = document.createElement('style');
-                style.textContent = \`
-                    .xpath-hover { 
-                        outline: 2px solid #3b82f6 !important; 
-                        background: rgba(59, 130, 246, 0.1) !important; 
-                        cursor: crosshair !important;
-                    }
-                    .xpath-selected { 
-                        outline: 2px solid #10b981 !important; 
-                        background: rgba(16, 185, 129, 0.15) !important; 
-                        position: relative !important;
-                    }
-                    .xpath-marker { 
-                        position: absolute !important; 
-                        top: -10px !important; 
-                        left: -10px !important; 
-                        background: #10b981 !important; 
-                        color: white !important; 
-                        width: 18px !important; 
-                        height: 18px !important; 
-                        border-radius: 50% !important; 
-                        display: flex !important; 
-                        align-items: center !important; 
-                        justify-content: center !important; 
-                        font: bold 10px sans-serif !important; 
-                        z-index: 999999 !important; 
-                        border: 1px solid white !important;
-                        pointer-events: none !important;
-                    }
-                \`;
-                document.head.appendChild(style);
-                
-                // Event handlers
-                function onMouseOver(e) {
-                    if (!isActive || selectedElements.has(e.target)) return;
-                    
-                    document.querySelectorAll('.xpath-hover').forEach(el => 
-                        el.classList.remove('xpath-hover')
-                    );
-                    e.target.classList.add('xpath-hover');
-                }
-                
-                function onMouseOut(e) {
-                    e.target.classList.remove('xpath-hover');
-                }
-                
-                function onClick(e) {
-                    if (!isActive) return;
-                    
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Skip if already selected or max reached
-                    if (selectedElements.has(e.target) || selectedElements.size >= maxSelections) {
-                        return;
-                    }
-                    
-                    // Skip our own markers
-                    if (e.target.classList.contains('xpath-marker')) {
-                        return;
-                    }
-                    
-                    const xpath = generateXPath(e.target);
-                    if (!xpath) return;
-                    
-                    // Add visual feedback
-                    e.target.classList.remove('xpath-hover');
-                    e.target.classList.add('xpath-selected');
-                    
-                    // Add marker
-                    const marker = document.createElement('div');
-                    marker.className = 'xpath-marker';
-                    marker.textContent = selectedElements.size + 1;
-                    marker.dataset.elementId = 'xpath_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                    
-                    e.target.style.position = 'relative';
-                    e.target.appendChild(marker);
-                    
-                    selectedElements.set(e.target, {
-                        id: marker.dataset.elementId,
-                        marker: marker,
-                        xpath: xpath
-                    });
-                    
-                    // Send to parent
-                    window.parent.postMessage({
-                        type: 'element_selected',
-                        data: {
-                            id: marker.dataset.elementId,
-                            xpath: xpath,
-                            text: (e.target.textContent || '').trim().slice(0, 50),
-                            tag: e.target.tagName.toLowerCase()
-                        }
-                    }, '*');
-                    
-                    console.log('Selected element:', xpath);
-                }
-                
-                // Message handler
-                function onMessage(e) {
-                    if (e.data.type === 'remove_element') {
-                        for (const [element, data] of selectedElements.entries()) {
-                            if (data.id === e.data.id) {
-                                element.classList.remove('xpath-selected');
-                                if (data.marker) data.marker.remove();
-                                selectedElements.delete(element);
-                                
-                                // Update numbering
-                                let index = 1;
-                                for (const [el, elData] of selectedElements.entries()) {
-                                    if (elData.marker) elData.marker.textContent = index++;
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-                
-                // Attach events
-                document.addEventListener('mouseover', onMouseOver, { passive: true });
-                document.addEventListener('mouseout', onMouseOut, { passive: true });
-                document.addEventListener('click', onClick, { capture: true, passive: false });
-                window.addEventListener('message', onMessage);
-                
-                // Cleanup function
-                window.xpathSelectorCleanup = function() {
-                    isActive = false;
-                    document.removeEventListener('mouseover', onMouseOver);
-                    document.removeEventListener('mouseout', onMouseOut);
-                    document.removeEventListener('click', onClick);
-                    window.removeEventListener('message', onMessage);
-                    
-                    selectedElements.forEach(data => {
-                        if (data.marker) data.marker.remove();
-                    });
-                    selectedElements.clear();
-                    
-                    document.querySelectorAll('.xpath-hover, .xpath-selected').forEach(el => {
-                        el.classList.remove('xpath-hover', 'xpath-selected');
-                    });
-                };
-                
-                // Signal ready
-                window.parent.postMessage({ type: 'iframe_ready' }, '*');
-                console.log('XPath selector initialized and ready');
-            })();
-        `;
-        
-        try {
-            // Try direct injection
-            const doc = iframe.contentDocument || iframe.contentWindow.document;
-            if (doc && doc.body) {
-                const script = doc.createElement('script');
-                script.textContent = selectorScript;
-                doc.body.appendChild(script);
-                console.log('XPath selector injected directly');
-            } else {
-                throw new Error('No direct access');
-            }
-        } catch (e) {
-            // Fallback to postMessage
-            console.log('Using postMessage injection');
-            sendToIframe({
-                type: 'inject_script',
-                script: selectorScript
-            });
+        if (data.type === 'xpath_selected') {
+            addElement(data);
+        } else if (data.type === 'ready') {
+            isReady = true;
+            console.log('XPath selector ready');
         }
     }
     
     // Global functions
-    window.adjustZoom = (delta) => setZoom(state.zoomLevel + delta);
-    window.resetZoom = () => setZoom(1);
-    window.removeXPathLocation = removeSelectedElement;
+    window.adjustXPathZoom = (delta) => setZoom(zoomLevel + delta);
+    window.resetXPathZoom = () => setZoom(1);
+    window.removeXPathElement = removeElement;
+    
+    // Setup iframe
+    iframe.src = `https://cors.seotize.workers.dev/?url=${encodeURIComponent(url)}`;
+    iframe.setAttribute('scrolling', 'yes');
+    iframe.style.cssText = 'width:100%;height:100%;border:none;overflow:auto;';
+    
+    // Listen for messages
+    window.addEventListener('message', handleMessage);
+    
+    iframe.onload = () => {
+        loader.style.display = 'none';
+        iframe.style.display = 'block';
+        
+        // Wait a bit then inject the working script
+        setTimeout(() => {
+            const script = `
+                (function() {
+                    console.log('XPath selector starting...');
+                    
+                    let selectedCount = 0;
+                    const maxSelections = ${maxSelections};
+                    const selectedElements = new Set();
+                    
+                    // Add styles
+                    const style = document.createElement('style');
+                    style.textContent = \`
+                        .xpath-hover { 
+                            outline: 3px solid #3b82f6 !important; 
+                            background: rgba(59, 130, 246, 0.1) !important; 
+                            cursor: crosshair !important;
+                        }
+                        .xpath-selected { 
+                            outline: 3px solid #10b981 !important; 
+                            background: rgba(16, 185, 129, 0.15) !important; 
+                            position: relative !important;
+                        }
+                        .xpath-marker { 
+                            position: absolute !important; 
+                            top: -12px !important; 
+                            left: -12px !important; 
+                            background: #10b981 !important; 
+                            color: white !important; 
+                            width: 20px !important; 
+                            height: 20px !important; 
+                            border-radius: 50% !important; 
+                            display: flex !important; 
+                            align-items: center !important; 
+                            justify-content: center !important; 
+                            font: bold 11px sans-serif !important; 
+                            z-index: 999999 !important; 
+                            border: 2px solid white !important;
+                            pointer-events: none !important;
+                        }
+                    \`;
+                    document.head.appendChild(style);
+                    
+                    // XPath generator
+                    function getXPath(element) {
+                        if (element.id && document.querySelectorAll('#' + element.id).length === 1) {
+                            return '//*[@id="' + element.id + '"]';
+                        }
+                        
+                        const path = [];
+                        let current = element;
+                        
+                        while (current && current.nodeType === 1 && current !== document.documentElement) {
+                            let selector = current.tagName.toLowerCase();
+                            
+                            if (current.className && typeof current.className === 'string') {
+                                const classes = current.className.trim();
+                                if (classes && !classes.includes('xpath-')) {
+                                    selector += '[@class="' + classes + '"]';
+                                }
+                            }
+                            
+                            const siblings = Array.from(current.parentElement?.children || [])
+                                .filter(s => s.tagName === current.tagName);
+                            
+                            if (siblings.length > 1) {
+                                const index = siblings.indexOf(current) + 1;
+                                if (index > 0) selector += '[' + index + ']';
+                            }
+                            
+                            path.unshift(selector);
+                            current = current.parentElement;
+                        }
+                        
+                        return '//' + path.join('/');
+                    }
+                    
+                    // Event handlers
+                    function onMouseOver(e) {
+                        if (selectedElements.has(e.target)) return;
+                        
+                        document.querySelectorAll('.xpath-hover').forEach(el => 
+                            el.classList.remove('xpath-hover')
+                        );
+                        e.target.classList.add('xpath-hover');
+                    }
+                    
+                    function onMouseOut(e) {
+                        e.target.classList.remove('xpath-hover');
+                    }
+                    
+                    function onClick(e) {
+                        console.log('Click detected!', e.target);
+                        
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        if (selectedElements.has(e.target)) return;
+                        if (selectedCount >= maxSelections) return;
+                        if (e.target.classList.contains('xpath-marker')) return;
+                        
+                        const xpath = getXPath(e.target);
+                        if (!xpath) return;
+                        
+                        // Visual feedback
+                        e.target.classList.remove('xpath-hover');
+                        e.target.classList.add('xpath-selected');
+                        
+                        // Add marker
+                        const marker = document.createElement('div');
+                        marker.className = 'xpath-marker';
+                        marker.textContent = selectedCount + 1;
+                        marker.dataset.id = 'xpath_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        
+                        e.target.style.position = 'relative';
+                        e.target.appendChild(marker);
+                        
+                        selectedElements.add(e.target);
+                        selectedCount++;
+                        
+                        // Send to parent
+                        window.parent.postMessage({
+                            type: 'xpath_selected',
+                            id: marker.dataset.id,
+                            xpath: xpath,
+                            text: (e.target.textContent || '').trim().slice(0, 50),
+                            tag: e.target.tagName.toLowerCase()
+                        }, '*');
+                        
+                        console.log('XPath selected:', xpath);
+                    }
+                    
+                    // Message handler
+                    function onMessage(e) {
+                        if (e.data.type === 'remove') {
+                            const marker = document.querySelector('[data-id="' + e.data.id + '"]');
+                            if (marker && marker.parentElement) {
+                                selectedElements.delete(marker.parentElement);
+                                marker.parentElement.classList.remove('xpath-selected');
+                                marker.remove();
+                                selectedCount--;
+                                
+                                // Update numbering
+                                let index = 1;
+                                document.querySelectorAll('.xpath-marker').forEach(m => {
+                                    m.textContent = index++;
+                                });
+                            }
+                        }
+                    }
+                    
+                    // Attach events
+                    document.addEventListener('mouseover', onMouseOver, true);
+                    document.addEventListener('mouseout', onMouseOut, true);
+                    document.addEventListener('click', onClick, true);
+                    window.addEventListener('message', onMessage);
+                    
+                    // Cleanup function
+                    window.xpathCleanup = function() {
+                        document.removeEventListener('mouseover', onMouseOver, true);
+                        document.removeEventListener('mouseout', onMouseOut, true);
+                        document.removeEventListener('click', onClick, true);
+                        window.removeEventListener('message', onMessage);
+                        
+                        selectedElements.forEach(el => {
+                            el.classList.remove('xpath-selected');
+                            const marker = el.querySelector('.xpath-marker');
+                            if (marker) marker.remove();
+                        });
+                        selectedElements.clear();
+                    };
+                    
+                    // Signal ready
+                    window.parent.postMessage({ type: 'ready' }, '*');
+                    console.log('XPath selector ready!');
+                })();
+            `;
+            
+            try {
+                // Try direct injection first
+                const doc = iframe.contentDocument;
+                if (doc && doc.body) {
+                    const scriptEl = doc.createElement('script');
+                    scriptEl.textContent = script;
+                    doc.body.appendChild(scriptEl);
+                    console.log('Script injected directly');
+                } else {
+                    // Fallback - this usually won't work due to CORS but try anyway
+                    iframe.contentWindow.eval(script);
+                }
+            } catch (e) {
+                console.error('Script injection failed:', e);
+                // Show error in UI
+                const container = document.getElementById('selectedLocations');
+                if (container) {
+                    container.innerHTML = `
+                        <div style="text-align:center;padding:2rem;color:var(--danger)">
+                            <h4>XPath Selection Unavailable</h4>
+                            <p>The website blocks element selection due to security restrictions.</p>
+                            <p>This is common with sites that have strict CORS policies.</p>
+                        </div>
+                    `;
+                }
+            }
+        }, 2000);
+    };
+    
+    iframe.onerror = () => {
+        loader.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--danger)">Failed to load website</div>';
+    };
     
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -4015,11 +3924,11 @@ function loadWebsitePreview(url) {
                 case '+':
                 case '=':
                     e.preventDefault();
-                    setZoom(state.zoomLevel + 0.25);
+                    setZoom(zoomLevel + 0.25);
                     break;
                 case '-':
                     e.preventDefault();
-                    setZoom(state.zoomLevel - 0.25);
+                    setZoom(zoomLevel - 0.25);
                     break;
                 case '0':
                     e.preventDefault();
@@ -4027,44 +3936,40 @@ function loadWebsitePreview(url) {
                     break;
             }
         }
-    }, { signal: state.eventController.signal });
+    });
     
-    // Cleanup function
+    // Cleanup
     function cleanup() {
-        state.eventController.abort();
+        window.removeEventListener('message', handleMessage);
         
-        if (iframe.xpathSelectorCleanup) {
-            iframe.xpathSelectorCleanup();
+        try {
+            iframe.contentWindow?.postMessage({ type: 'cleanup' }, '*');
+        } catch (e) {}
+        
+        if (iframe.contentWindow?.xpathCleanup) {
+            iframe.contentWindow.xpathCleanup();
         }
         
-        sendToIframe({ type: 'cleanup' });
-        
-        // Clean globals
-        window.adjustZoom = null;
-        window.resetZoom = null;
-        window.removeXPathLocation = null;
+        window.adjustXPathZoom = null;
+        window.resetXPathZoom = null;
+        window.removeXPathElement = null;
     }
     
+    iframe.xpathCleanup = cleanup;
+    
     // Initialize
-    setupIframe();
     updateDisplay();
     updateZoomControls();
     
-    // Store cleanup for later
-    iframe.xpathCleanup = cleanup;
-    
-    // Return API
     return {
-        getSelectedElements: () => [...state.selectedElements],
+        getSelectedElements: () => [...selectedElements],
         clearSelections: () => {
-            state.selectedElements = [];
+            selectedElements = [];
             currentData.selectedLocations = [];
-            sendToIframe({ type: 'clear_all' });
             updateDisplay();
         },
         setZoom,
-        destroy: cleanup,
-        state
+        destroy: cleanup
     };
 }
 

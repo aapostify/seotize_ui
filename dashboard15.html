@@ -3546,10 +3546,6 @@ function loadWebsitePreview(url) {
     // Override any existing functions to prevent conflicts
     window.updateSelectedLocationsDisplay = () => {};
     
-    // Clean up any existing zoom controls to prevent conflicts
-    const existingZoomControls = document.querySelectorAll('.xpath-zoom-controls');
-    existingZoomControls.forEach(control => control.remove());
-    
     // Robust XPath generator functions
     function isUniqueId(id) {
         try {
@@ -3659,6 +3655,46 @@ function loadWebsitePreview(url) {
         }
     }
     
+    // Replace preview-controls with zoom controls
+    function setupZoomControls() {
+        const previewControls = document.getElementById('preview-controls');
+        if (previewControls) {
+            previewControls.innerHTML = `
+                <div class="xpath-zoom-controls" style="display:flex;gap:8px;align-items:center;justify-content:center;padding:8px;background:var(--card);border-radius:var(--radius);border:1px solid var(--border);">
+                    <button class="zoom-btn zoom-out" title="Zoom Out" style="background:var(--primary);color:white;border:none;width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">−</button>
+                    <span class="zoom-display" style="display:flex;align-items:center;padding:0 12px;font-size:14px;color:var(--text);min-width:50px;justify-content:center;font-weight:500;">${Math.round(state.zoomLevel * 100)}%</span>
+                    <button class="zoom-btn zoom-in" title="Zoom In" style="background:var(--primary);color:white;border:none;width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">+</button>
+                    <button class="zoom-btn zoom-reset" title="Reset Zoom" style="background:var(--secondary);color:white;border:none;width:40px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;">Reset</button>
+                </div>
+            `;
+            
+            // Add click handlers that prevent XPath selection
+            previewControls.querySelector('.zoom-out').onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setZoom(state.zoomLevel - 0.25);
+            };
+            
+            previewControls.querySelector('.zoom-in').onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setZoom(state.zoomLevel + 0.25);
+            };
+            
+            previewControls.querySelector('.zoom-reset').onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setZoom(1);
+            };
+            
+            // Prevent the entire zoom control from being selected for XPath
+            previewControls.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            };
+        }
+    }
+    
     // Display management - single source of truth
     function updateDisplay() {
         if (state.displayUpdateScheduled) return;
@@ -3686,16 +3722,13 @@ function loadWebsitePreview(url) {
                     <h4 style="margin-bottom:1rem">Click Elements to Select</h4>
                     <p>Click on elements in the website preview above.</p>
                     <p>You can select up to ${max} locations for ${currentData.taskPriority} priority.</p>
-                    <p><small>Use Ctrl/Cmd + +/- to zoom, Ctrl/Cmd + 0 to reset</small></p>
+                    <p><small>Use Ctrl/Cmd + +/- to zoom, or use the zoom controls above</small></p>
                 </div>
             `;
         } else {
             container.innerHTML = `
                 <div>
-                    <h4 style="margin-bottom:1rem;color:var(--text);display:flex;justify-content:space-between;align-items:center">
-                        <span>Selected Click Locations (${count}/${max})</span>
-                        <small style="font-weight:normal;color:var(--text-secondary)">Zoom: ${Math.round(state.zoomLevel * 100)}%</small>
-                    </h4>
+                    <h4 style="margin-bottom:1rem;color:var(--text)">Selected Click Locations (${count}/${max})</h4>
                     ${state.selectedElements.map((loc, i) => `
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;border-left:4px solid ${loc.verified ? 'var(--success)' : 'var(--warning)'}">
                             <div style="flex:1">
@@ -3716,65 +3749,15 @@ function loadWebsitePreview(url) {
             `;
         }
         
-        // Add zoom controls that are isolated from XPath selection
-        createZoomControls();
+        // Update zoom display
+        updateZoomDisplay();
     }
     
-    // Create isolated zoom controls
-    function createZoomControls() {
-        // Remove existing zoom controls
-        const existingControls = document.querySelectorAll('.xpath-zoom-controls');
-        existingControls.forEach(control => control.remove());
-        
-        const zoomControls = document.createElement('div');
-        zoomControls.className = 'xpath-zoom-controls';
-        zoomControls.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            gap: 8px;
-            z-index: 10001;
-            background: white;
-            padding: 8px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border: 1px solid var(--border);
-        `;
-        
-        zoomControls.innerHTML = `
-            <button class="zoom-btn zoom-out" title="Zoom Out" style="background:var(--primary);color:white;border:none;width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">−</button>
-            <span style="display:flex;align-items:center;padding:0 8px;font-size:12px;color:var(--text-secondary);min-width:40px;justify-content:center;">${Math.round(state.zoomLevel * 100)}%</span>
-            <button class="zoom-btn zoom-in" title="Zoom In" style="background:var(--primary);color:white;border:none;width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">+</button>
-            <button class="zoom-btn zoom-reset" title="Reset Zoom" style="background:var(--secondary);color:white;border:none;width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;">1:1</button>
-        `;
-        
-        // Add click handlers that prevent XPath selection
-        zoomControls.querySelector('.zoom-out').onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setZoom(state.zoomLevel - 0.25);
-        };
-        
-        zoomControls.querySelector('.zoom-in').onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setZoom(state.zoomLevel + 0.25);
-        };
-        
-        zoomControls.querySelector('.zoom-reset').onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setZoom(1);
-        };
-        
-        // Prevent the entire zoom control from being selected for XPath
-        zoomControls.onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        };
-        
-        document.body.appendChild(zoomControls);
+    function updateZoomDisplay() {
+        const zoomDisplay = document.querySelector('.zoom-display');
+        if (zoomDisplay) {
+            zoomDisplay.textContent = `${Math.round(state.zoomLevel * 100)}%`;
+        }
     }
     
     // Element management
@@ -3809,7 +3792,7 @@ function loadWebsitePreview(url) {
         iframe.style.transformOrigin = '0 0';
         iframe.style.width = `${100/state.zoomLevel}%`;
         iframe.style.height = `${100/state.zoomLevel}%`;
-        updateDisplay();
+        updateZoomDisplay();
     }
     
     // Public functions
@@ -3904,7 +3887,7 @@ function loadWebsitePreview(url) {
         signal: state.eventController.signal
     });
     
-    // Iframe initialization - only direct access, no fallback
+    // Iframe initialization - enhanced for better click detection
     function initializeIframe() {
         setTimeout(() => {
             try {
@@ -3915,35 +3898,31 @@ function loadWebsitePreview(url) {
                 
                 setupDirectAccess(doc);
             } catch (error) {
-                console.error('Cannot access iframe content:', error.message);
-                // Show error message instead of fallback
-                const container = document.getElementById('selectedLocations');
-                if (container) {
-                    container.innerHTML = `
-                        <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
-                            <h4 style="margin-bottom:1rem;color:var(--danger)">Unable to Initialize Selection</h4>
-                            <p>The website cannot be accessed for element selection due to security restrictions.</p>
-                            <p>This may happen with some websites that have strict cross-origin policies.</p>
-                        </div>
-                    `;
-                }
+                console.warn('Direct access failed, trying alternative approach:', error.message);
+                // Try alternative initialization
+                setupAlternativeAccess();
             }
-        }, 1500);
+        }, 2000); // Increased timeout for better loading
     }
     
     function setupDirectAccess(doc) {
-        // Enable scrolling
+        // Enable scrolling and ensure proper display
         doc.documentElement.style.overflow = 'auto';
         doc.body.style.overflow = 'auto';
         doc.body.style.height = 'auto';
+        doc.body.style.minHeight = '100vh';
         iframe.style.overflow = 'auto';
         
-        // Inject styles
+        // Inject enhanced styles
         const style = doc.createElement('style');
         style.textContent = `
+            * { 
+                pointer-events: auto !important; 
+            }
             .xpath-hover { 
                 outline: 3px solid #6366f1 !important; 
                 background: rgba(99,102,241,0.1) !important; 
+                cursor: pointer !important;
             }
             .xpath-selected { 
                 outline: 3px solid #10b981 !important; 
@@ -3965,6 +3944,7 @@ function loadWebsitePreview(url) {
                 font: bold 11px Arial !important; 
                 z-index: 99999 !important; 
                 border: 2px solid white !important; 
+                pointer-events: none !important;
             }
             body, html { 
                 overflow: auto !important; 
@@ -3973,17 +3953,23 @@ function loadWebsitePreview(url) {
         `;
         doc.head.appendChild(style);
         
-        // Inject selection script
+        // Enhanced selection script with better event handling
         const script = doc.createElement('script');
         script.textContent = `
             (function() {
+                console.log('XPath selector script loading...');
+                
                 let selectedElements = [];
                 let maxSelections = ${state.maxSelections};
+                let isReady = false;
                 
-                if (window.xpathCleanup) window.xpathCleanup();
+                // Clean up any existing handlers
+                if (window.xpathCleanup) {
+                    window.xpathCleanup();
+                }
                 
                 function generateRobustXPath(element) {
-                    if (element.id && document.querySelectorAll('#' + element.id).length === 1) {
+                    if (element.id && document.querySelectorAll('#' + CSS.escape(element.id)).length === 1) {
                         return '//*[@id="' + element.id + '"]';
                     }
                     
@@ -4033,24 +4019,49 @@ function loadWebsitePreview(url) {
                     }
                 }
                 
+                // Enhanced hover handler
                 const hoverHandler = (e) => {
-                    if (!selectedElements.includes(e.target)) {
-                        document.querySelectorAll('.xpath-hover').forEach(el => 
-                            el.classList.remove('xpath-hover')
-                        );
-                        e.target.classList.add('xpath-hover');
-                    }
+                    if (!isReady || selectedElements.includes(e.target)) return;
+                    
+                    // Remove previous hovers
+                    document.querySelectorAll('.xpath-hover').forEach(el => 
+                        el.classList.remove('xpath-hover')
+                    );
+                    
+                    // Add hover to current element
+                    e.target.classList.add('xpath-hover');
                 };
                 
+                // Enhanced click handler
                 const clickHandler = (e) => {
+                    console.log('Click detected on:', e.target.tagName, e.target.className);
+                    
+                    if (!isReady) {
+                        console.log('Not ready yet');
+                        return;
+                    }
+                    
                     e.preventDefault();
                     e.stopPropagation();
+                    e.stopImmediatePropagation();
                     
-                    if (selectedElements.length >= maxSelections || selectedElements.includes(e.target)) {
+                    if (selectedElements.length >= maxSelections) {
+                        console.log('Max selections reached');
+                        return;
+                    }
+                    
+                    if (selectedElements.includes(e.target)) {
+                        console.log('Element already selected');
+                        return;
+                    }
+                    
+                    // Don't select our own markers
+                    if (e.target.classList.contains('xpath-number')) {
                         return;
                     }
                     
                     const xpath = generateRobustXPath(e.target);
+                    console.log('Generated XPath:', xpath);
                     
                     if (!validateXPath(xpath, e.target)) {
                         console.error('Generated invalid XPath:', xpath);
@@ -4064,10 +4075,12 @@ function loadWebsitePreview(url) {
                     marker.className = 'xpath-number';
                     marker.textContent = selectedElements.length + 1;
                     marker.dataset.id = 'el_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    e.target.style.position = 'relative';
                     e.target.appendChild(marker);
                     
                     selectedElements.push(e.target);
                     
+                    console.log('Sending message to parent');
                     window.parent.postMessage({
                         type: 'xpath_real',
                         xpath: xpath,
@@ -4079,10 +4092,12 @@ function loadWebsitePreview(url) {
                 };
                 
                 const scrollHandler = () => {
-                    window.parent.postMessage({
-                        type: 'SCROLL_POSITION',
-                        data: { x: window.scrollX, y: window.scrollY }
-                    }, '*');
+                    if (isReady) {
+                        window.parent.postMessage({
+                            type: 'SCROLL_POSITION',
+                            data: { x: window.scrollX, y: window.scrollY }
+                        }, '*');
+                    }
                 };
                 
                 const messageHandler = (e) => {
@@ -4108,22 +4123,68 @@ function loadWebsitePreview(url) {
                     }
                 };
                 
-                document.addEventListener('mouseover', hoverHandler, { passive: true });
-                document.addEventListener('click', clickHandler, true);
-                window.addEventListener('scroll', scrollHandler, { passive: true });
-                window.addEventListener('message', messageHandler);
+                // Wait for DOM to be fully ready
+                function initializeWhenReady() {
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', initializeWhenReady);
+                        return;
+                    }
+                    
+                    console.log('Initializing XPath selector...');
+                    
+                    // Add event listeners with proper options
+                    document.addEventListener('mouseover', hoverHandler, { 
+                        passive: false, 
+                        capture: true 
+                    });
+                    document.addEventListener('click', clickHandler, { 
+                        passive: false, 
+                        capture: true 
+                    });
+                    window.addEventListener('scroll', scrollHandler, { 
+                        passive: true 
+                    });
+                    window.addEventListener('message', messageHandler);
+                    
+                    isReady = true;
+                    console.log('XPath selector ready');
+                    
+                    // Signal parent that we're ready
+                    window.parent.postMessage({ type: 'IFRAME_READY' }, '*');
+                }
                 
+                // Cleanup function
                 window.xpathCleanup = function() {
-                    document.removeEventListener('mouseover', hoverHandler);
-                    document.removeEventListener('click', clickHandler);
+                    console.log('Cleaning up XPath selector');
+                    document.removeEventListener('mouseover', hoverHandler, true);
+                    document.removeEventListener('click', clickHandler, true);
                     window.removeEventListener('scroll', scrollHandler);
                     window.removeEventListener('message', messageHandler);
+                    isReady = false;
                 };
                 
-                window.parent.postMessage({ type: 'IFRAME_READY' }, '*');
+                // Initialize
+                initializeWhenReady();
             })();
         `;
         doc.body.appendChild(script);
+        
+        console.log('Direct access setup complete');
+        state.isReady = true;
+    }
+    
+    function setupAlternativeAccess() {
+        console.log('Setting up alternative access method');
+        
+        // Try to inject via postMessage
+        try {
+            iframe.contentWindow.postMessage({
+                type: 'INIT_XPATH_SELECTOR',
+                maxSelections: state.maxSelections
+            }, '*');
+        } catch (e) {
+            console.error('Alternative access also failed:', e);
+        }
         
         state.isReady = true;
     }
@@ -4137,10 +4198,6 @@ function loadWebsitePreview(url) {
                 if (loc.marker) loc.marker.remove();
             });
         }
-        
-        // Remove zoom controls
-        const zoomControls = document.querySelectorAll('.xpath-zoom-controls');
-        zoomControls.forEach(control => control.remove());
         
         try {
             iframe.contentWindow?.postMessage({ type: 'cleanup' }, '*');
@@ -4159,6 +4216,11 @@ function loadWebsitePreview(url) {
     iframe.onload = () => {
         loader.style.display = 'none';
         iframe.style.display = 'block';
+        
+        // Setup zoom controls first
+        setupZoomControls();
+        
+        // Then initialize iframe
         initializeIframe();
     };
     
@@ -4166,8 +4228,9 @@ function loadWebsitePreview(url) {
         loader.innerHTML = '<div style="text-align:center;padding:2rem">Unable to load preview</div>';
     };
     
-    // Initial display
+    // Initial display and zoom setup
     updateDisplay();
+    setupZoomControls();
     
     // Return public API
     return {

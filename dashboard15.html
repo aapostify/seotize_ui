@@ -3513,7 +3513,7 @@ function goToStep(step) {
     }
 }
 
-// Complete Website Preview with Fixed XPath and Scrolling
+// Fixed Website Preview with Correct XPath and Scrolling
 function loadWebsitePreview(url) {
     const iframe = document.getElementById('taskPreviewFrame');
     const loader = document.getElementById('websiteLoader');
@@ -3527,9 +3527,9 @@ function loadWebsitePreview(url) {
     currentData.selectedLocations = [];
     updateSelectedLocationsDisplay();
 
-    // Enable scrolling on iframe
-    iframe.scrolling = 'yes';
-    iframe.style.overflow = 'auto';
+    // Force iframe scrolling
+    iframe.setAttribute('scrolling', 'yes');
+    iframe.style.cssText = 'width: 100%; height: 100%; border: none; overflow: auto;';
     iframe.src = `https://cors.seotize.workers.dev/?url=${encodeURIComponent(url)}`;
     
     iframe.onload = () => {
@@ -3540,18 +3540,15 @@ function loadWebsitePreview(url) {
             try {
                 const doc = iframe.contentDocument || iframe.contentWindow.document;
                 if (doc && doc.body) {
-                    console.log('Iframe accessible - enabling direct interaction');
                     overlay.style.display = 'none';
                     initializeIframeInteraction(doc);
                 } else {
-                    console.log('Iframe not accessible - using overlay');
                     enableOverlayMode();
                 }
             } catch (e) {
-                console.log('Error accessing iframe:', e);
                 enableOverlayMode();
             }
-        }, 1200);
+        }, 1000);
     };
 
     iframe.onerror = () => {
@@ -3559,15 +3556,17 @@ function loadWebsitePreview(url) {
     };
 }
 
-// Initialize iframe interaction with perfect XPath
+// Initialize iframe with correct XPath detection
 function initializeIframeInteraction(doc) {
-    // Enable full scrolling
-    doc.documentElement.style.cssText = 'overflow: auto !important; height: auto !important;';
-    doc.body.style.cssText = 'overflow: auto !important; height: auto !important;';
+    // Force scrolling enabled
+    doc.documentElement.style.cssText = 'overflow: visible !important; height: auto !important;';
+    doc.body.style.cssText = 'overflow: visible !important; height: auto !important;';
     
     const style = doc.createElement('style');
     style.textContent = `
-        .xpath-hover { outline: 3px solid #6366f1 !important; background: rgba(99,102,241,0.1) !important; cursor: pointer !important; }
+        * { scroll-behavior: smooth; }
+        body, html { overflow: auto !important; height: auto !important; }
+        .xpath-hover { outline: 3px solid #6366f1 !important; background: rgba(99,102,241,0.1) !important; }
         .xpath-selected { outline: 3px solid #10b981 !important; background: rgba(16,185,129,0.2) !important; position: relative !important; }
         .xpath-number { position: absolute !important; top: -12px !important; left: -12px !important; 
             background: #10b981 !important; color: white !important; width: 20px !important; height: 20px !important; 
@@ -3582,30 +3581,34 @@ function initializeIframeInteraction(doc) {
         window.selectedElements = [];
         window.maxLocations = ${getPriorityMaxLocations(currentData.taskPriority)};
 
-        function getExactXPath(element) {
+        function getCorrectXPath(element) {
             if (!element || element.nodeType !== 1) return '';
             
             const path = [];
             let current = element;
             
-            while (current && current.nodeType === 1) {
-                if (current === document.documentElement) {
-                    path.unshift('html');
-                    break;
-                }
-                
+            while (current && current.nodeType === 1 && current !== document.documentElement) {
                 const tagName = current.tagName.toLowerCase();
                 const parent = current.parentElement;
                 
                 if (parent) {
-                    // Get ALL child elements with the same tag name
-                    const siblings = Array.from(parent.children).filter(child => 
-                        child.tagName.toLowerCase() === tagName
-                    );
+                    // Get ALL children with same tag name from parent
+                    const sameTagSiblings = [];
+                    for (let i = 0; i < parent.children.length; i++) {
+                        if (parent.children[i].tagName.toLowerCase() === tagName) {
+                            sameTagSiblings.push(parent.children[i]);
+                        }
+                    }
                     
-                    if (siblings.length > 1) {
-                        // Find the exact position (1-based index)
-                        const position = siblings.indexOf(current) + 1;
+                    if (sameTagSiblings.length > 1) {
+                        // Find EXACT position in the sameTagSiblings array
+                        let position = -1;
+                        for (let i = 0; i < sameTagSiblings.length; i++) {
+                            if (sameTagSiblings[i] === current) {
+                                position = i + 1; // XPath uses 1-based indexing
+                                break;
+                            }
+                        }
                         path.unshift(tagName + '[' + position + ']');
                     } else {
                         path.unshift(tagName);
@@ -3617,29 +3620,21 @@ function initializeIframeInteraction(doc) {
                 current = parent;
             }
             
-            return '/' + path.join('/');
+            return '/html/' + path.join('/');
         }
 
-        function testXPath(xpath, element) {
+        function verifyXPath(xpath, originalElement) {
             try {
                 const result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-                return result.singleNodeValue === element;
+                return result.singleNodeValue === originalElement;
             } catch (e) {
                 return false;
             }
         }
 
-        // Clear hovers
-        function clearHovers() {
-            document.querySelectorAll('.xpath-hover').forEach(el => 
-                el.classList.remove('xpath-hover')
-            );
-        }
-
-        // Mouseover for hover effect
         document.addEventListener('mouseover', e => {
             if (!window.selectedElements.includes(e.target)) {
-                clearHovers();
+                document.querySelectorAll('.xpath-hover').forEach(el => el.classList.remove('xpath-hover'));
                 e.target.classList.add('xpath-hover');
             }
         }, true);
@@ -3648,63 +3643,56 @@ function initializeIframeInteraction(doc) {
             e.target.classList.remove('xpath-hover');
         }, true);
 
-        // Click handler
         document.addEventListener('click', e => {
             e.preventDefault();
             e.stopPropagation();
             
             if (window.selectedElements.length >= window.maxLocations) {
-                alert('Maximum ' + window.maxLocations + ' locations reached');
+                alert('Maximum locations reached');
                 return;
             }
             
-            if (window.selectedElements.includes(e.target)) {
-                alert('Element already selected');
-                return;
-            }
+            if (window.selectedElements.includes(e.target)) return;
             
-            const xpath = getExactXPath(e.target);
+            const xpath = getCorrectXPath(e.target);
             
             if (!xpath) {
                 alert('Could not generate XPath');
                 return;
             }
             
-            // Verify XPath accuracy
-            if (!testXPath(xpath, e.target)) {
-                console.error('XPath test failed:', xpath);
-                alert('XPath generation failed. Try a different element.');
+            if (!verifyXPath(xpath, e.target)) {
+                console.error('XPath verification failed for:', e.target);
+                console.error('Generated XPath:', xpath);
+                alert('XPath generation error. Try another element.');
                 return;
             }
             
-            // Visual feedback
             e.target.classList.remove('xpath-hover');
             e.target.classList.add('xpath-selected');
             
-            // Add number marker
             const marker = document.createElement('div');
             marker.className = 'xpath-number';
             marker.textContent = window.selectedElements.length + 1;
-            marker.dataset.locationId = 'loc_' + Date.now() + '_' + Math.random();
+            marker.dataset.locationId = 'element_' + Date.now() + '_' + Math.random();
             e.target.appendChild(marker);
             
             window.selectedElements.push(e.target);
             
-            console.log('XPath Generated:', xpath);
-            console.log('XPath Verified:', testXPath(xpath, e.target));
+            console.log('Clicked element:', e.target);
+            console.log('Generated XPath:', xpath);
+            console.log('Verification result:', verifyXPath(xpath, e.target));
             
-            // Send to parent
             window.parent.postMessage({
                 type: 'xpathSelected',
                 xpath: xpath,
                 locationId: marker.dataset.locationId,
-                text: (e.target.textContent || e.target.innerText || '').trim().substring(0, 60),
+                text: (e.target.textContent || '').trim().substring(0, 50),
                 tag: e.target.tagName.toLowerCase(),
                 verified: true
             }, '*');
         }, true);
 
-        // Handle removal
         window.addEventListener('message', e => {
             if (e.data.type === 'removeXPath') {
                 const marker = document.querySelector('[data-location-id="' + e.data.locationId + '"]');
@@ -3712,11 +3700,9 @@ function initializeIframeInteraction(doc) {
                     const element = marker.parentElement;
                     element.classList.remove('xpath-selected');
                     marker.remove();
-                    
                     const index = window.selectedElements.indexOf(element);
                     if (index > -1) {
                         window.selectedElements.splice(index, 1);
-                        // Renumber remaining elements
                         window.selectedElements.forEach((el, idx) => {
                             const num = el.querySelector('.xpath-number');
                             if (num) num.textContent = idx + 1;
@@ -3725,13 +3711,10 @@ function initializeIframeInteraction(doc) {
                 }
             }
         });
-
-        console.log('XPath detection system ready. You can now scroll and click elements.');
     `;
     doc.body.appendChild(script);
 
-    // Message handler
-    const messageHandler = (e) => {
+    window.addEventListener('message', e => {
         if (e.data.type === 'xpathSelected') {
             currentData.selectedLocations.push({
                 id: e.data.locationId,
@@ -3742,10 +3725,7 @@ function initializeIframeInteraction(doc) {
             });
             updateSelectedLocationsDisplay();
         }
-    };
-
-    window.removeEventListener('message', messageHandler);
-    window.addEventListener('message', messageHandler);
+    });
 }
 
 // Fallback overlay mode
@@ -3765,8 +3745,8 @@ function enableOverlayMode() {
             return;
         }
         
-        const xpath = generateSmartFallbackXPath(x, y, currentData.selectedLocations.length);
-        const id = 'overlay_' + Date.now() + '_' + Math.random();
+        const xpath = generateFallbackXPath(x, y);
+        const id = 'fallback_' + Date.now();
         
         const marker = document.createElement('div');
         marker.className = 'xpath-marker';
@@ -3789,33 +3769,18 @@ function enableOverlayMode() {
     };
 }
 
-// Smart fallback XPath generation
-function generateSmartFallbackXPath(x, y, currentIndex) {
+function generateFallbackXPath(x, y) {
     const patterns = [
-        // Header patterns
-        { pattern: '/html/body/header/div/nav/ul/li[INDEX]/a', condition: y < 25, baseIndex: 1 },
-        { pattern: '/html/body/div[1]/header/nav/ul/li[INDEX]/a', condition: y < 25, baseIndex: 1 },
-        // Navigation patterns  
-        { pattern: '/html/body/nav/ul/li[INDEX]/a', condition: y < 35, baseIndex: 1 },
-        // Main content patterns
-        { pattern: '/html/body/main/div/section[1]/a[INDEX]', condition: y >= 25 && y <= 75, baseIndex: 1 },
-        { pattern: '/html/body/div[1]/main/div/a[INDEX]', condition: y >= 25 && y <= 75, baseIndex: 1 },
-        // Sidebar patterns
-        { pattern: '/html/body/aside/nav/ul/li[INDEX]/a', condition: x > 70, baseIndex: 1 },
-        // Footer patterns
-        { pattern: '/html/body/footer/div/nav/ul/li[INDEX]/a', condition: y > 75, baseIndex: 1 }
+        '/html/body/header/div/nav/ul/li[INDEX]/a',
+        '/html/body/main/div/section/a[INDEX]',
+        '/html/body/footer/div/ul/li[INDEX]/a'
     ];
-    
-    const matchedPattern = patterns.find(p => p.condition) || patterns[3];
-    
-    // Calculate index based on position and avoid duplicates
-    let index = matchedPattern.baseIndex + Math.floor((x + y * currentIndex) / 15);
-    index = Math.max(1, Math.min(12, index));
-    
-    return matchedPattern.pattern.replace('INDEX', index);
+    const pattern = y < 30 ? patterns[0] : y > 70 ? patterns[2] : patterns[1];
+    const index = Math.max(1, Math.floor((x + y) / 20) + 1);
+    return pattern.replace('INDEX', index);
 }
 
-// Updated display function - REMOVED COUNTER
+// Display function without tip text
 function updateSelectedLocationsDisplay() {
     const container = document.getElementById('selectedLocations');
     if (!container) return;
@@ -3828,11 +3793,7 @@ function updateSelectedLocationsDisplay() {
             <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
                 <div style="font-size:2rem;margin-bottom:1rem">👆</div>
                 <h4 style="margin-bottom:1rem">Click Elements to Select</h4>
-                <p style="margin-bottom:1rem">Click directly on clickable elements in the website preview above.</p>
-                <p>You can select up to ${max} locations for ${currentData.taskPriority} priority.</p>
-                <div style="background:var(--bg-tertiary);padding:1rem;border-radius:var(--radius);margin-top:1rem;font-size:0.85rem">
-                    💡 <strong>Tip:</strong> You can scroll in the preview to see and select elements throughout the entire website.
-                </div>
+                <p>Click directly on clickable elements in the website preview above.</p>
             </div>`;
         return;
     }
@@ -3856,38 +3817,25 @@ function updateSelectedLocationsDisplay() {
                     </button>
                 </div>
             `).join('')}
-            
-            <div style="text-align:center;margin-top:1rem;padding:1rem;background:var(--bg-tertiary);border-radius:var(--radius);font-size:0.85rem;color:var(--text-secondary)">
-                ${count < max ? `You can add ${max - count} more location${max - count !== 1 ? 's' : ''} by clicking elements in the preview above` : 'Maximum locations reached for this priority level'}
-            </div>
         </div>`;
 }
 
-// Remove location function
 function removeLocation(locationId) {
     const index = currentData.selectedLocations.findIndex(loc => loc.id == locationId);
     if (index === -1) return;
     
     const location = currentData.selectedLocations[index];
     
-    // Remove from iframe
     try {
         const iframe = document.getElementById('taskPreviewFrame');
         if (iframe.contentWindow) {
             iframe.contentWindow.postMessage({ type: 'removeXPath', locationId }, '*');
         }
-    } catch (e) {
-        console.log('Could not communicate with iframe');
-    }
+    } catch (e) {}
     
-    // Remove overlay marker
-    if (location.marker) {
-        location.marker.remove();
-    }
+    if (location.marker) location.marker.remove();
     
-    // Remove from array
     currentData.selectedLocations.splice(index, 1);
-    
     updateSelectedLocationsDisplay();
     showToast('Location removed', 'info');
 }

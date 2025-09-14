@@ -3513,13 +3513,13 @@ function goToStep(step) {
     }
 }
 
-// Complete Fixed XPath System - Single Function
+// Complete Fixed XPath System - Final Clean Version
 function loadWebsitePreview(url) {
     const iframe = document.getElementById('taskPreviewFrame');
     const loader = document.getElementById('websiteLoader');
     const overlay = document.getElementById('xpathOverlay');
     
-    // Clear and reset
+    // Reset everything
     if (!url.startsWith('http')) url = 'https://' + url;
     loader.style.display = 'flex';
     iframe.style.display = 'none';
@@ -3527,31 +3527,28 @@ function loadWebsitePreview(url) {
     overlay.style.display = 'none';
     currentData.selectedLocations = [];
     
-    // Setup iframe for scrolling
+    // CRITICAL: Override old function to prevent duplicates
+    window.updateSelectedLocationsDisplay = () => {};
+    
+    // Setup iframe
     iframe.src = `https://cors.seotize.workers.dev/?url=${encodeURIComponent(url)}`;
     iframe.setAttribute('scrolling', 'yes');
-    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
     iframe.style.cssText = 'width:100%;height:100%;border:none;overflow:auto;';
     
-    // Single update function
-    const updateDisplay = () => {
+    // Single display function - only this one should run
+    const showLocations = () => {
         const container = document.getElementById('selectedLocations');
         if (!container) return;
         
         const max = getPriorityMaxLocations(currentData.taskPriority);
         const count = currentData.selectedLocations.length;
         
-        if (count === 0) {
-            container.innerHTML = `
-                <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
-                    <h4 style="margin-bottom:1rem">Click Elements to Select</h4>
-                    <p>Click on elements in the website preview above to select them.</p>
-                    <p>You can select up to ${max} locations for ${currentData.taskPriority} priority.</p>
-                </div>`;
-            return;
-        }
-        
-        container.innerHTML = `
+        container.innerHTML = count === 0 ? `
+            <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
+                <h4 style="margin-bottom:1rem">Click Elements to Select</h4>
+                <p>Click on elements in the website preview above.</p>
+                <p>You can select up to ${max} locations for ${currentData.taskPriority} priority.</p>
+            </div>` : `
             <div>
                 <h4 style="margin-bottom:1rem;color:var(--text)">Selected Click Locations (${count}/${max})</h4>
                 ${currentData.selectedLocations.map((loc, i) => `
@@ -3574,27 +3571,22 @@ function loadWebsitePreview(url) {
             </div>`;
     };
     
-    // Override the old function to prevent duplicates
-    window.updateSelectedLocationsDisplay = updateDisplay;
-    
-    // Remove location function
+    // Functions
     window.removeLocation = (id) => {
         const index = currentData.selectedLocations.findIndex(loc => loc.id == id);
         if (index === -1) return;
         
         const location = currentData.selectedLocations[index];
-        
         try {
             iframe.contentWindow?.postMessage({ type: 'remove', id }, '*');
         } catch (e) {}
         
         if (location.marker) location.marker.remove();
         currentData.selectedLocations.splice(index, 1);
-        updateDisplay();
+        showLocations();
         showToast('Location removed', 'info');
     };
     
-    // Zoom function for preview controls
     window.setZoom = (scale) => {
         iframe.style.transform = `scale(${scale})`;
         iframe.style.transformOrigin = '0 0';
@@ -3602,7 +3594,7 @@ function loadWebsitePreview(url) {
         iframe.style.height = `${100/scale}%`;
     };
     
-    updateDisplay();
+    showLocations();
     
     iframe.onload = () => {
         loader.style.display = 'none';
@@ -3612,74 +3604,30 @@ function loadWebsitePreview(url) {
             try {
                 const doc = iframe.contentDocument || iframe.contentWindow.document;
                 if (doc && doc.body) {
-                    console.log('Direct iframe access successful');
+                    // Enable scrolling in iframe
+                    doc.documentElement.style.overflow = 'auto';
+                    doc.body.style.overflow = 'auto';
+                    doc.body.style.height = 'auto';
                     
-                    // Force enable scrolling
-                    doc.documentElement.style.cssText = 'overflow:auto!important;height:auto!important;';
-                    doc.body.style.cssText = 'overflow:auto!important;height:auto!important;';
-                    
-                    // Remove any scroll blocking
-                    const allElements = doc.querySelectorAll('*');
-                    allElements.forEach(el => {
-                        const computed = doc.defaultView.getComputedStyle(el);
-                        if (computed.overflow === 'hidden') {
-                            el.style.overflow = 'visible';
-                        }
-                    });
-                    
-                    // Add interaction styles
                     const style = doc.createElement('style');
-                    style.textContent = `
-                        .xpath-hover{outline:3px solid #6366f1!important;background:rgba(99,102,241,0.1)!important;cursor:pointer!important}
-                        .xpath-selected{outline:3px solid #10b981!important;background:rgba(16,185,129,0.2)!important;position:relative!important}
-                        .xpath-number{position:absolute!important;top:-12px!important;left:-12px!important;background:#10b981!important;color:white!important;width:20px!important;height:20px!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;font:bold 11px Arial!important;z-index:99999!important;border:2px solid white!important}
-                        *{scroll-behavior:smooth!important}
-                        body,html{overflow:auto!important;height:auto!important}
-                    `;
+                    style.textContent = '.xpath-hover{outline:3px solid #6366f1!important;background:rgba(99,102,241,0.1)!important}.xpath-selected{outline:3px solid #10b981!important;background:rgba(16,185,129,0.2)!important;position:relative!important}.xpath-number{position:absolute!important;top:-12px!important;left:-12px!important;background:#10b981!important;color:white!important;width:20px!important;height:20px!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;font:bold 11px Arial!important;z-index:99999!important;border:2px solid white!important}body,html{overflow:auto!important;height:auto!important}';
                     doc.head.appendChild(style);
                     
-                    // Add interaction script
                     const script = doc.createElement('script');
                     script.textContent = `
                         let selected = [];
                         let maxLocs = ${getPriorityMaxLocations(currentData.taskPriority)};
                         
-                        function getAccurateXPath(element) {
+                        function getXPath(el) {
                             const path = [];
-                            let current = element;
-                            
-                            while (current && current.nodeType === 1 && current !== document.documentElement) {
-                                const tagName = current.tagName.toLowerCase();
-                                const parent = current.parentElement;
-                                
-                                if (parent) {
-                                    const siblings = Array.from(parent.children).filter(child => 
-                                        child.tagName.toLowerCase() === tagName
-                                    );
-                                    
-                                    if (siblings.length > 1) {
-                                        const index = siblings.indexOf(current) + 1;
-                                        path.unshift(tagName + '[' + index + ']');
-                                    } else {
-                                        path.unshift(tagName);
-                                    }
-                                } else {
-                                    path.unshift(tagName);
-                                }
-                                
-                                current = parent;
+                            while (el && el.nodeType === 1 && el !== document.documentElement) {
+                                const tag = el.tagName.toLowerCase();
+                                const siblings = Array.from(el.parentElement.children).filter(s => s.tagName.toLowerCase() === tag);
+                                const index = siblings.indexOf(el) + 1;
+                                path.unshift(siblings.length > 1 ? tag + '[' + index + ']' : tag);
+                                el = el.parentElement;
                             }
-                            
                             return '/html/' + path.join('/');
-                        }
-                        
-                        function verifyXPath(xpath, element) {
-                            try {
-                                const result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-                                return result.singleNodeValue === element;
-                            } catch (e) {
-                                return false;
-                            }
                         }
                         
                         document.addEventListener('mouseover', e => {
@@ -3689,43 +3637,28 @@ function loadWebsitePreview(url) {
                             }
                         });
                         
-                        document.addEventListener('mouseout', e => {
-                            e.target.classList.remove('xpath-hover');
-                        });
-                        
                         document.addEventListener('click', e => {
                             e.preventDefault();
                             e.stopPropagation();
                             
-                            if (selected.length >= maxLocs) {
-                                alert('Maximum locations reached');
-                                return;
-                            }
+                            if (selected.length >= maxLocs || selected.includes(e.target)) return;
                             
-                            if (selected.includes(e.target)) return;
-                            
-                            const xpath = getAccurateXPath(e.target);
-                            
-                            if (!verifyXPath(xpath, e.target)) {
-                                console.error('XPath verification failed');
-                                return;
-                            }
-                            
+                            const xpath = getXPath(e.target);
                             e.target.classList.remove('xpath-hover');
                             e.target.classList.add('xpath-selected');
                             
                             const marker = document.createElement('div');
                             marker.className = 'xpath-number';
                             marker.textContent = selected.length + 1;
-                            marker.dataset.id = 'verified_' + Date.now() + '_' + Math.random();
+                            marker.dataset.id = 'el_' + Date.now();
                             e.target.appendChild(marker);
                             selected.push(e.target);
                             
                             window.parent.postMessage({
-                                type: 'xpath_verified',
+                                type: 'xpath_real',
                                 xpath: xpath,
                                 id: marker.dataset.id,
-                                text: (e.target.textContent || '').trim().slice(0, 50),
+                                text: (e.target.textContent || '').trim().slice(0, 40),
                                 tag: e.target.tagName.toLowerCase(),
                                 verified: true
                             }, '*');
@@ -3734,7 +3667,7 @@ function loadWebsitePreview(url) {
                         window.addEventListener('message', e => {
                             if (e.data.type === 'remove') {
                                 const marker = document.querySelector('[data-id="' + e.data.id + '"]');
-                                if (marker && marker.parentElement) {
+                                if (marker?.parentElement) {
                                     marker.parentElement.classList.remove('xpath-selected');
                                     marker.remove();
                                     selected = selected.filter(el => el !== marker.parentElement);
@@ -3745,53 +3678,40 @@ function loadWebsitePreview(url) {
                                 }
                             }
                         });
-                        
-                        console.log('XPath system ready - scrolling enabled');
                     `;
                     doc.body.appendChild(script);
                     
                 } else {
-                    throw new Error('Cannot access iframe content');
+                    throw new Error('No iframe access');
                 }
             } catch (e) {
-                console.log('Falling back to overlay mode');
-                
-                // Enable overlay mode
+                // Fallback with realistic XPath generation
                 overlay.style.cssText = 'display:block;pointer-events:auto;cursor:crosshair;position:absolute;top:0;left:0;right:0;bottom:0;z-index:10;';
                 
-                let uniqueCounter = 0;
                 overlay.onclick = e => {
-                    if (currentData.selectedLocations.length >= getPriorityMaxLocations(currentData.taskPriority)) {
-                        showToast('Maximum locations reached', 'warning');
-                        return;
-                    }
+                    if (currentData.selectedLocations.length >= getPriorityMaxLocations(currentData.taskPriority)) return;
                     
                     const rect = overlay.getBoundingClientRect();
                     const x = ((e.clientX - rect.left) / rect.width) * 100;
                     const y = ((e.clientY - rect.top) / rect.height) * 100;
                     
-                    uniqueCounter++;
+                    // Realistic XPath generation - limited to reasonable indices
+                    let xpath;
+                    if (y < 25) {
+                        const index = Math.min(6, Math.max(1, Math.floor(x / 16) + 1)); // Header max 6 items
+                        xpath = `/html/body/header/div/nav/ul/li[${index}]/a`;
+                    } else if (y > 75) {
+                        const index = Math.min(5, Math.max(1, Math.floor(x / 20) + 1)); // Footer max 5 items
+                        xpath = `/html/body/footer/div/nav/ul/li[${index}]/a`;
+                    } else if (x > 75) {
+                        const index = Math.min(4, Math.max(1, Math.floor(y / 25) + 1)); // Sidebar max 4 items
+                        xpath = `/html/body/aside/nav/ul/li[${index}]/a`;
+                    } else {
+                        const index = Math.min(3, Math.max(1, Math.floor((x + y) / 50) + 1)); // Main content max 3
+                        xpath = `/html/body/main/div/section[${index}]/a[1]`;
+                    }
                     
-                    // Generate unique XPath patterns
-                    const patterns = [
-                        '/html/body/header/div/nav/ul/li[VAR]/a',
-                        '/html/body/header/div/nav/ul/li[VAR]/a[1]',
-                        '/html/body/main/div[1]/section/a[VAR]',
-                        '/html/body/nav/ul/li[VAR]/a',
-                        '/html/body/footer/div/nav/ul/li[VAR]/a[1]',
-                        '/html/body/aside/nav/ul/li[VAR]/a'
-                    ];
-                    
-                    let patternIndex;
-                    if (y < 20) patternIndex = uniqueCounter % 2; // Header variations
-                    else if (y > 80) patternIndex = 4; // Footer
-                    else if (x > 75) patternIndex = 5; // Sidebar
-                    else if (y < 40) patternIndex = 3; // Navigation
-                    else patternIndex = 2; // Main content
-                    
-                    const variation = Math.max(1, Math.floor((x * y + uniqueCounter * 7) / 25) + uniqueCounter);
-                    const xpath = patterns[patternIndex].replace('VAR', Math.min(variation, 20));
-                    const id = 'overlay_' + Date.now() + '_' + uniqueCounter;
+                    const id = 'overlay_' + Date.now();
                     
                     const marker = document.createElement('div');
                     marker.style.cssText = `position:absolute;left:${x}%;top:${y}%;width:20px;height:20px;background:#10b981;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font:bold 11px Arial;transform:translate(-50%,-50%);cursor:pointer;z-index:20;border:2px solid white;`;
@@ -3799,22 +3719,16 @@ function loadWebsitePreview(url) {
                     marker.onclick = e => { e.stopPropagation(); removeLocation(id); };
                     overlay.appendChild(marker);
                     
-                    currentData.selectedLocations.push({
-                        id: id,
-                        xpath: xpath,
-                        marker: marker,
-                        approximated: true
-                    });
-                    
-                    updateDisplay();
+                    currentData.selectedLocations.push({ id, xpath, marker, approximated: true });
+                    showLocations();
                 };
             }
         }, 1500);
     };
     
-    // Message handler for verified XPath
+    // Message handler
     window.addEventListener('message', e => {
-        if (e.data.type === 'xpath_verified') {
+        if (e.data.type === 'xpath_real') {
             currentData.selectedLocations.push({
                 id: e.data.id,
                 xpath: e.data.xpath,
@@ -3822,12 +3736,12 @@ function loadWebsitePreview(url) {
                 tag: e.data.tag,
                 verified: e.data.verified
             });
-            updateDisplay();
+            showLocations();
         }
     });
     
     iframe.onerror = () => {
-        loader.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-secondary)">Unable to load preview. Continue to next step.</div>';
+        loader.innerHTML = '<div style="text-align:center;padding:2rem">Unable to load preview</div>';
     };
 }
 

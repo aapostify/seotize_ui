@@ -3537,8 +3537,18 @@ function loadWebsitePreview(url) {
     overlay.style.display = 'none';
     currentData.selectedLocations = [];
     
+    // Clear any existing display to prevent duplicates
+    const existingContainer = document.getElementById('selectedLocations');
+    if (existingContainer) {
+        existingContainer.innerHTML = '';
+    }
+    
     // Override any existing functions to prevent conflicts
     window.updateSelectedLocationsDisplay = () => {};
+    
+    // Clean up any existing zoom controls to prevent conflicts
+    const existingZoomControls = document.querySelectorAll('.xpath-zoom-controls');
+    existingZoomControls.forEach(control => control.remove());
     
     // Robust XPath generator functions
     function isUniqueId(id) {
@@ -3649,24 +3659,7 @@ function loadWebsitePreview(url) {
         }
     }
     
-    // Fallback XPath generator for overlay mode
-    function generateFallbackXPath(x, y) {
-        if (y < 25) {
-            const index = Math.min(6, Math.max(1, Math.floor(x / 16) + 1));
-            return `/html/body/header//nav//li[${index}]//a[1]`;
-        } else if (y > 75) {
-            const index = Math.min(5, Math.max(1, Math.floor(x / 20) + 1));
-            return `/html/body/footer//li[${index}]//a[1]`;
-        } else if (x > 75) {
-            const index = Math.min(4, Math.max(1, Math.floor(y / 25) + 1));
-            return `/html/body//aside//li[${index}]//a[1]`;
-        } else {
-            const index = Math.min(3, Math.max(1, Math.floor((x + y) / 50) + 1));
-            return `/html/body//main//section[${index}]//a[1]`;
-        }
-    }
-    
-    // Display management
+    // Display management - single source of truth
     function updateDisplay() {
         if (state.displayUpdateScheduled) return;
         state.displayUpdateScheduled = true;
@@ -3684,6 +3677,9 @@ function loadWebsitePreview(url) {
         const count = state.selectedElements.length;
         const max = state.maxSelections;
         
+        // Clear container completely to prevent duplicates
+        container.innerHTML = '';
+        
         if (count === 0) {
             container.innerHTML = `
                 <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
@@ -3696,9 +3692,9 @@ function loadWebsitePreview(url) {
         } else {
             container.innerHTML = `
                 <div>
-                    <h4 style="margin-bottom:1rem;color:var(--text)">
-                        Selected Click Locations (${count}/${max})
-                        <small style="font-weight:normal;margin-left:1rem">Zoom: ${Math.round(state.zoomLevel * 100)}%</small>
+                    <h4 style="margin-bottom:1rem;color:var(--text);display:flex;justify-content:space-between;align-items:center">
+                        <span>Selected Click Locations (${count}/${max})</span>
+                        <small style="font-weight:normal;color:var(--text-secondary)">Zoom: ${Math.round(state.zoomLevel * 100)}%</small>
                     </h4>
                     ${state.selectedElements.map((loc, i) => `
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;border-left:4px solid ${loc.verified ? 'var(--success)' : 'var(--warning)'}">
@@ -3707,7 +3703,6 @@ function loadWebsitePreview(url) {
                                     <span style="background:var(--primary);color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem">${i+1}</span>
                                     ${loc.tag ? loc.tag.toUpperCase() + ' Element' : 'Location'}
                                     ${loc.verified ? '<span style="background:var(--success);color:white;padding:0.2rem 0.4rem;border-radius:4px;font-size:0.7rem">✓ Verified</span>' : ''}
-                                    ${loc.approximated ? '<span style="background:var(--warning);color:white;padding:0.2rem 0.4rem;border-radius:4px;font-size:0.7rem">Approximated</span>' : ''}
                                 </div>
                                 ${loc.text ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;padding:0.5rem;background:var(--bg-tertiary);border-radius:4px">"${loc.text}"</div>` : ''}
                                 <code style="background:var(--bg);padding:0.5rem;border-radius:4px;font-size:0.75rem;word-break:break-all;display:block;border:1px solid var(--border)">${loc.xpath}</code>
@@ -3720,6 +3715,66 @@ function loadWebsitePreview(url) {
                 </div>
             `;
         }
+        
+        // Add zoom controls that are isolated from XPath selection
+        createZoomControls();
+    }
+    
+    // Create isolated zoom controls
+    function createZoomControls() {
+        // Remove existing zoom controls
+        const existingControls = document.querySelectorAll('.xpath-zoom-controls');
+        existingControls.forEach(control => control.remove());
+        
+        const zoomControls = document.createElement('div');
+        zoomControls.className = 'xpath-zoom-controls';
+        zoomControls.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 10001;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        `;
+        
+        zoomControls.innerHTML = `
+            <button class="zoom-btn zoom-out" title="Zoom Out" style="background:var(--primary);color:white;border:none;width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">−</button>
+            <span style="display:flex;align-items:center;padding:0 8px;font-size:12px;color:var(--text-secondary);min-width:40px;justify-content:center;">${Math.round(state.zoomLevel * 100)}%</span>
+            <button class="zoom-btn zoom-in" title="Zoom In" style="background:var(--primary);color:white;border:none;width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">+</button>
+            <button class="zoom-btn zoom-reset" title="Reset Zoom" style="background:var(--secondary);color:white;border:none;width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;">1:1</button>
+        `;
+        
+        // Add click handlers that prevent XPath selection
+        zoomControls.querySelector('.zoom-out').onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setZoom(state.zoomLevel - 0.25);
+        };
+        
+        zoomControls.querySelector('.zoom-in').onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setZoom(state.zoomLevel + 0.25);
+        };
+        
+        zoomControls.querySelector('.zoom-reset').onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setZoom(1);
+        };
+        
+        // Prevent the entire zoom control from being selected for XPath
+        zoomControls.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        };
+        
+        document.body.appendChild(zoomControls);
     }
     
     // Element management
@@ -3739,7 +3794,6 @@ function loadWebsitePreview(url) {
                 text: data.element.textContent,
                 tag: data.element.tagName,
                 verified: data.verified || false,
-                approximated: data.approximated || false,
                 timestamp: Date.now()
             });
             
@@ -3763,13 +3817,9 @@ function loadWebsitePreview(url) {
         const index = state.selectedElements.findIndex(loc => loc.id === id);
         if (index === -1) return;
         
-        const location = state.selectedElements[index];
-        
         try {
             iframe.contentWindow?.postMessage({ type: 'remove', id }, '*');
         } catch (e) {}
-        
-        if (location.marker) location.marker.remove();
         
         state.selectedElements.splice(index, 1);
         currentData.selectedLocations = [...state.selectedElements];
@@ -3781,10 +3831,6 @@ function loadWebsitePreview(url) {
     window.setZoom = setZoom;
     
     window.clearAllSelections = () => {
-        state.selectedElements.forEach(loc => {
-            if (loc.marker) loc.marker.remove();
-        });
-        
         state.selectedElements = [];
         currentData.selectedLocations = [];
         
@@ -3792,7 +3838,6 @@ function loadWebsitePreview(url) {
             iframe.contentWindow?.postMessage({ type: 'clear_all' }, '*');
         } catch (e) {}
         
-        overlay.innerHTML = '';
         updateDisplay();
     };
     
@@ -3859,17 +3904,29 @@ function loadWebsitePreview(url) {
         signal: state.eventController.signal
     });
     
-    // Iframe initialization
+    // Iframe initialization - only direct access, no fallback
     function initializeIframe() {
         setTimeout(() => {
             try {
                 const doc = iframe.contentDocument || iframe.contentWindow.document;
-                if (!doc || !doc.body) throw new Error('Cannot access iframe content');
+                if (!doc || !doc.body) {
+                    throw new Error('Cannot access iframe content');
+                }
                 
                 setupDirectAccess(doc);
             } catch (error) {
-                console.warn('Direct access failed, using fallback:', error.message);
-                setupFallbackMode();
+                console.error('Cannot access iframe content:', error.message);
+                // Show error message instead of fallback
+                const container = document.getElementById('selectedLocations');
+                if (container) {
+                    container.innerHTML = `
+                        <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
+                            <h4 style="margin-bottom:1rem;color:var(--danger)">Unable to Initialize Selection</h4>
+                            <p>The website cannot be accessed for element selection due to security restrictions.</p>
+                            <p>This may happen with some websites that have strict cross-origin policies.</p>
+                        </div>
+                    `;
+                }
             }
         }, 1500);
     }
@@ -4071,73 +4128,6 @@ function loadWebsitePreview(url) {
         state.isReady = true;
     }
     
-    function setupFallbackMode() {
-        overlay.style.cssText = `
-            display: block;
-            pointer-events: auto;
-            cursor: crosshair;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 10;
-        `;
-        
-        const fallbackClickHandler = (e) => {
-            if (state.selectedElements.length >= state.maxSelections) return;
-            
-            const rect = overlay.getBoundingClientRect();
-            const x = ((e.clientX - rect.left) / rect.width) * 100;
-            const y = ((e.clientY - rect.top) / rect.height) * 100;
-            
-            const xpath = generateFallbackXPath(x, y);
-            const id = 'overlay_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            
-            const marker = document.createElement('div');
-            marker.style.cssText = `
-                position: absolute;
-                left: ${x}%;
-                top: ${y}%;
-                width: 20px;
-                height: 20px;
-                background: #10b981;
-                color: white;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font: bold 11px Arial;
-                transform: translate(-50%, -50%);
-                cursor: pointer;
-                z-index: 20;
-                border: 2px solid white;
-            `;
-            marker.textContent = state.selectedElements.length + 1;
-            marker.onclick = (e) => { 
-                e.stopPropagation(); 
-                window.removeLocation(id); 
-            };
-            overlay.appendChild(marker);
-            
-            handleElementClick({
-                xpath: xpath,
-                element: { id: id, textContent: '', tagName: 'div' },
-                approximated: true,
-                verified: false
-            });
-            
-            // Store marker reference
-            state.selectedElements[state.selectedElements.length - 1].marker = marker;
-        };
-        
-        overlay.addEventListener('click', fallbackClickHandler, {
-            signal: state.eventController.signal
-        });
-        
-        state.isReady = true;
-    }
-    
     // Cleanup function
     function cleanup() {
         state.eventController.abort();
@@ -4147,6 +4137,10 @@ function loadWebsitePreview(url) {
                 if (loc.marker) loc.marker.remove();
             });
         }
+        
+        // Remove zoom controls
+        const zoomControls = document.querySelectorAll('.xpath-zoom-controls');
+        zoomControls.forEach(control => control.remove());
         
         try {
             iframe.contentWindow?.postMessage({ type: 'cleanup' }, '*');

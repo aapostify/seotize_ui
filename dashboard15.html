@@ -3534,84 +3534,55 @@ function loadWebsitePreview(url) {
     currentData.selectedLocations = [];
     selectedElements = [];
     
-    // COMPLETELY TAKE OVER THE CONTAINER - NUCLEAR OPTION
-    const container = document.getElementById('selectedLocations');
-    if (container) {
-        // Replace the entire container element to break any references other functions might have
-        const newContainer = document.createElement('div');
-        newContainer.id = 'selectedLocations';
-        newContainer.className = container.className;
-        container.parentNode.replaceChild(newContainer, container);
-        
-        // Override the innerHTML setter to prevent other functions from writing to it
-        let locked = false;
-        Object.defineProperty(newContainer, 'innerHTML', {
-            set: function(value) {
-                if (!locked) {
-                    this._innerHTML = value;
-                    this.replaceChildren();
-                    this.insertAdjacentHTML('beforeend', value);
-                }
-            },
-            get: function() {
-                return this._innerHTML || '';
-            }
-        });
-    }
+    // Override display functions but let the app handle the header
+    window.updateSelectedLocationsDisplay = () => {};
+    window.showLocations = () => {};
     
-    // Override ALL possible display functions
-    const originalFunctions = {};
-    ['updateSelectedLocationsDisplay', 'showLocations', 'renderDisplay', 'updateDisplay'].forEach(funcName => {
-        if (window[funcName]) {
-            originalFunctions[funcName] = window[funcName];
-        }
-        window[funcName] = () => {}; // Override with empty function
-    });
-    
-    // Single display update function - THE ONLY ONE
+    // Single display update function - NO HEADER, just content
     function updateDisplay() {
         const container = document.getElementById('selectedLocations');
         if (!container) return;
         
-        // Lock the container to prevent external updates
-        const locked = true;
-        
-        // Completely clear and rebuild
-        container.replaceChildren(); // This clears everything
-        
         const count = selectedElements.length;
         
-        const html = count === 0 ? `
+        // Update currentData first so the app's header function can read it
+        currentData.selectedLocations = [...selectedElements];
+        
+        // Find existing header and preserve it, only update the content below it
+        const existingHeader = container.querySelector('h4');
+        let headerHTML = '';
+        if (existingHeader) {
+            headerHTML = existingHeader.outerHTML;
+        }
+        
+        // Only provide the content, no header
+        const contentHTML = count === 0 ? `
             <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
-                <h4 style="margin-bottom:1rem">Click Elements to Select</h4>
                 <p>Click on any element in the website preview above.</p>
                 <p>You can select up to ${maxSelections} locations for ${currentData.taskPriority} priority.</p>
                 <p><small>${useOverlayMode ? 'Using overlay mode' : 'Direct element selection enabled'}</small></p>
             </div>
         ` : `
-            <div>
-                <h4 style="margin-bottom:1rem;color:var(--text)">Selected Click Locations (${count}/${maxSelections})</h4>
-                ${selectedElements.map((loc, i) => `
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;border-left:4px solid var(--success)">
-                        <div style="flex:1">
-                            <div style="font-weight:600;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem">
-                                <span style="background:var(--primary);color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem">${i+1}</span>
-                                ${loc.tag ? loc.tag.toUpperCase() + ' Element' : 'Element'}
-                                <span style="background:var(--success);color:white;padding:0.2rem 0.4rem;border-radius:4px;font-size:0.7rem">✓ Selected</span>
-                            </div>
-                            ${loc.text ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;padding:0.5rem;background:var(--bg-tertiary);border-radius:4px">"${loc.text}"</div>` : ''}
-                            <code style="background:var(--bg);padding:0.5rem;border-radius:4px;font-size:0.75rem;word-break:break-all;display:block;border:1px solid var(--border)">${loc.xpath}</code>
+            ${selectedElements.map((loc, i) => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;border-left:4px solid var(--success)">
+                    <div style="flex:1">
+                        <div style="font-weight:600;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem">
+                            <span style="background:var(--primary);color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem">${i+1}</span>
+                            ${loc.tag ? loc.tag.toUpperCase() + ' Element' : 'Element'}
+                            <span style="background:var(--success);color:white;padding:0.2rem 0.4rem;border-radius:4px;font-size:0.7rem">✓ Selected</span>
                         </div>
-                        <button class="btn btn-sm btn-danger" onclick="removeXPathElement('${loc.id}')" style="margin-left:1rem">
-                            <i class="ri-delete-bin-line"></i>
-                        </button>
+                        ${loc.text ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;padding:0.5rem;background:var(--bg-tertiary);border-radius:4px">"${loc.text}"</div>` : ''}
+                        <code style="background:var(--bg);padding:0.5rem;border-radius:4px;font-size:0.75rem;word-break:break-all;display:block;border:1px solid var(--border)">${loc.xpath}</code>
                     </div>
-                `).join('')}
-            </div>
+                    <button class="btn btn-sm btn-danger" onclick="removeXPathElement('${loc.id}')" style="margin-left:1rem">
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
+                </div>
+            `).join('')}
         `;
         
-        // Use insertAdjacentHTML instead of innerHTML to bypass any overrides
-        container.insertAdjacentHTML('afterbegin', html);
+        // Clear container and add preserved header + new content
+        container.innerHTML = headerHTML + contentHTML;
         
         updateZoomControls();
     }
@@ -3768,8 +3739,7 @@ function loadWebsitePreview(url) {
         };
         
         selectedElements.push(element);
-        currentData.selectedLocations = [...selectedElements];
-        updateDisplay();
+        updateDisplay(); // This will update currentData.selectedLocations
         
         if (window.showToast) {
             showToast(`Selected ${element.tag ? element.tag.toUpperCase() : 'element'}`, 'success');
@@ -3787,8 +3757,7 @@ function loadWebsitePreview(url) {
         }
         
         selectedElements.splice(index, 1);
-        currentData.selectedLocations = [...selectedElements];
-        updateDisplay();
+        updateDisplay(); // This will update currentData.selectedLocations
         
         if (window.showToast) showToast('Element removed', 'info');
     }
@@ -4111,11 +4080,6 @@ function loadWebsitePreview(url) {
     function cleanup() {
         window.removeEventListener('message', handleMessage);
         
-        // Restore original functions
-        Object.keys(originalFunctions).forEach(funcName => {
-            window[funcName] = originalFunctions[funcName];
-        });
-        
         try {
             iframe.contentWindow?.postMessage({ type: 'cleanup' }, '*');
         } catch (e) {}
@@ -4131,7 +4095,7 @@ function loadWebsitePreview(url) {
     
     iframe.xpathCleanup = cleanup;
     
-    // Initialize - ONLY call this once
+    // Initialize
     updateDisplay();
     updateZoomControls();
     

@@ -3524,7 +3524,6 @@ function loadWebsitePreview(url) {
     let zoomLevel = 1;
     let isReady = false;
     let useOverlayMode = false;
-    let displayUpdatePending = false;
     
     // Reset
     if (!url.startsWith('http')) url = 'https://' + url;
@@ -3535,67 +3534,89 @@ function loadWebsitePreview(url) {
     currentData.selectedLocations = [];
     selectedElements = [];
     
-    // Clear any existing display and override old functions
-    const existingContainer = document.getElementById('selectedLocations');
-    if (existingContainer) existingContainer.innerHTML = '';
-    window.updateSelectedLocationsDisplay = () => {}; // Override old function
-    
-    // Single display update function with duplicate prevention
-    function updateDisplay() {
-        if (displayUpdatePending) return;
-        displayUpdatePending = true;
+    // COMPLETELY TAKE OVER THE CONTAINER - NUCLEAR OPTION
+    const container = document.getElementById('selectedLocations');
+    if (container) {
+        // Replace the entire container element to break any references other functions might have
+        const newContainer = document.createElement('div');
+        newContainer.id = 'selectedLocations';
+        newContainer.className = container.className;
+        container.parentNode.replaceChild(newContainer, container);
         
-        requestAnimationFrame(() => {
-            const container = document.getElementById('selectedLocations');
-            if (!container) {
-                displayUpdatePending = false;
-                return;
+        // Override the innerHTML setter to prevent other functions from writing to it
+        let locked = false;
+        Object.defineProperty(newContainer, 'innerHTML', {
+            set: function(value) {
+                if (!locked) {
+                    this._innerHTML = value;
+                    this.replaceChildren();
+                    this.insertAdjacentHTML('beforeend', value);
+                }
+            },
+            get: function() {
+                return this._innerHTML || '';
             }
-            
-            // Completely clear container to prevent duplicates
-            container.innerHTML = '';
-            
-            const count = selectedElements.length;
-            
-            if (count === 0) {
-                container.innerHTML = `
-                    <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
-                        <h4 style="margin-bottom:1rem">Click Elements to Select</h4>
-                        <p>Click on any element in the website preview above.</p>
-                        <p>You can select up to ${maxSelections} locations for ${currentData.taskPriority} priority.</p>
-                        <p><small>${useOverlayMode ? 'Using overlay mode due to security restrictions' : 'Direct element selection enabled'}</small></p>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = `
-                    <div>
-                        <h4 style="margin-bottom:1rem;color:var(--text)">Selected Click Locations (${count}/${maxSelections})</h4>
-                        ${selectedElements.map((loc, i) => `
-                            <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;border-left:4px solid var(--success)">
-                                <div style="flex:1">
-                                    <div style="font-weight:600;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem">
-                                        <span style="background:var(--primary);color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem">${i+1}</span>
-                                        ${loc.tag ? loc.tag.toUpperCase() + ' Element' : 'Element'}
-                                        <span style="background:var(--success);color:white;padding:0.2rem 0.4rem;border-radius:4px;font-size:0.7rem">✓ Selected</span>
-                                    </div>
-                                    ${loc.text ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;padding:0.5rem;background:var(--bg-tertiary);border-radius:4px">"${loc.text}"</div>` : ''}
-                                    <code style="background:var(--bg);padding:0.5rem;border-radius:4px;font-size:0.75rem;word-break:break-all;display:block;border:1px solid var(--border)">${loc.xpath}</code>
-                                </div>
-                                <button class="btn btn-sm btn-danger" onclick="removeXPathElement('${loc.id}')" style="margin-left:1rem">
-                                    <i class="ri-delete-bin-line"></i>
-                                </button>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            }
-            
-            displayUpdatePending = false;
-            updateZoomControls();
         });
     }
     
-    // Enhanced zoom controls with better design and working functionality
+    // Override ALL possible display functions
+    const originalFunctions = {};
+    ['updateSelectedLocationsDisplay', 'showLocations', 'renderDisplay', 'updateDisplay'].forEach(funcName => {
+        if (window[funcName]) {
+            originalFunctions[funcName] = window[funcName];
+        }
+        window[funcName] = () => {}; // Override with empty function
+    });
+    
+    // Single display update function - THE ONLY ONE
+    function updateDisplay() {
+        const container = document.getElementById('selectedLocations');
+        if (!container) return;
+        
+        // Lock the container to prevent external updates
+        const locked = true;
+        
+        // Completely clear and rebuild
+        container.replaceChildren(); // This clears everything
+        
+        const count = selectedElements.length;
+        
+        const html = count === 0 ? `
+            <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
+                <h4 style="margin-bottom:1rem">Click Elements to Select</h4>
+                <p>Click on any element in the website preview above.</p>
+                <p>You can select up to ${maxSelections} locations for ${currentData.taskPriority} priority.</p>
+                <p><small>${useOverlayMode ? 'Using overlay mode' : 'Direct element selection enabled'}</small></p>
+            </div>
+        ` : `
+            <div>
+                <h4 style="margin-bottom:1rem;color:var(--text)">Selected Click Locations (${count}/${maxSelections})</h4>
+                ${selectedElements.map((loc, i) => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;border-left:4px solid var(--success)">
+                        <div style="flex:1">
+                            <div style="font-weight:600;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem">
+                                <span style="background:var(--primary);color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem">${i+1}</span>
+                                ${loc.tag ? loc.tag.toUpperCase() + ' Element' : 'Element'}
+                                <span style="background:var(--success);color:white;padding:0.2rem 0.4rem;border-radius:4px;font-size:0.7rem">✓ Selected</span>
+                            </div>
+                            ${loc.text ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;padding:0.5rem;background:var(--bg-tertiary);border-radius:4px">"${loc.text}"</div>` : ''}
+                            <code style="background:var(--bg);padding:0.5rem;border-radius:4px;font-size:0.75rem;word-break:break-all;display:block;border:1px solid var(--border)">${loc.xpath}</code>
+                        </div>
+                        <button class="btn btn-sm btn-danger" onclick="removeXPathElement('${loc.id}')" style="margin-left:1rem">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        
+        // Use insertAdjacentHTML instead of innerHTML to bypass any overrides
+        container.insertAdjacentHTML('afterbegin', html);
+        
+        updateZoomControls();
+    }
+    
+    // Enhanced zoom controls
     function updateZoomControls() {
         const previewControls = document.getElementById('preview-controls');
         if (!previewControls) return;
@@ -3692,85 +3713,23 @@ function loadWebsitePreview(url) {
         `;
         
         // Add working event listeners
-        const zoomOutBtn = document.getElementById('zoomOutBtn');
-        const zoomInBtn = document.getElementById('zoomInBtn');
-        const zoomResetBtn = document.getElementById('zoomResetBtn');
-        
-        if (zoomOutBtn) {
-            zoomOutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setZoom(zoomLevel - 0.25);
-                addButtonEffect(e.target);
-            });
-        }
-        
-        if (zoomInBtn) {
-            zoomInBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setZoom(zoomLevel + 0.25);
-                addButtonEffect(e.target);
-            });
-        }
-        
-        if (zoomResetBtn) {
-            zoomResetBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setZoom(1);
-                addButtonEffect(e.target);
-            });
-        }
-        
-        // Add hover effects
-        [zoomOutBtn, zoomInBtn, zoomResetBtn].forEach(btn => {
-            if (btn) {
-                btn.addEventListener('mouseenter', () => {
-                    btn.style.transform = 'translateY(-2px) scale(1.05)';
-                    btn.style.boxShadow = btn.style.boxShadow.replace('0 3px 8px', '0 6px 16px');
-                });
-                
-                btn.addEventListener('mouseleave', () => {
-                    btn.style.transform = 'translateY(0) scale(1)';
-                    btn.style.boxShadow = btn.style.boxShadow.replace('0 6px 16px', '0 3px 8px');
-                });
-            }
+        document.getElementById('zoomOutBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setZoom(zoomLevel - 0.25);
         });
-    }
-    
-    function addButtonEffect(button) {
-        const ripple = document.createElement('div');
-        ripple.style.cssText = `
-            position:absolute;
-            top:50%;
-            left:50%;
-            width:0;
-            height:0;
-            border-radius:50%;
-            background:rgba(255,255,255,0.6);
-            transform:translate(-50%,-50%);
-            animation:ripple 0.6s ease-out;
-            pointer-events:none;
-        `;
         
-        button.appendChild(ripple);
-        setTimeout(() => ripple.remove(), 600);
+        document.getElementById('zoomInBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setZoom(zoomLevel + 0.25);
+        });
         
-        if (!document.getElementById('ripple-style')) {
-            const style = document.createElement('style');
-            style.id = 'ripple-style';
-            style.textContent = `
-                @keyframes ripple {
-                    to {
-                        width: 80px;
-                        height: 80px;
-                        opacity: 0;
-                    }
-                }
-            `;
-            document.head.appendChild(style);
-        }
+        document.getElementById('zoomResetBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setZoom(1);
+        });
     }
     
     function setZoom(scale) {
@@ -3780,7 +3739,7 @@ function loadWebsitePreview(url) {
         iframe.style.width = `${100/zoomLevel}%`;
         iframe.style.height = `${100/zoomLevel}%`;
         
-        // Update zoom display only, don't trigger full update
+        // Update zoom display
         const zoomDisplay = document.querySelector('.zoom-controls-container div[style*="font-family:monospace"]');
         if (zoomDisplay) {
             zoomDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
@@ -3796,7 +3755,6 @@ function loadWebsitePreview(url) {
             return;
         }
         
-        // Check for duplicates
         if (selectedElements.some(el => el.xpath === data.xpath)) {
             return;
         }
@@ -3806,8 +3764,6 @@ function loadWebsitePreview(url) {
             xpath: data.xpath,
             text: (data.text || '').slice(0, 50),
             tag: data.tag || 'unknown',
-            x: data.x,
-            y: data.y,
             timestamp: Date.now()
         };
         
@@ -3824,7 +3780,6 @@ function loadWebsitePreview(url) {
         const index = selectedElements.findIndex(el => el.id === id);
         if (index === -1) return;
         
-        // Remove from iframe if in direct mode
         if (!useOverlayMode) {
             try {
                 iframe.contentWindow?.postMessage({ type: 'remove_element', id }, '*');
@@ -3838,7 +3793,7 @@ function loadWebsitePreview(url) {
         if (window.showToast) showToast('Element removed', 'info');
     }
     
-    // Message handling for iframe communication
+    // Message handling
     function handleMessage(event) {
         if (event.source !== iframe.contentWindow) return;
         
@@ -3883,7 +3838,6 @@ function loadWebsitePreview(url) {
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             const y = ((e.clientY - rect.top) / rect.height) * 100;
             
-            // Generate XPath based on position
             let xpath;
             if (y < 20) {
                 const index = Math.min(8, Math.max(1, Math.floor(x / 12.5) + 1));
@@ -3899,8 +3853,6 @@ function loadWebsitePreview(url) {
             
             addElement({
                 xpath: xpath,
-                x: x,
-                y: y,
                 tag: 'element',
                 text: 'Overlay selection'
             });
@@ -3917,18 +3869,16 @@ function loadWebsitePreview(url) {
     iframe.setAttribute('scrolling', 'yes');
     iframe.style.cssText = 'width:100%;height:100%;border:none;overflow:auto;';
     
-    // Listen for messages
     window.addEventListener('message', handleMessage);
     
     iframe.onload = () => {
         loader.style.display = 'none';
         iframe.style.display = 'block';
         
-        // Inject the working script
         setTimeout(() => {
             const script = `
                 (function() {
-                    console.log('Injecting XPath selector with scrolling...');
+                    console.log('Injecting XPath selector...');
                     
                     try {
                         let selectedElements = new Map();
@@ -3936,12 +3886,10 @@ function loadWebsitePreview(url) {
                         const maxSelections = ${maxSelections};
                         let isActive = true;
                         
-                        // Enable scrolling first
                         document.documentElement.style.overflow = 'auto';
                         document.body.style.overflow = 'auto';
                         document.body.style.height = 'auto';
                         
-                        // Add styles
                         const style = document.createElement('style');
                         style.textContent = \`
                             .xpath-hover { 
@@ -3979,7 +3927,6 @@ function loadWebsitePreview(url) {
                         \`;
                         document.head.appendChild(style);
                         
-                        // XPath generator
                         function generateXPath(element) {
                             if (element.id && document.querySelectorAll('#' + element.id).length === 1) {
                                 return '//*[@id="' + element.id + '"]';
@@ -4013,7 +3960,6 @@ function loadWebsitePreview(url) {
                             return '//' + path.join('/');
                         }
                         
-                        // Event handlers
                         function onMouseOver(e) {
                             if (!isActive || selectedElements.has(e.target)) return;
                             
@@ -4031,9 +3977,6 @@ function loadWebsitePreview(url) {
                         function onClick(e) {
                             if (!isActive) return;
                             
-                            console.log('Element clicked:', e.target.tagName);
-                            
-                            // Prevent all default behaviors
                             e.preventDefault();
                             e.stopPropagation();
                             e.stopImmediatePropagation();
@@ -4045,11 +3988,9 @@ function loadWebsitePreview(url) {
                             const xpath = generateXPath(e.target);
                             if (!xpath) return false;
                             
-                            // Visual feedback
                             e.target.classList.remove('xpath-hover');
                             e.target.classList.add('xpath-selected');
                             
-                            // Add marker
                             const marker = document.createElement('div');
                             marker.className = 'xpath-marker';
                             marker.textContent = selectedCount + 1;
@@ -4065,7 +4006,6 @@ function loadWebsitePreview(url) {
                             });
                             selectedCount++;
                             
-                            // Send to parent
                             window.parent.postMessage({
                                 type: 'xpath_selected',
                                 data: {
@@ -4076,11 +4016,9 @@ function loadWebsitePreview(url) {
                                 }
                             }, '*');
                             
-                            console.log('XPath generated:', xpath);
                             return false;
                         }
                         
-                        // Message handler
                         function onMessage(e) {
                             if (e.data.type === 'remove_element') {
                                 for (const [element, data] of selectedElements.entries()) {
@@ -4090,7 +4028,6 @@ function loadWebsitePreview(url) {
                                         selectedElements.delete(element);
                                         selectedCount--;
                                         
-                                        // Update numbering
                                         let index = 1;
                                         for (const [el, elData] of selectedElements.entries()) {
                                             if (elData.marker) elData.marker.textContent = index++;
@@ -4101,13 +4038,11 @@ function loadWebsitePreview(url) {
                             }
                         }
                         
-                        // Attach events with highest priority
                         document.addEventListener('mouseover', onMouseOver, { capture: true, passive: true });
                         document.addEventListener('mouseout', onMouseOut, { capture: true, passive: true });
                         document.addEventListener('click', onClick, { capture: true, passive: false });
                         window.addEventListener('message', onMessage);
                         
-                        // Cleanup function
                         window.xpathCleanup = function() {
                             isActive = false;
                             document.removeEventListener('mouseover', onMouseOver, true);
@@ -4121,9 +4056,7 @@ function loadWebsitePreview(url) {
                             selectedElements.clear();
                         };
                         
-                        // Signal ready
                         window.parent.postMessage({ type: 'iframe_ready' }, '*');
-                        console.log('XPath selector ready with scrolling enabled!');
                         
                     } catch (error) {
                         console.error('XPath selector failed:', error);
@@ -4133,19 +4066,16 @@ function loadWebsitePreview(url) {
             `;
             
             try {
-                // Inject the script
                 const doc = iframe.contentDocument;
                 if (doc && doc.body) {
                     const scriptEl = doc.createElement('script');
                     scriptEl.textContent = script;
                     doc.body.appendChild(scriptEl);
-                    console.log('Script injected successfully');
                 } else {
                     useOverlayMode = true;
                     setupOverlay();
                 }
             } catch (e) {
-                console.error('Script injection failed:', e);
                 useOverlayMode = true;
                 setupOverlay();
             }
@@ -4181,6 +4111,11 @@ function loadWebsitePreview(url) {
     function cleanup() {
         window.removeEventListener('message', handleMessage);
         
+        // Restore original functions
+        Object.keys(originalFunctions).forEach(funcName => {
+            window[funcName] = originalFunctions[funcName];
+        });
+        
         try {
             iframe.contentWindow?.postMessage({ type: 'cleanup' }, '*');
         } catch (e) {}
@@ -4196,7 +4131,7 @@ function loadWebsitePreview(url) {
     
     iframe.xpathCleanup = cleanup;
     
-    // Initialize
+    // Initialize - ONLY call this once
     updateDisplay();
     updateZoomControls();
     

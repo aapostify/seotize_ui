@@ -3523,6 +3523,8 @@ function loadWebsitePreview(url) {
     let maxSelections = getPriorityMaxLocations(currentData.taskPriority);
     let zoomLevel = 1;
     let isReady = false;
+    let useOverlayMode = false;
+    let displayUpdateScheduled = false;
     
     // Reset
     if (!url.startsWith('http')) url = 'https://' + url;
@@ -3533,74 +3535,53 @@ function loadWebsitePreview(url) {
     currentData.selectedLocations = [];
     selectedElements = [];
     
-    // Clear any existing
+    // Clear any existing and prevent duplicates
     const existingContainer = document.getElementById('selectedLocations');
-    if (existingContainer) existingContainer.innerHTML = '';
-    
-    // XPath generation for overlay positions
-    function generateSmartXPath(x, y, element = null) {
-        // Convert percentage coordinates to realistic XPath
-        if (element) {
-            // If we have element info, use it
-            return element.xpath;
-        }
-        
-        // Generate based on position
-        if (y < 20) {
-            // Header area
-            const index = Math.min(8, Math.max(1, Math.floor(x / 12.5) + 1));
-            return `/html/body/header//nav//li[${index}]//a[1]`;
-        } else if (y > 80) {
-            // Footer area
-            const index = Math.min(6, Math.max(1, Math.floor(x / 16.67) + 1));
-            return `/html/body/footer//li[${index}]//a[1]`;
-        } else if (x > 85) {
-            // Right sidebar
-            const index = Math.min(5, Math.max(1, Math.floor((y-20) / 12) + 1));
-            return `/html/body//aside[@class="sidebar"]//li[${index}]//a[1]`;
-        } else if (x < 15) {
-            // Left sidebar
-            const index = Math.min(5, Math.max(1, Math.floor((y-20) / 12) + 1));
-            return `/html/body//nav[@class="sidebar"]//li[${index}]//a[1]`;
-        } else {
-            // Main content area
-            const row = Math.min(4, Math.max(1, Math.floor((y-20) / 15) + 1));
-            const col = Math.min(3, Math.max(1, Math.floor((x-15) / 23.33) + 1));
-            return `/html/body//main//section[${row}]//div[${col}]//a[1]`;
-        }
+    if (existingContainer) {
+        existingContainer.innerHTML = '';
     }
     
-    // Display management
+    // Override any existing update functions to prevent conflicts
+    window.updateSelectedLocationsDisplay = () => {};
+    
+    // Display management with duplicate prevention
     function updateDisplay() {
-        const container = document.getElementById('selectedLocations');
-        if (!container) return;
+        if (displayUpdateScheduled) return;
+        displayUpdateScheduled = true;
         
-        const count = selectedElements.length;
-        
-        if (count === 0) {
-            container.innerHTML = `
-                <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
-                    <h4 style="margin-bottom:1rem">Click Elements to Select</h4>
-                    <p>Click anywhere on the website preview above to select elements.</p>
-                    <p>You can select up to ${maxSelections} locations for ${currentData.taskPriority} priority.</p>
-                    <p><small>The system will generate XPath expressions for clicked locations.</small></p>
-                </div>
-            `;
-        } else {
-            container.innerHTML = `
-                <div>
+        requestAnimationFrame(() => {
+            const container = document.getElementById('selectedLocations');
+            if (!container) {
+                displayUpdateScheduled = false;
+                return;
+            }
+            
+            // Force clear everything to prevent duplicates
+            container.innerHTML = '';
+            
+            const count = selectedElements.length;
+            
+            if (count === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
+                        <h4 style="margin-bottom:1rem">Click Elements to Select</h4>
+                        <p>Click on any element in the website preview above.</p>
+                        <p>You can select up to ${maxSelections} locations for ${currentData.taskPriority} priority.</p>
+                        <p><small>${useOverlayMode ? 'Using overlay mode due to security restrictions' : 'Direct element selection enabled'}</small></p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
                     <h4 style="margin-bottom:1rem;color:var(--text)">Selected Click Locations (${count}/${maxSelections})</h4>
                     ${selectedElements.map((loc, i) => `
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;border-left:4px solid var(--success)">
                             <div style="flex:1">
                                 <div style="font-weight:600;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem">
                                     <span style="background:var(--primary);color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem">${i+1}</span>
-                                    Element at (${Math.round(loc.x)}%, ${Math.round(loc.y)}%)
+                                    ${loc.tag ? loc.tag.toUpperCase() + ' Element' : 'Element'}
                                     <span style="background:var(--success);color:white;padding:0.2rem 0.4rem;border-radius:4px;font-size:0.7rem">✓ Selected</span>
                                 </div>
-                                <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;">
-                                    Position: ${loc.description}
-                                </div>
+                                ${loc.text ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;padding:0.5rem;background:var(--bg-tertiary);border-radius:4px">"${loc.text}"</div>` : ''}
                                 <code style="background:var(--bg);padding:0.5rem;border-radius:4px;font-size:0.75rem;word-break:break-all;display:block;border:1px solid var(--border)">${loc.xpath}</code>
                             </div>
                             <button class="btn btn-sm btn-danger" onclick="removeXPathElement('${loc.id}')" style="margin-left:1rem">
@@ -3608,35 +3589,182 @@ function loadWebsitePreview(url) {
                             </button>
                         </div>
                     `).join('')}
-                </div>
-            `;
-        }
-        
-        updateZoomControls();
+                `;
+            }
+            
+            displayUpdateScheduled = false;
+            updateZoomControls();
+        });
     }
     
-    // Enhanced zoom controls with better design
+    // Enhanced zoom controls with better design and working functionality
     function updateZoomControls() {
         const previewControls = document.getElementById('preview-controls');
         if (!previewControls) return;
         
         previewControls.innerHTML = `
-            <div style="display:flex;gap:4px;align-items:center;justify-content:center;padding:12px;background:linear-gradient(135deg, var(--card) 0%, var(--bg-tertiary) 100%);border-radius:12px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                <button onclick="adjustXPathZoom(-0.25)" style="background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%);color:white;border:none;width:38px;height:38px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:16px;transition:all 0.2s ease;box-shadow:0 2px 4px rgba(239,68,68,0.3);" title="Zoom Out" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">−</button>
+            <div class="zoom-controls-container" style="display:flex;gap:6px;align-items:center;justify-content:center;padding:16px;background:linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);border-radius:16px;border:1px solid #e2e8f0;box-shadow:0 4px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8);">
                 
-                <div style="display:flex;align-items:center;padding:0 16px;font-size:15px;color:var(--text);min-width:65px;justify-content:center;font-weight:600;background:var(--card);border-radius:6px;border:1px solid var(--border);">
+                <button id="zoomOutBtn" style="
+                    background:linear-gradient(145deg, #ef4444 0%, #dc2626 100%);
+                    color:white;
+                    border:none;
+                    width:42px;
+                    height:42px;
+                    border-radius:12px;
+                    cursor:pointer;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-weight:bold;
+                    font-size:18px;
+                    transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow:0 3px 8px rgba(239,68,68,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+                    position:relative;
+                    overflow:hidden;
+                " title="Zoom Out (Ctrl/Cmd + -)">
+                    <span style="z-index:1;">−</span>
+                </button>
+                
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    padding:0 20px;
+                    height:42px;
+                    font-size:16px;
+                    color:var(--text);
+                    min-width:75px;
+                    justify-content:center;
+                    font-weight:700;
+                    background:linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%);
+                    border-radius:10px;
+                    border:1px solid #cbd5e1;
+                    box-shadow:inset 0 2px 4px rgba(0,0,0,0.06);
+                    font-family:monospace;
+                ">
                     ${Math.round(zoomLevel * 100)}%
                 </div>
                 
-                <button onclick="adjustXPathZoom(0.25)" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%);color:white;border:none;width:38px;height:38px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:16px;transition:all 0.2s ease;box-shadow:0 2px 4px rgba(16,185,129,0.3);" title="Zoom In" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">+</button>
-                
-                <div style="width:1px;height:20px;background:var(--border);margin:0 8px;"></div>
-                
-                <button onclick="resetXPathZoom()" style="background:linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);color:white;border:none;padding:0 12px;height:38px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;transition:all 0.2s ease;box-shadow:0 2px 4px rgba(99,102,241,0.3);" title="Reset Zoom" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    <i class="ri-restart-line" style="margin-right:4px;"></i>Reset
+                <button id="zoomInBtn" style="
+                    background:linear-gradient(145deg, #10b981 0%, #059669 100%);
+                    color:white;
+                    border:none;
+                    width:42px;
+                    height:42px;
+                    border-radius:12px;
+                    cursor:pointer;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-weight:bold;
+                    font-size:18px;
+                    transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow:0 3px 8px rgba(16,185,129,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+                    position:relative;
+                    overflow:hidden;
+                " title="Zoom In (Ctrl/Cmd + +)">
+                    <span style="z-index:1;">+</span>
                 </button>
+                
+                <div style="width:1px;height:24px;background:linear-gradient(to bottom, transparent, #cbd5e1, transparent);margin:0 12px;"></div>
+                
+                <button id="zoomResetBtn" style="
+                    background:linear-gradient(145deg, #6366f1 0%, #4f46e5 100%);
+                    color:white;
+                    border:none;
+                    padding:0 16px;
+                    height:42px;
+                    border-radius:12px;
+                    cursor:pointer;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:13px;
+                    font-weight:600;
+                    transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow:0 3px 8px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+                    position:relative;
+                    overflow:hidden;
+                " title="Reset Zoom (Ctrl/Cmd + 0)">
+                    <i class="ri-restart-line" style="margin-right:6px;font-size:14px;"></i>
+                    <span>Reset</span>
+                </button>
+                
             </div>
         `;
+        
+        // Add working event listeners
+        document.getElementById('zoomOutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setZoom(zoomLevel - 0.25);
+            addButtonEffect(e.target);
+        });
+        
+        document.getElementById('zoomInBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setZoom(zoomLevel + 0.25);
+            addButtonEffect(e.target);
+        });
+        
+        document.getElementById('zoomResetBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setZoom(1);
+            addButtonEffect(e.target);
+        });
+        
+        // Add hover effects
+        [document.getElementById('zoomOutBtn'), document.getElementById('zoomInBtn'), document.getElementById('zoomResetBtn')].forEach(btn => {
+            if (btn) {
+                btn.addEventListener('mouseenter', () => {
+                    btn.style.transform = 'translateY(-2px) scale(1.05)';
+                    btn.style.boxShadow = btn.style.boxShadow.replace('0 3px 8px', '0 6px 16px');
+                });
+                
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transform = 'translateY(0) scale(1)';
+                    btn.style.boxShadow = btn.style.boxShadow.replace('0 6px 16px', '0 3px 8px');
+                });
+            }
+        });
+    }
+    
+    function addButtonEffect(button) {
+        // Create ripple effect
+        const ripple = document.createElement('div');
+        ripple.style.cssText = `
+            position:absolute;
+            top:50%;
+            left:50%;
+            width:0;
+            height:0;
+            border-radius:50%;
+            background:rgba(255,255,255,0.6);
+            transform:translate(-50%,-50%);
+            animation:ripple 0.6s ease-out;
+            pointer-events:none;
+        `;
+        
+        button.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+        
+        // Add CSS for ripple animation if not exists
+        if (!document.getElementById('ripple-style')) {
+            const style = document.createElement('style');
+            style.id = 'ripple-style';
+            style.textContent = `
+                @keyframes ripple {
+                    to {
+                        width: 80px;
+                        height: 80px;
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
     }
     
     function setZoom(scale) {
@@ -3648,17 +3776,8 @@ function loadWebsitePreview(url) {
         updateZoomControls();
     }
     
-    // Get area description based on coordinates
-    function getAreaDescription(x, y) {
-        if (y < 20) return "Header/Navigation area";
-        if (y > 80) return "Footer area";
-        if (x > 85) return "Right sidebar area";
-        if (x < 15) return "Left sidebar area";
-        return "Main content area";
-    }
-    
     // Element management
-    function addElement(x, y, xpath) {
+    function addElement(data) {
         if (selectedElements.length >= maxSelections) {
             if (window.showToast) {
                 showToast(`Maximum ${maxSelections} selections reached`, 'warning');
@@ -3666,93 +3785,73 @@ function loadWebsitePreview(url) {
             return;
         }
         
+        // Check for duplicates
+        if (selectedElements.some(el => el.xpath === data.xpath)) {
+            return;
+        }
+        
         const element = {
-            id: 'xpath_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-            xpath: xpath,
-            x: x,
-            y: y,
-            description: getAreaDescription(x, y),
+            id: data.id || 'xpath_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            xpath: data.xpath,
+            text: (data.text || '').slice(0, 50),
+            tag: data.tag || 'unknown',
+            x: data.x,
+            y: data.y,
             timestamp: Date.now()
         };
         
         selectedElements.push(element);
         currentData.selectedLocations = [...selectedElements];
-        
-        // Create visual marker
-        createMarker(element);
         updateDisplay();
         
         if (window.showToast) {
-            showToast(`Selected element in ${element.description}`, 'success');
+            showToast(`Selected ${element.tag ? element.tag.toUpperCase() : 'element'}`, 'success');
         }
-    }
-    
-    function createMarker(element) {
-        const marker = document.createElement('div');
-        marker.id = `marker_${element.id}`;
-        marker.style.cssText = `
-            position: absolute;
-            left: ${element.x}%;
-            top: ${element.y}%;
-            width: 24px;
-            height: 24px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font: bold 11px sans-serif;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
-            z-index: 1000;
-            border: 2px solid white;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
-            transition: all 0.2s ease;
-        `;
-        marker.textContent = selectedElements.length;
-        marker.title = `XPath: ${element.xpath}`;
-        
-        // Add hover effect
-        marker.onmouseover = () => {
-            marker.style.transform = 'translate(-50%, -50%) scale(1.2)';
-        };
-        marker.onmouseout = () => {
-            marker.style.transform = 'translate(-50%, -50%) scale(1)';
-        };
-        
-        // Add click to remove
-        marker.onclick = (e) => {
-            e.stopPropagation();
-            removeElement(element.id);
-        };
-        
-        overlay.appendChild(marker);
     }
     
     function removeElement(id) {
         const index = selectedElements.findIndex(el => el.id === id);
         if (index === -1) return;
         
-        // Remove marker
-        const marker = document.getElementById(`marker_${id}`);
-        if (marker) marker.remove();
+        // Remove from iframe if in direct mode
+        if (!useOverlayMode) {
+            try {
+                iframe.contentWindow?.postMessage({ type: 'remove_element', id }, '*');
+            } catch (e) {}
+        }
         
         selectedElements.splice(index, 1);
         currentData.selectedLocations = [...selectedElements];
-        
-        // Update marker numbers
-        selectedElements.forEach((el, i) => {
-            const marker = document.getElementById(`marker_${el.id}`);
-            if (marker) marker.textContent = i + 1;
-        });
-        
         updateDisplay();
         
         if (window.showToast) showToast('Element removed', 'info');
     }
     
-    // Setup overlay for click detection
+    // Message handling for iframe communication
+    function handleMessage(event) {
+        if (event.source !== iframe.contentWindow) return;
+        
+        const { type, data } = event.data;
+        
+        switch (type) {
+            case 'xpath_selected':
+                addElement(data);
+                break;
+            case 'iframe_ready':
+                isReady = true;
+                useOverlayMode = false;
+                console.log('XPath selector ready - direct mode');
+                updateDisplay();
+                break;
+            case 'fallback_to_overlay':
+                useOverlayMode = true;
+                setupOverlay();
+                console.log('Falling back to overlay mode');
+                break;
+        }
+    }
+    
+    // Setup overlay as fallback
     function setupOverlay() {
         overlay.style.cssText = `
             position: absolute;
@@ -3763,6 +3862,7 @@ function loadWebsitePreview(url) {
             z-index: 999;
             cursor: crosshair;
             display: block;
+            background: rgba(59, 130, 246, 0.02);
         `;
         
         overlay.onclick = (e) => {
@@ -3772,27 +3872,33 @@ function loadWebsitePreview(url) {
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             const y = ((e.clientY - rect.top) / rect.height) * 100;
             
-            const xpath = generateSmartXPath(x, y);
-            addElement(x, y, xpath);
-        };
-        
-        // Add visual feedback
-        overlay.onmousemove = (e) => {
-            if (selectedElements.length >= maxSelections) return;
+            // Generate XPath based on position
+            let xpath;
+            if (y < 20) {
+                const index = Math.min(8, Math.max(1, Math.floor(x / 12.5) + 1));
+                xpath = `/html/body/header//nav//li[${index}]//a[1]`;
+            } else if (y > 80) {
+                const index = Math.min(6, Math.max(1, Math.floor(x / 16.67) + 1));
+                xpath = `/html/body/footer//li[${index}]//a[1]`;
+            } else {
+                const row = Math.min(4, Math.max(1, Math.floor((y-20) / 15) + 1));
+                const col = Math.min(3, Math.max(1, Math.floor((x-15) / 23.33) + 1));
+                xpath = `/html/body//main//section[${row}]//div[${col}]//a[1]`;
+            }
             
-            overlay.style.background = 'rgba(59, 130, 246, 0.05)';
+            addElement({
+                xpath: xpath,
+                x: x,
+                y: y,
+                tag: 'element',
+                text: 'Overlay selection'
+            });
         };
         
-        overlay.onmouseleave = () => {
-            overlay.style.background = 'transparent';
-        };
-        
-        isReady = true;
+        updateDisplay();
     }
     
     // Global functions
-    window.adjustXPathZoom = (delta) => setZoom(zoomLevel + delta);
-    window.resetXPathZoom = () => setZoom(1);
     window.removeXPathElement = removeElement;
     
     // Setup iframe
@@ -3800,15 +3906,239 @@ function loadWebsitePreview(url) {
     iframe.setAttribute('scrolling', 'yes');
     iframe.style.cssText = 'width:100%;height:100%;border:none;overflow:auto;';
     
+    // Listen for messages
+    window.addEventListener('message', handleMessage);
+    
     iframe.onload = () => {
         loader.style.display = 'none';
         iframe.style.display = 'block';
         
-        // Setup overlay immediately - no need to inject scripts
+        // Inject the working script
         setTimeout(() => {
-            setupOverlay();
-            console.log('XPath selector ready via overlay method');
-        }, 1000);
+            const script = `
+                (function() {
+                    console.log('Injecting XPath selector with scrolling...');
+                    
+                    try {
+                        let selectedElements = new Map();
+                        let selectedCount = 0;
+                        const maxSelections = ${maxSelections};
+                        let isActive = true;
+                        
+                        // Enable scrolling first
+                        document.documentElement.style.overflow = 'auto';
+                        document.body.style.overflow = 'auto';
+                        document.body.style.height = 'auto';
+                        
+                        // Add styles
+                        const style = document.createElement('style');
+                        style.textContent = \`
+                            .xpath-hover { 
+                                outline: 3px solid #3b82f6 !important; 
+                                background: rgba(59, 130, 246, 0.1) !important; 
+                                cursor: crosshair !important;
+                            }
+                            .xpath-selected { 
+                                outline: 3px solid #10b981 !important; 
+                                background: rgba(16, 185, 129, 0.15) !important; 
+                                position: relative !important;
+                            }
+                            .xpath-marker { 
+                                position: absolute !important; 
+                                top: -12px !important; 
+                                left: -12px !important; 
+                                background: #10b981 !important; 
+                                color: white !important; 
+                                width: 20px !important; 
+                                height: 20px !important; 
+                                border-radius: 50% !important; 
+                                display: flex !important; 
+                                align-items: center !important; 
+                                justify-content: center !important; 
+                                font: bold 11px sans-serif !important; 
+                                z-index: 999999 !important; 
+                                border: 2px solid white !important;
+                                pointer-events: none !important;
+                            }
+                            body { 
+                                overflow: auto !important; 
+                                height: auto !important;
+                                user-select: none !important;
+                            }
+                        \`;
+                        document.head.appendChild(style);
+                        
+                        // XPath generator
+                        function generateXPath(element) {
+                            if (element.id && document.querySelectorAll('#' + element.id).length === 1) {
+                                return '//*[@id="' + element.id + '"]';
+                            }
+                            
+                            const path = [];
+                            let current = element;
+                            
+                            while (current && current.nodeType === 1 && current !== document.documentElement) {
+                                let selector = current.tagName.toLowerCase();
+                                
+                                if (current.className && typeof current.className === 'string') {
+                                    const classes = current.className.trim();
+                                    if (classes && !classes.includes('xpath-')) {
+                                        selector += '[@class="' + classes + '"]';
+                                    }
+                                }
+                                
+                                const siblings = Array.from(current.parentElement?.children || [])
+                                    .filter(s => s.tagName === current.tagName);
+                                
+                                if (siblings.length > 1) {
+                                    const index = siblings.indexOf(current) + 1;
+                                    if (index > 0) selector += '[' + index + ']';
+                                }
+                                
+                                path.unshift(selector);
+                                current = current.parentElement;
+                            }
+                            
+                            return '//' + path.join('/');
+                        }
+                        
+                        // Event handlers
+                        function onMouseOver(e) {
+                            if (!isActive || selectedElements.has(e.target)) return;
+                            
+                            document.querySelectorAll('.xpath-hover').forEach(el => 
+                                el.classList.remove('xpath-hover')
+                            );
+                            e.target.classList.add('xpath-hover');
+                        }
+                        
+                        function onMouseOut(e) {
+                            if (!isActive) return;
+                            e.target.classList.remove('xpath-hover');
+                        }
+                        
+                        function onClick(e) {
+                            if (!isActive) return;
+                            
+                            console.log('Element clicked:', e.target.tagName);
+                            
+                            // Prevent all default behaviors
+                            e.preventDefault();
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
+                            
+                            if (selectedElements.has(e.target)) return false;
+                            if (selectedCount >= maxSelections) return false;
+                            if (e.target.classList.contains('xpath-marker')) return false;
+                            
+                            const xpath = generateXPath(e.target);
+                            if (!xpath) return false;
+                            
+                            // Visual feedback
+                            e.target.classList.remove('xpath-hover');
+                            e.target.classList.add('xpath-selected');
+                            
+                            // Add marker
+                            const marker = document.createElement('div');
+                            marker.className = 'xpath-marker';
+                            marker.textContent = selectedCount + 1;
+                            marker.dataset.id = 'xpath_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                            
+                            e.target.style.position = 'relative';
+                            e.target.appendChild(marker);
+                            
+                            selectedElements.set(e.target, {
+                                id: marker.dataset.id,
+                                marker: marker,
+                                xpath: xpath
+                            });
+                            selectedCount++;
+                            
+                            // Send to parent
+                            window.parent.postMessage({
+                                type: 'xpath_selected',
+                                data: {
+                                    id: marker.dataset.id,
+                                    xpath: xpath,
+                                    text: (e.target.textContent || '').trim().slice(0, 50),
+                                    tag: e.target.tagName.toLowerCase()
+                                }
+                            }, '*');
+                            
+                            console.log('XPath generated:', xpath);
+                            return false;
+                        }
+                        
+                        // Message handler
+                        function onMessage(e) {
+                            if (e.data.type === 'remove_element') {
+                                for (const [element, data] of selectedElements.entries()) {
+                                    if (data.id === e.data.id) {
+                                        element.classList.remove('xpath-selected');
+                                        if (data.marker) data.marker.remove();
+                                        selectedElements.delete(element);
+                                        selectedCount--;
+                                        
+                                        // Update numbering
+                                        let index = 1;
+                                        for (const [el, elData] of selectedElements.entries()) {
+                                            if (elData.marker) elData.marker.textContent = index++;
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Attach events with highest priority
+                        document.addEventListener('mouseover', onMouseOver, { capture: true, passive: true });
+                        document.addEventListener('mouseout', onMouseOut, { capture: true, passive: true });
+                        document.addEventListener('click', onClick, { capture: true, passive: false });
+                        window.addEventListener('message', onMessage);
+                        
+                        // Cleanup function
+                        window.xpathCleanup = function() {
+                            isActive = false;
+                            document.removeEventListener('mouseover', onMouseOver, true);
+                            document.removeEventListener('mouseout', onMouseOut, true);
+                            document.removeEventListener('click', onClick, true);
+                            window.removeEventListener('message', onMessage);
+                            
+                            selectedElements.forEach(data => {
+                                if (data.marker) data.marker.remove();
+                            });
+                            selectedElements.clear();
+                        };
+                        
+                        // Signal ready
+                        window.parent.postMessage({ type: 'iframe_ready' }, '*');
+                        console.log('XPath selector ready with scrolling enabled!');
+                        
+                    } catch (error) {
+                        console.error('XPath selector failed:', error);
+                        window.parent.postMessage({ type: 'fallback_to_overlay' }, '*');
+                    }
+                })();
+            `;
+            
+            try {
+                // Inject the script
+                const doc = iframe.contentDocument;
+                if (doc && doc.body) {
+                    const scriptEl = doc.createElement('script');
+                    scriptEl.textContent = script;
+                    doc.body.appendChild(scriptEl);
+                    console.log('Script injected successfully');
+                } else {
+                    useOverlayMode = true;
+                    setupOverlay();
+                }
+            } catch (e) {
+                console.error('Script injection failed:', e);
+                useOverlayMode = true;
+                setupOverlay();
+            }
+        }, 1500);
     };
     
     iframe.onerror = () => {
@@ -3838,11 +4168,18 @@ function loadWebsitePreview(url) {
     
     // Cleanup
     function cleanup() {
+        window.removeEventListener('message', handleMessage);
+        
+        try {
+            iframe.contentWindow?.postMessage({ type: 'cleanup' }, '*');
+        } catch (e) {}
+        
+        if (iframe.contentWindow?.xpathCleanup) {
+            iframe.contentWindow.xpathCleanup();
+        }
+        
         overlay.innerHTML = '';
         overlay.style.display = 'none';
-        
-        window.adjustXPathZoom = null;
-        window.resetXPathZoom = null;
         window.removeXPathElement = null;
     }
     
@@ -3857,6 +4194,11 @@ function loadWebsitePreview(url) {
         clearSelections: () => {
             selectedElements = [];
             currentData.selectedLocations = [];
+            if (!useOverlayMode) {
+                try {
+                    iframe.contentWindow?.postMessage({ type: 'clear_all' }, '*');
+                } catch (e) {}
+            }
             overlay.innerHTML = '';
             updateDisplay();
         },

@@ -3524,7 +3524,7 @@ function loadWebsitePreview(url) {
     let zoomLevel = 1;
     let isReady = false;
     let useOverlayMode = false;
-    let displayUpdateScheduled = false;
+    let displayUpdatePending = false;
     
     // Reset
     if (!url.startsWith('http')) url = 'https://' + url;
@@ -3535,28 +3535,24 @@ function loadWebsitePreview(url) {
     currentData.selectedLocations = [];
     selectedElements = [];
     
-    // Clear any existing and prevent duplicates
+    // Clear any existing display and override old functions
     const existingContainer = document.getElementById('selectedLocations');
-    if (existingContainer) {
-        existingContainer.innerHTML = '';
-    }
+    if (existingContainer) existingContainer.innerHTML = '';
+    window.updateSelectedLocationsDisplay = () => {}; // Override old function
     
-    // Override any existing update functions to prevent conflicts
-    window.updateSelectedLocationsDisplay = () => {};
-    
-    // Display management with duplicate prevention
+    // Single display update function with duplicate prevention
     function updateDisplay() {
-        if (displayUpdateScheduled) return;
-        displayUpdateScheduled = true;
+        if (displayUpdatePending) return;
+        displayUpdatePending = true;
         
         requestAnimationFrame(() => {
             const container = document.getElementById('selectedLocations');
             if (!container) {
-                displayUpdateScheduled = false;
+                displayUpdatePending = false;
                 return;
             }
             
-            // Force clear everything to prevent duplicates
+            // Completely clear container to prevent duplicates
             container.innerHTML = '';
             
             const count = selectedElements.length;
@@ -3572,27 +3568,29 @@ function loadWebsitePreview(url) {
                 `;
             } else {
                 container.innerHTML = `
-                    <h4 style="margin-bottom:1rem;color:var(--text)">Selected Click Locations (${count}/${maxSelections})</h4>
-                    ${selectedElements.map((loc, i) => `
-                        <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;border-left:4px solid var(--success)">
-                            <div style="flex:1">
-                                <div style="font-weight:600;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem">
-                                    <span style="background:var(--primary);color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem">${i+1}</span>
-                                    ${loc.tag ? loc.tag.toUpperCase() + ' Element' : 'Element'}
-                                    <span style="background:var(--success);color:white;padding:0.2rem 0.4rem;border-radius:4px;font-size:0.7rem">✓ Selected</span>
+                    <div>
+                        <h4 style="margin-bottom:1rem;color:var(--text)">Selected Click Locations (${count}/${maxSelections})</h4>
+                        ${selectedElements.map((loc, i) => `
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;border-left:4px solid var(--success)">
+                                <div style="flex:1">
+                                    <div style="font-weight:600;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem">
+                                        <span style="background:var(--primary);color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem">${i+1}</span>
+                                        ${loc.tag ? loc.tag.toUpperCase() + ' Element' : 'Element'}
+                                        <span style="background:var(--success);color:white;padding:0.2rem 0.4rem;border-radius:4px;font-size:0.7rem">✓ Selected</span>
+                                    </div>
+                                    ${loc.text ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;padding:0.5rem;background:var(--bg-tertiary);border-radius:4px">"${loc.text}"</div>` : ''}
+                                    <code style="background:var(--bg);padding:0.5rem;border-radius:4px;font-size:0.75rem;word-break:break-all;display:block;border:1px solid var(--border)">${loc.xpath}</code>
                                 </div>
-                                ${loc.text ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;padding:0.5rem;background:var(--bg-tertiary);border-radius:4px">"${loc.text}"</div>` : ''}
-                                <code style="background:var(--bg);padding:0.5rem;border-radius:4px;font-size:0.75rem;word-break:break-all;display:block;border:1px solid var(--border)">${loc.xpath}</code>
+                                <button class="btn btn-sm btn-danger" onclick="removeXPathElement('${loc.id}')" style="margin-left:1rem">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
                             </div>
-                            <button class="btn btn-sm btn-danger" onclick="removeXPathElement('${loc.id}')" style="margin-left:1rem">
-                                <i class="ri-delete-bin-line"></i>
-                            </button>
-                        </div>
-                    `).join('')}
+                        `).join('')}
+                    </div>
                 `;
             }
             
-            displayUpdateScheduled = false;
+            displayUpdatePending = false;
             updateZoomControls();
         });
     }
@@ -3694,29 +3692,39 @@ function loadWebsitePreview(url) {
         `;
         
         // Add working event listeners
-        document.getElementById('zoomOutBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setZoom(zoomLevel - 0.25);
-            addButtonEffect(e.target);
-        });
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomResetBtn = document.getElementById('zoomResetBtn');
         
-        document.getElementById('zoomInBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setZoom(zoomLevel + 0.25);
-            addButtonEffect(e.target);
-        });
+        if (zoomOutBtn) {
+            zoomOutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setZoom(zoomLevel - 0.25);
+                addButtonEffect(e.target);
+            });
+        }
         
-        document.getElementById('zoomResetBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setZoom(1);
-            addButtonEffect(e.target);
-        });
+        if (zoomInBtn) {
+            zoomInBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setZoom(zoomLevel + 0.25);
+                addButtonEffect(e.target);
+            });
+        }
+        
+        if (zoomResetBtn) {
+            zoomResetBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setZoom(1);
+                addButtonEffect(e.target);
+            });
+        }
         
         // Add hover effects
-        [document.getElementById('zoomOutBtn'), document.getElementById('zoomInBtn'), document.getElementById('zoomResetBtn')].forEach(btn => {
+        [zoomOutBtn, zoomInBtn, zoomResetBtn].forEach(btn => {
             if (btn) {
                 btn.addEventListener('mouseenter', () => {
                     btn.style.transform = 'translateY(-2px) scale(1.05)';
@@ -3732,7 +3740,6 @@ function loadWebsitePreview(url) {
     }
     
     function addButtonEffect(button) {
-        // Create ripple effect
         const ripple = document.createElement('div');
         ripple.style.cssText = `
             position:absolute;
@@ -3750,7 +3757,6 @@ function loadWebsitePreview(url) {
         button.appendChild(ripple);
         setTimeout(() => ripple.remove(), 600);
         
-        // Add CSS for ripple animation if not exists
         if (!document.getElementById('ripple-style')) {
             const style = document.createElement('style');
             style.id = 'ripple-style';
@@ -3773,7 +3779,12 @@ function loadWebsitePreview(url) {
         iframe.style.transformOrigin = '0 0';
         iframe.style.width = `${100/zoomLevel}%`;
         iframe.style.height = `${100/zoomLevel}%`;
-        updateZoomControls();
+        
+        // Update zoom display only, don't trigger full update
+        const zoomDisplay = document.querySelector('.zoom-controls-container div[style*="font-family:monospace"]');
+        if (zoomDisplay) {
+            zoomDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
+        }
     }
     
     // Element management

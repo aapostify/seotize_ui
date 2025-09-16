@@ -3541,12 +3541,6 @@ function loadWebsitePreview(url) {
         const count = selectedElements.length;
         currentData.selectedLocations = [...selectedElements];
         
-        const existingHeader = container.querySelector('h4');
-        let headerHTML = '';
-        if (existingHeader) {
-            headerHTML = existingHeader.outerHTML;
-        }
-        
         const contentHTML = count === 0 ? `
             <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
                 <p>Click on any element in the website preview above.</p>
@@ -3572,7 +3566,7 @@ function loadWebsitePreview(url) {
             `).join('')}
         `;
         
-        container.innerHTML = headerHTML + contentHTML;
+        container.innerHTML = contentHTML;
         updateZoomControls();
     }
     
@@ -3589,70 +3583,39 @@ function loadWebsitePreview(url) {
                 top: 12px;
                 right: 12px;
                 z-index: 20;
-                background: linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%);
+                background: rgba(255,255,255,0.95);
                 border: 1px solid rgba(226,232,240,0.8);
                 border-radius: 12px;
                 padding: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1);
-                backdrop-filter: blur(8px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             `;
             previewContainer.appendChild(controlsContainer);
         }
         
         controlsContainer.innerHTML = `
-            <button id="zoomOutBtn" style="background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%); color: white; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(239,68,68,0.3);" title="Zoom Out">−</button>
-            <div style="min-width: 60px; text-align: center; font-size: 12px; font-weight: 600; color: #374151; padding: 4px 8px; background: rgba(249,250,251,0.9); border-radius: 6px; border: 1px solid rgba(209,213,219,0.5);">${Math.round(zoomLevel * 100)}%</div>
-            <button id="zoomInBtn" style="background: linear-gradient(145deg, #10b981 0%, #059669 100%); color: white; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(16,185,129,0.3);" title="Zoom In">+</button>
-            <button id="zoomResetBtn" style="background: linear-gradient(145deg, #6366f1 0%, #4f46e5 100%); color: white; border: none; padding: 0 10px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(99,102,241,0.3);" title="Reset Zoom">Reset</button>
+            <button onclick="event.stopPropagation(); setZoom(${Math.max(0.25, zoomLevel - 0.25)})" style="background: #ef4444; color: white; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 16px;">−</button>
+            <div style="min-width: 60px; text-align: center; font-size: 12px; font-weight: 600;">${Math.round(zoomLevel * 100)}%</div>
+            <button onclick="event.stopPropagation(); setZoom(${Math.min(2, zoomLevel + 0.25)})" style="background: #10b981; color: white; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 16px;">+</button>
+            <button onclick="event.stopPropagation(); setZoom(1)" style="background: #6366f1; color: white; border: none; padding: 0 10px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 600;">Reset</button>
         `;
-        
-        // Add event listeners for zoom controls
-        const zoomOut = controlsContainer.querySelector('#zoomOutBtn');
-        const zoomIn = controlsContainer.querySelector('#zoomInBtn');
-        const zoomReset = controlsContainer.querySelector('#zoomResetBtn');
-        
-        zoomOut?.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setZoom(Math.max(0.25, zoomLevel - 0.25));
-        });
-        
-        zoomIn?.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setZoom(Math.min(2, zoomLevel + 0.25));
-        });
-        
-        zoomReset?.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setZoom(1);
-        });
     }
     
-    function setZoom(scale) {
+    window.setZoom = function(scale) {
         zoomLevel = Math.max(0.25, Math.min(2, scale));
         iframe.style.transform = `scale(${zoomLevel})`;
         iframe.style.transformOrigin = '0 0';
         iframe.style.width = `${100/zoomLevel}%`;
         iframe.style.height = `${100/zoomLevel}%`;
-        
-        const zoomDisplay = document.querySelector('.zoom-controls-enhanced div');
-        if (zoomDisplay) {
-            zoomDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
-        }
-    }
+        updateZoomControls();
+    };
     
     // Element management
     function addElement(data) {
         if (selectedElements.length >= maxSelections) {
-            if (window.showToast) {
-                showToast(`Maximum ${maxSelections} selections reached`, 'warning');
-            }
+            showToast(`Maximum ${maxSelections} selections reached`, 'warning');
             return;
         }
         
@@ -3670,10 +3633,7 @@ function loadWebsitePreview(url) {
         
         selectedElements.push(element);
         updateDisplay();
-        
-        if (window.showToast) {
-            showToast(`Selected ${element.tag ? element.tag.toUpperCase() : 'element'}`, 'success');
-        }
+        showToast(`Selected ${element.tag ? element.tag.toUpperCase() : 'element'}`, 'success');
     }
     
     function removeElement(id) {
@@ -3686,8 +3646,7 @@ function loadWebsitePreview(url) {
         
         selectedElements.splice(index, 1);
         updateDisplay();
-        
-        if (window.showToast) showToast('Element removed', 'info');
+        showToast('Element removed', 'info');
     }
     
     // Message handling
@@ -3702,7 +3661,7 @@ function loadWebsitePreview(url) {
                 break;
             case 'iframe_ready':
                 isReady = true;
-                console.log('Advanced XPath selector with Robula+ ready');
+                console.log('XPath selector ready');
                 updateDisplay();
                 break;
         }
@@ -3711,9 +3670,9 @@ function loadWebsitePreview(url) {
     // Global functions
     window.removeXPathElement = removeElement;
     
-    // Setup iframe
+    // Setup iframe with CSP to block external scripts
+    iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
     iframe.src = `https://cors.seotize.workers.dev/?url=${encodeURIComponent(url)}`;
-    iframe.setAttribute('scrolling', 'yes');
     iframe.style.cssText = 'width:100%;height:100%;border:none;overflow:auto;';
     
     window.addEventListener('message', handleMessage);
@@ -3723,10 +3682,17 @@ function loadWebsitePreview(url) {
         iframe.style.display = 'block';
         
         setTimeout(() => {
-            // CRITICAL: This is the script that prevents navigation and captures XPath
             const script = `
                 (function() {
-                    console.log('Injecting XPath Selector with Navigation Prevention...');
+                    console.log('Initializing XPath Selector...');
+                    
+                    // Block external scripts
+                    if (window.Cloudflare) delete window.Cloudflare;
+                    if (window.require) delete window.require;
+                    if (window.turnstile) delete window.turnstile;
+                    
+                    // Remove all Cloudflare scripts
+                    document.querySelectorAll('script[src*="cloudflare"], script[src*="turnstile"]').forEach(s => s.remove());
                     
                     try {
                         let selectedElements = new Map();
@@ -3734,55 +3700,34 @@ function loadWebsitePreview(url) {
                         const maxSelections = ${maxSelections};
                         let isActive = true;
                         
-                        // CRITICAL: Disable ALL links and prevent navigation
+                        // Disable ALL navigation
                         document.querySelectorAll('a').forEach(link => {
                             link.removeAttribute('href');
+                            link.removeAttribute('target');
                             link.style.cursor = 'crosshair';
-                            link.addEventListener('click', function(e) {
+                            link.onclick = function(e) {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                e.stopImmediatePropagation();
                                 return false;
-                            }, true);
+                            };
                         });
                         
                         // Disable forms
                         document.querySelectorAll('form').forEach(form => {
-                            form.addEventListener('submit', function(e) {
+                            form.onsubmit = function(e) {
                                 e.preventDefault();
-                                e.stopPropagation();
                                 return false;
-                            }, true);
+                            };
                         });
                         
-                        // Disable buttons that might navigate
-                        document.querySelectorAll('button').forEach(button => {
-                            button.type = 'button';
-                            button.addEventListener('click', function(e) {
-                                e.stopPropagation();
-                            }, true);
-                        });
-                        
-                        // Override window.open
-                        window.open = function() { return null; };
-                        
-                        // Prevent any navigation attempts
-                        window.addEventListener('beforeunload', function(e) {
-                            e.preventDefault();
-                            e.returnValue = '';
-                            return '';
-                        });
-                        
-                        // Style for selection mode
+                        // Style injection
                         const style = document.createElement('style');
                         style.textContent = \`
-                            * {
-                                cursor: crosshair !important;
-                            }
+                            * { cursor: crosshair !important; }
+                            a, button { pointer-events: all !important; cursor: crosshair !important; }
                             .xpath-hover { 
                                 outline: 3px solid #3b82f6 !important; 
                                 background: rgba(59, 130, 246, 0.15) !important; 
-                                cursor: crosshair !important;
                                 position: relative !important;
                                 z-index: 999998 !important;
                             }
@@ -3804,122 +3749,47 @@ function loadWebsitePreview(url) {
                                 display: flex !important; 
                                 align-items: center !important; 
                                 justify-content: center !important; 
-                                font: bold 12px -apple-system, BlinkMacSystemFont, sans-serif !important; 
+                                font: bold 12px sans-serif !important; 
                                 z-index: 999999 !important; 
                                 border: 3px solid white !important;
                                 box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
                                 pointer-events: none !important;
-                                animation: markerPulse 2s infinite !important;
-                            }
-                            @keyframes markerPulse {
-                                0%, 100% { transform: scale(1); }
-                                50% { transform: scale(1.1); }
-                            }
-                            a, button, input[type="submit"], input[type="button"] {
-                                pointer-events: all !important;
-                                cursor: crosshair !important;
                             }
                         \`;
                         document.head.appendChild(style);
                         
                         // Robula+ XPath generation
                         function generateRobulaXPath(element) {
-                            if (!element || element.nodeType !== Node.ELEMENT_NODE) {
-                                return null;
-                            }
+                            if (!element || element.nodeType !== 1) return null;
                             
-                            // Quick check for unique ID
                             if (element.id && document.querySelectorAll('#' + CSS.escape(element.id)).length === 1) {
                                 return '//*[@id="' + element.id + '"]';
                             }
                             
-                            let currentElement = element;
                             let path = [];
+                            let current = element;
                             
-                            while (currentElement && currentElement !== document.documentElement) {
-                                let selector = currentElement.tagName.toLowerCase();
+                            while (current && current !== document.documentElement) {
+                                let selector = current.tagName.toLowerCase();
+                                let siblings = Array.from(current.parentNode?.children || []).filter(e => e.tagName === current.tagName);
                                 
-                                // Try class-based selector first
-                                if (currentElement.className && typeof currentElement.className === 'string') {
-                                    const classes = currentElement.className.trim().split(/\\s+/)
-                                        .filter(cls => cls && !cls.includes('xpath-') && cls.length > 2)
-                                        .slice(0, 2);
-                                    
-                                    if (classes.length > 0) {
-                                        const classSelector = classes.map(cls => 'contains(@class, "' + cls + '")').join(' and ');
-                                        selector += '[' + classSelector + ']';
-                                        
-                                        const testPath = '//' + [selector, ...path].join('/');
-                                        try {
-                                            const result = document.evaluate(testPath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                                            if (result.snapshotLength === 1 && result.snapshotItem(0) === element) {
-                                                return testPath;
-                                            }
-                                        } catch (e) {}
-                                    }
-                                }
-                                
-                                // Try attributes
-                                const attrs = ['name', 'type', 'role', 'data-testid', 'data-cy'];
-                                for (const attr of attrs) {
-                                    const value = currentElement.getAttribute(attr);
-                                    if (value && value.length < 50) {
-                                        const attrSelector = selector + '[@' + attr + '="' + value + '"]';
-                                        const testPath = '//' + [attrSelector, ...path].join('/');
-                                        try {
-                                            const result = document.evaluate(testPath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                                            if (result.snapshotLength === 1) {
-                                                return testPath;
-                                            }
-                                        } catch (e) {}
-                                    }
-                                }
-                                
-                                // Position-based selector as fallback
-                                if (currentElement.parentElement) {
-                                    const siblings = Array.from(currentElement.parentElement.children)
-                                        .filter(sibling => sibling.tagName === currentElement.tagName);
-                                    
-                                    if (siblings.length > 1) {
-                                        const position = siblings.indexOf(currentElement) + 1;
-                                        selector += '[' + position + ']';
-                                    }
+                                if (siblings.length > 1) {
+                                    let index = siblings.indexOf(current) + 1;
+                                    selector += '[' + index + ']';
                                 }
                                 
                                 path.unshift(selector);
-                                currentElement = currentElement.parentElement;
+                                current = current.parentElement;
                             }
                             
                             return '//' + path.join('/');
                         }
                         
-                        function onMouseOver(e) {
-                            if (!isActive || selectedElements.has(e.target)) return;
-                            
-                            document.querySelectorAll('.xpath-hover').forEach(el => 
-                                el.classList.remove('xpath-hover')
-                            );
-                            e.target.classList.add('xpath-hover');
-                        }
-                        
-                        function onMouseOut(e) {
-                            if (!isActive) return;
-                            e.target.classList.remove('xpath-hover');
-                        }
-                        
-                        function onClick(e) {
-                            if (!isActive) return;
-                            
-                            // CRITICAL: Prevent ALL default actions
+                        function handleClick(e) {
                             e.preventDefault();
                             e.stopPropagation();
-                            e.stopImmediatePropagation();
                             
-                            // Don't allow navigation
-                            if (e.target.tagName === 'A' || e.target.closest('a')) {
-                                e.preventDefault();
-                            }
-                            
+                            if (!isActive) return false;
                             if (selectedElements.has(e.target)) return false;
                             if (selectedCount >= maxSelections) return false;
                             if (e.target.classList.contains('xpath-marker')) return false;
@@ -3927,13 +3797,12 @@ function loadWebsitePreview(url) {
                             const xpath = generateRobulaXPath(e.target);
                             if (!xpath) return false;
                             
-                            e.target.classList.remove('xpath-hover');
                             e.target.classList.add('xpath-selected');
                             
                             const marker = document.createElement('div');
                             marker.className = 'xpath-marker';
                             marker.textContent = selectedCount + 1;
-                            marker.dataset.id = 'xpath_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                            marker.dataset.id = 'xpath_' + Date.now();
                             
                             if (getComputedStyle(e.target).position === 'static') {
                                 e.target.style.position = 'relative';
@@ -3952,7 +3821,7 @@ function loadWebsitePreview(url) {
                                 data: {
                                     id: marker.dataset.id,
                                     xpath: xpath,
-                                    text: (e.target.textContent || e.target.innerText || '').trim().slice(0, 50),
+                                    text: (e.target.textContent || '').trim().slice(0, 50),
                                     tag: e.target.tagName.toLowerCase()
                                 }
                             }, '*');
@@ -3960,7 +3829,21 @@ function loadWebsitePreview(url) {
                             return false;
                         }
                         
-                        function onMessage(e) {
+                        function handleHover(e) {
+                            if (!isActive || selectedElements.has(e.target)) return;
+                            document.querySelectorAll('.xpath-hover').forEach(el => el.classList.remove('xpath-hover'));
+                            e.target.classList.add('xpath-hover');
+                        }
+                        
+                        function handleOut(e) {
+                            e.target.classList.remove('xpath-hover');
+                        }
+                        
+                        document.addEventListener('click', handleClick, true);
+                        document.addEventListener('mouseover', handleHover, true);
+                        document.addEventListener('mouseout', handleOut, true);
+                        
+                        window.addEventListener('message', function(e) {
                             if (e.data.type === 'remove_element') {
                                 for (const [element, data] of selectedElements.entries()) {
                                     if (data.id === e.data.id) {
@@ -3970,60 +3853,19 @@ function loadWebsitePreview(url) {
                                         selectedCount--;
                                         
                                         let index = 1;
-                                        for (const [el, elData] of selectedElements.entries()) {
-                                            if (elData.marker) elData.marker.textContent = index++;
-                                        }
+                                        selectedElements.forEach(data => {
+                                            if (data.marker) data.marker.textContent = index++;
+                                        });
                                         break;
                                     }
                                 }
                             }
-                        }
-                        
-                        // CRITICAL: Use capture phase to intercept ALL clicks before they bubble
-                        document.addEventListener('mouseover', onMouseOver, { capture: true, passive: true });
-                        document.addEventListener('mouseout', onMouseOut, { capture: true, passive: true });
-                        document.addEventListener('click', onClick, { capture: true, passive: false });
-                        window.addEventListener('message', onMessage);
-                        
-                        // Additional prevention for any dynamically added elements
-                        const observer = new MutationObserver(function(mutations) {
-                            mutations.forEach(function(mutation) {
-                                mutation.addedNodes.forEach(function(node) {
-                                    if (node.nodeType === 1) { // Element node
-                                        if (node.tagName === 'A') {
-                                            node.removeAttribute('href');
-                                            node.style.cursor = 'crosshair';
-                                            node.addEventListener('click', function(e) {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                return false;
-                                            }, true);
-                                        }
-                                    }
-                                });
-                            });
                         });
-                        
-                        observer.observe(document.body, { childList: true, subtree: true });
-                        
-                        window.xpathCleanup = function() {
-                            isActive = false;
-                            document.removeEventListener('mouseover', onMouseOver, true);
-                            document.removeEventListener('mouseout', onMouseOut, true);
-                            document.removeEventListener('click', onClick, true);
-                            window.removeEventListener('message', onMessage);
-                            observer.disconnect();
-                            
-                            selectedElements.forEach(data => {
-                                if (data.marker) data.marker.remove();
-                            });
-                            selectedElements.clear();
-                        };
                         
                         window.parent.postMessage({ type: 'iframe_ready' }, '*');
                         
                     } catch (error) {
-                        console.error('XPath selector initialization failed:', error);
+                        console.error('XPath selector error:', error);
                     }
                 })();
             `;
@@ -4034,57 +3876,18 @@ function loadWebsitePreview(url) {
                     const scriptEl = doc.createElement('script');
                     scriptEl.textContent = script;
                     doc.body.appendChild(scriptEl);
-                } else {
-                    console.warn('Could not access iframe document');
                 }
             } catch (e) {
                 console.error('Script injection failed:', e);
             }
-        }, 2000);
+        }, 1500);
     };
     
     iframe.onerror = () => {
         loader.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--danger)">Failed to load website</div>';
     };
     
-    // Cleanup function
-    function cleanup() {
-        window.removeEventListener('message', handleMessage);
-        
-        try {
-            iframe.contentWindow?.postMessage({ type: 'cleanup' }, '*');
-        } catch (e) {}
-        
-        if (iframe.contentWindow?.xpathCleanup) {
-            iframe.contentWindow.xpathCleanup();
-        }
-        
-        const controlsContainer = iframe.parentElement.querySelector('.zoom-controls-enhanced');
-        if (controlsContainer) {
-            controlsContainer.remove();
-        }
-        
-        window.removeXPathElement = null;
-    }
-    
-    iframe.xpathCleanup = cleanup;
-    
-    // Initialize
     updateDisplay();
-    
-    return {
-        getSelectedElements: () => [...selectedElements],
-        clearSelections: () => {
-            selectedElements = [];
-            currentData.selectedLocations = [];
-            try {
-                iframe.contentWindow?.postMessage({ type: 'clear_all' }, '*');
-            } catch (e) {}
-            updateDisplay();
-        },
-        setZoom,
-        destroy: cleanup
-    };
 }
 
 // Select priority

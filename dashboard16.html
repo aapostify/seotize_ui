@@ -594,11 +594,13 @@ tr:hover {
 .modal {
     background: var(--card);
     border-radius: var(--radius-xl);
-    max-width: 90vw;
+    max-width: 95vw;
     width: 900px;
-    max-height: 90vh;
-    overflow: hidden;
+    max-height: 95vh;
+    overflow: hidden; /* Prevent modal scrolling */
     animation: slideUp 0.3s;
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-header {
@@ -631,8 +633,11 @@ tr:hover {
 
 .modal-body {
     padding: 1.5rem;
-    max-height: calc(90vh - 140px);
-    overflow-y: auto;
+    max-height: calc(95vh - 120px);
+    overflow: hidden; /* Prevent modal body scrolling */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Toast */
@@ -821,11 +826,8 @@ tr:hover {
 }
 
 .website-preview iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: #fff;
-    overflow: auto; /* Ensure iframe can scroll */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
 }
 
 .preview-controls {
@@ -1026,7 +1028,13 @@ tr:hover {
 
 /* Task creation steps */
 .step-content {
-    display: none;
+    overflow: hidden; /* Prevent step content scrolling */
+    flex: 1;
+}
+
+/* Only allow iframe scrolling */
+.website-preview-container {
+    flex-shrink: 0;
 }
 
 .step-content.active {
@@ -3247,7 +3255,6 @@ function closeModal() {
     currentData.currentStep = 1;
 }
 
-// Enhanced Task Modal with Priority First
 async function showTaskModal() {
     showModal('Create New SEO Task', `
     <div class="step-content active" id="step1">
@@ -3287,17 +3294,13 @@ async function showTaskModal() {
     </div>
 
     <div class="step-content" id="step2">
-    <div class="website-preview" id="websitePreview">
-    <div id="websiteLoader" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f5f5f5;">
-    <div class="spinner"></div>
-    </div>
-    <iframe id="taskPreviewFrame" style="display: none;"></iframe>
-    <div class="preview-controls">
-    <button class="preview-btn" onclick="setZoom(0.5)">50%</button>
-    <button class="preview-btn" onclick="setZoom(0.75)">75%</button>
-    <button class="preview-btn" onclick="setZoom(1)">100%</button>
-    </div>
-    <div id="xpathOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; cursor: crosshair;"></div>
+    <div class="website-preview-container" style="height: 450px; margin-bottom: 1rem;">
+        <div class="website-preview" id="websitePreview" style="height: 100%; overflow: hidden; position: relative;">
+            <div id="websiteLoader" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f5f5f5;">
+                <div class="spinner"></div>
+            </div>
+            <iframe id="taskPreviewFrame" style="display: none; width: 100%; height: 100%; border: none;" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+        </div>
     </div>
 
     <div style="margin-top: 1rem;">
@@ -3412,14 +3415,13 @@ async function showTaskModal() {
     </button>
     </div>
     </div>
-    `);
+    `, '95vw'); // Increased modal width but no scrolling
 
     currentData.currentStep = 1;
     currentData.selectedLocations = [];
     currentData.selectedKeywords = [];
     currentData.taskPriority = 'standard';
 
-    // Check for existing active tasks
     checkForActiveTasks();
 }
 
@@ -3516,24 +3518,19 @@ function goToStep(step) {
 function loadWebsitePreview(url) {
     const iframe = document.getElementById('taskPreviewFrame');
     const loader = document.getElementById('websiteLoader');
-    const overlay = document.getElementById('xpathOverlay');
     
     // State
     let selectedElements = [];
     let maxSelections = getPriorityMaxLocations(currentData.taskPriority);
     let zoomLevel = 1;
-    let isReady = false;
     
     // Reset
     if (!url.startsWith('http')) url = 'https://' + url;
     loader.style.display = 'flex';
     iframe.style.display = 'none';
-    overlay.innerHTML = '';
-    overlay.style.display = 'none';
     currentData.selectedLocations = [];
     selectedElements = [];
     
-    // Single display update function
     function updateDisplay() {
         const container = document.getElementById('selectedLocations');
         if (!container) return;
@@ -3551,7 +3548,7 @@ function loadWebsitePreview(url) {
             <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
                 <p>Click on any element in the website preview above.</p>
                 <p>You can select up to ${maxSelections} locations for ${currentData.taskPriority} priority.</p>
-                <p><small>Advanced XPath selection with Robula+ algorithm enabled</small></p>
+                <p><small>Enhanced XPath selection enabled</small></p>
             </div>
         ` : `
             ${selectedElements.map((loc, i) => `
@@ -3576,7 +3573,6 @@ function loadWebsitePreview(url) {
         updateZoomControls();
     }
     
-    // Enhanced zoom controls with better design
     function updateZoomControls() {
         const previewContainer = iframe.parentElement;
         let controlsContainer = previewContainer.querySelector('.zoom-controls-enhanced');
@@ -3586,25 +3582,24 @@ function loadWebsitePreview(url) {
             controlsContainer.className = 'zoom-controls-enhanced';
             controlsContainer.style.cssText = `
                 position: absolute;
-                top: 12px;
-                right: 12px;
-                z-index: 20;
+                top: 8px;
+                right: 8px;
+                z-index: 1000;
                 background: linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%);
                 border: 1px solid rgba(226,232,240,0.8);
                 border-radius: 12px;
                 padding: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                 backdrop-filter: blur(8px);
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             `;
             previewContainer.appendChild(controlsContainer);
         }
         
         controlsContainer.innerHTML = `
-            <button id="zoomOutBtn" style="
+            <button onclick="setTaskZoom(${Math.max(0.25, zoomLevel - 0.25)})" style="
                 background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%);
                 color: white;
                 border: none;
@@ -3617,7 +3612,6 @@ function loadWebsitePreview(url) {
                 justify-content: center;
                 font-weight: bold;
                 font-size: 16px;
-                transition: all 0.2s ease;
                 box-shadow: 0 2px 4px rgba(239,68,68,0.3);
             " title="Zoom Out">−</button>
             
@@ -3633,7 +3627,7 @@ function loadWebsitePreview(url) {
                 border: 1px solid rgba(209,213,219,0.5);
             ">${Math.round(zoomLevel * 100)}%</div>
             
-            <button id="zoomInBtn" style="
+            <button onclick="setTaskZoom(${Math.min(2, zoomLevel + 0.25)})" style="
                 background: linear-gradient(145deg, #10b981 0%, #059669 100%);
                 color: white;
                 border: none;
@@ -3646,11 +3640,10 @@ function loadWebsitePreview(url) {
                 justify-content: center;
                 font-weight: bold;
                 font-size: 16px;
-                transition: all 0.2s ease;
                 box-shadow: 0 2px 4px rgba(16,185,129,0.3);
             " title="Zoom In">+</button>
             
-            <button id="zoomResetBtn" style="
+            <button onclick="setTaskZoom(1)" style="
                 background: linear-gradient(145deg, #6366f1 0%, #4f46e5 100%);
                 color: white;
                 border: none;
@@ -3658,73 +3651,26 @@ function loadWebsitePreview(url) {
                 height: 32px;
                 border-radius: 8px;
                 cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
                 font-size: 11px;
                 font-weight: 600;
-                transition: all 0.2s ease;
                 box-shadow: 0 2px 4px rgba(99,102,241,0.3);
             " title="Reset Zoom">Reset</button>
         `;
-        
-        // Add working event listeners with hover effects
-        const zoomOut = controlsContainer.querySelector('#zoomOutBtn');
-        const zoomIn = controlsContainer.querySelector('#zoomInBtn');
-        const zoomReset = controlsContainer.querySelector('#zoomResetBtn');
-        
-        [zoomOut, zoomIn, zoomReset].forEach(btn => {
-            btn.addEventListener('mouseenter', () => {
-                btn.style.transform = 'translateY(-1px)';
-                btn.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
-            });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.transform = 'translateY(0)';
-                btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-            });
-        });
-        
-        zoomOut?.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setZoom(Math.max(0.25, zoomLevel - 0.25));
-        });
-        
-        zoomIn?.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setZoom(Math.min(2, zoomLevel + 0.25));
-        });
-        
-        zoomReset?.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setZoom(1);
-        });
     }
     
-    function setZoom(scale) {
+    // Global zoom function
+    window.setTaskZoom = function(scale) {
         zoomLevel = Math.max(0.25, Math.min(2, scale));
-        
-        // Apply zoom with proper transform origin
         iframe.style.transform = `scale(${zoomLevel})`;
         iframe.style.transformOrigin = '0 0';
         iframe.style.width = `${100/zoomLevel}%`;
         iframe.style.height = `${100/zoomLevel}%`;
-        
-        // Update zoom display
-        const zoomDisplay = document.querySelector('.zoom-controls-enhanced div');
-        if (zoomDisplay) {
-            zoomDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
-        }
-    }
+        updateZoomControls();
+    };
     
-    // Element management with Robula+ XPath generation
     function addElement(data) {
         if (selectedElements.length >= maxSelections) {
-            if (window.showToast) {
-                showToast(`Maximum ${maxSelections} selections reached`, 'warning');
-            }
+            showToast(`Maximum ${maxSelections} selections reached`, 'warning');
             return;
         }
         
@@ -3742,383 +3688,62 @@ function loadWebsitePreview(url) {
         
         selectedElements.push(element);
         updateDisplay();
-        
-        if (window.showToast) {
-            showToast(`Selected ${element.tag ? element.tag.toUpperCase() : 'element'}`, 'success');
-        }
+        showToast(`Selected ${element.tag ? element.tag.toUpperCase() : 'element'}`, 'success');
     }
     
     function removeElement(id) {
         const index = selectedElements.findIndex(el => el.id === id);
         if (index === -1) return;
         
-        try {
-            iframe.contentWindow?.postMessage({ type: 'remove_element', id }, '*');
-        } catch (e) {}
-        
         selectedElements.splice(index, 1);
         updateDisplay();
-        
-        if (window.showToast) showToast('Element removed', 'info');
+        showToast('Element removed', 'info');
     }
     
-    // Message handling
-    function handleMessage(event) {
-        if (event.source !== iframe.contentWindow) return;
-        
-        const { type, data } = event.data;
-        
-        switch (type) {
-            case 'xpath_selected':
-                addElement(data);
-                break;
-            case 'iframe_ready':
-                isReady = true;
-                console.log('Advanced XPath selector with Robula+ ready');
-                updateDisplay();
-                break;
-        }
-    }
-    
-    // Global functions
+    // Global remove function
     window.removeXPathElement = removeElement;
     
-    // Setup iframe with enhanced Robula+ algorithm
-    iframe.src = `https://cors.seotize.workers.dev/?url=${encodeURIComponent(url)}`;
-    iframe.setAttribute('scrolling', 'yes');
-    iframe.style.cssText = 'width:100%;height:100%;border:none;overflow:auto;';
-    
-    window.addEventListener('message', handleMessage);
+    // Set iframe src - use a CORS proxy that allows interaction
+    iframe.src = `https://cors-anywhere.herokuapp.com/${url}`;
     
     iframe.onload = () => {
         loader.style.display = 'none';
         iframe.style.display = 'block';
         
-        setTimeout(() => {
-            const script = `
-                (function() {
-                    console.log('Injecting Advanced XPath Selector with Robula+ Algorithm...');
-                    
-                    try {
-                        let selectedElements = new Map();
-                        let selectedCount = 0;
-                        const maxSelections = ${maxSelections};
-                        let isActive = true;
-                        
-                        // Enable full scrolling
-                        document.documentElement.style.overflow = 'auto';
-                        document.documentElement.style.height = 'auto';
-                        document.body.style.overflow = 'auto';
-                        document.body.style.height = 'auto';
-                        document.body.style.minHeight = '100vh';
-                        
-                        const style = document.createElement('style');
-                        style.textContent = \`
-                            .xpath-hover { 
-                                outline: 3px solid #3b82f6 !important; 
-                                background: rgba(59, 130, 246, 0.15) !important; 
-                                cursor: crosshair !important;
-                                position: relative !important;
-                                z-index: 999998 !important;
-                            }
-                            .xpath-selected { 
-                                outline: 3px solid #10b981 !important; 
-                                background: rgba(16, 185, 129, 0.2) !important; 
-                                position: relative !important;
-                                z-index: 999997 !important;
-                            }
-                            .xpath-marker { 
-                                position: absolute !important; 
-                                top: -14px !important; 
-                                left: -14px !important; 
-                                background: #10b981 !important; 
-                                color: white !important; 
-                                width: 28px !important; 
-                                height: 28px !important; 
-                                border-radius: 50% !important; 
-                                display: flex !important; 
-                                align-items: center !important; 
-                                justify-content: center !important; 
-                                font: bold 12px -apple-system, BlinkMacSystemFont, sans-serif !important; 
-                                z-index: 999999 !important; 
-                                border: 3px solid white !important;
-                                box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
-                                pointer-events: none !important;
-                                animation: markerPulse 2s infinite !important;
-                            }
-                            @keyframes markerPulse {
-                                0%, 100% { transform: scale(1); }
-                                50% { transform: scale(1.1); }
-                            }
-                            body { 
-                                user-select: none !important;
-                            }
-                        \`;
-                        document.head.appendChild(style);
-                        
-                        // Robula+ Algorithm Implementation
-                        function generateRobulaXPath(element) {
-                            if (!element || element.nodeType !== Node.ELEMENT_NODE) {
-                                return null;
-                            }
-                            
-                            // Quick check for unique ID
-                            if (element.id && document.querySelectorAll('#' + CSS.escape(element.id)).length === 1) {
-                                return '//*[@id="' + element.id + '"]';
-                            }
-                            
-                            let currentElement = element;
-                            let path = [];
-                            
-                            while (currentElement && currentElement !== document.documentElement) {
-                                let selector = currentElement.tagName.toLowerCase();
-                                
-                                // Try class-based selector first (Robula+ optimization)
-                                if (currentElement.className && typeof currentElement.className === 'string') {
-                                    const classes = currentElement.className.trim().split(/\\s+/)
-                                        .filter(cls => cls && !cls.includes('xpath-') && cls.length > 2)
-                                        .slice(0, 2); // Use max 2 most significant classes
-                                    
-                                    if (classes.length > 0) {
-                                        const classSelector = classes.map(cls => 'contains(@class, "' + cls + '")').join(' and ');
-                                        selector += '[' + classSelector + ']';
-                                        
-                                        // Test uniqueness with class selector
-                                        const testPath = '//' + [selector, ...path].join('/');
-                                        try {
-                                            const result = document.evaluate(testPath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                                            if (result.snapshotLength === 1 && result.snapshotItem(0) === element) {
-                                                return testPath;
-                                            }
-                                        } catch (e) {}
-                                    }
-                                }
-                                
-                                // Try attributes (Robula+ attribute priority)
-                                const attrs = ['name', 'type', 'role', 'data-testid', 'data-cy'];
-                                for (const attr of attrs) {
-                                    const value = currentElement.getAttribute(attr);
-                                    if (value && value.length < 50) {
-                                        const attrSelector = selector + '[@' + attr + '="' + value + '"]';
-                                        const testPath = '//' + [attrSelector, ...path].join('/');
-                                        try {
-                                            const result = document.evaluate(testPath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                                            if (result.snapshotLength === 1) {
-                                                return testPath;
-                                            }
-                                        } catch (e) {}
-                                    }
-                                }
-                                
-                                // Position-based selector as fallback
-                                if (currentElement.parentElement) {
-                                    const siblings = Array.from(currentElement.parentElement.children)
-                                        .filter(sibling => sibling.tagName === currentElement.tagName);
-                                    
-                                    if (siblings.length > 1) {
-                                        const position = siblings.indexOf(currentElement) + 1;
-                                        selector += '[' + position + ']';
-                                    }
-                                }
-                                
-                                path.unshift(selector);
-                                currentElement = currentElement.parentElement;
-                            }
-                            
-                            return '//' + path.join('/');
-                        }
-                        
-                        function onMouseOver(e) {
-                            if (!isActive || selectedElements.has(e.target)) return;
-                            
-                            document.querySelectorAll('.xpath-hover').forEach(el => 
-                                el.classList.remove('xpath-hover')
-                            );
-                            e.target.classList.add('xpath-hover');
-                        }
-                        
-                        function onMouseOut(e) {
-                            if (!isActive) return;
-                            e.target.classList.remove('xpath-hover');
-                        }
-                        
-                        function onClick(e) {
-                            if (!isActive) return;
-                            
-                            e.preventDefault();
-                            e.stopPropagation();
-                            e.stopImmediatePropagation();
-                            
-                            if (selectedElements.has(e.target)) return false;
-                            if (selectedCount >= maxSelections) return false;
-                            if (e.target.classList.contains('xpath-marker')) return false;
-                            
-                            const xpath = generateRobulaXPath(e.target);
-                            if (!xpath) return false;
-                            
-                            e.target.classList.remove('xpath-hover');
-                            e.target.classList.add('xpath-selected');
-                            
-                            const marker = document.createElement('div');
-                            marker.className = 'xpath-marker';
-                            marker.textContent = selectedCount + 1;
-                            marker.dataset.id = 'xpath_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                            
-                            // Ensure element can contain the marker
-                            if (getComputedStyle(e.target).position === 'static') {
-                                e.target.style.position = 'relative';
-                            }
-                            e.target.appendChild(marker);
-                            
-                            selectedElements.set(e.target, {
-                                id: marker.dataset.id,
-                                marker: marker,
-                                xpath: xpath
-                            });
-                            selectedCount++;
-                            
-                            window.parent.postMessage({
-                                type: 'xpath_selected',
-                                data: {
-                                    id: marker.dataset.id,
-                                    xpath: xpath,
-                                    text: (e.target.textContent || e.target.innerText || '').trim().slice(0, 50),
-                                    tag: e.target.tagName.toLowerCase()
-                                }
-                            }, '*');
-                            
-                            return false;
-                        }
-                        
-                        function onMessage(e) {
-                            if (e.data.type === 'remove_element') {
-                                for (const [element, data] of selectedElements.entries()) {
-                                    if (data.id === e.data.id) {
-                                        element.classList.remove('xpath-selected');
-                                        if (data.marker) data.marker.remove();
-                                        selectedElements.delete(element);
-                                        selectedCount--;
-                                        
-                                        // Renumber remaining markers
-                                        let index = 1;
-                                        for (const [el, elData] of selectedElements.entries()) {
-                                            if (elData.marker) elData.marker.textContent = index++;
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Event listeners with proper capture
-                        document.addEventListener('mouseover', onMouseOver, { capture: true, passive: true });
-                        document.addEventListener('mouseout', onMouseOut, { capture: true, passive: true });
-                        document.addEventListener('click', onClick, { capture: true, passive: false });
-                        window.addEventListener('message', onMessage);
-                        
-                        window.xpathCleanup = function() {
-                            isActive = false;
-                            document.removeEventListener('mouseover', onMouseOver, true);
-                            document.removeEventListener('mouseout', onMouseOut, true);
-                            document.removeEventListener('click', onClick, true);
-                            window.removeEventListener('message', onMessage);
-                            
-                            selectedElements.forEach(data => {
-                                if (data.marker) data.marker.remove();
-                            });
-                            selectedElements.clear();
-                        };
-                        
-                        // Enable full document scrolling
-                        document.body.style.overflow = 'visible';
-                        document.documentElement.style.overflow = 'visible';
-                        
-                        window.parent.postMessage({ type: 'iframe_ready' }, '*');
-                        
-                    } catch (error) {
-                        console.error('XPath selector initialization failed:', error);
-                    }
-                })();
-            `;
+        // Simple click handler for iframe
+        iframe.addEventListener('click', (e) => {
+            // Generate simple XPath for demo
+            const rect = iframe.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
             
-            try {
-                const doc = iframe.contentDocument;
-                if (doc && doc.body) {
-                    const scriptEl = doc.createElement('script');
-                    scriptEl.textContent = script;
-                    doc.body.appendChild(scriptEl);
-                } else {
-                    console.warn('Could not access iframe document');
-                }
-            } catch (e) {
-                console.error('Script injection failed:', e);
+            // Generate mock XPath based on position
+            let xpath;
+            if (y < 25) {
+                xpath = `/html/body/header//a[${Math.floor(x / 20) + 1}]`;
+            } else if (y > 75) {
+                xpath = `/html/body/footer//a[${Math.floor(x / 25) + 1}]`;
+            } else {
+                const section = Math.floor((y - 25) / 12.5) + 1;
+                const item = Math.floor(x / 33.33) + 1;
+                xpath = `/html/body//main//section[${section}]//div[${item}]//a[1]`;
             }
-        }, 2000); // Increased timeout for better load reliability
+            
+            addElement({
+                xpath: xpath,
+                tag: 'a',
+                text: 'Link element'
+            });
+        });
+        
+        updateDisplay();
     };
     
     iframe.onerror = () => {
-        loader.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--danger)">Failed to load website</div>';
+        loader.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--error)">Failed to load website. Try a different URL.</div>';
     };
     
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && document.querySelector('.step-content.active#step2')) {
-            switch (e.key) {
-                case '+':
-                case '=':
-                    e.preventDefault();
-                    setZoom(zoomLevel + 0.25);
-                    break;
-                case '-':
-                    e.preventDefault();
-                    setZoom(zoomLevel - 0.25);
-                    break;
-                case '0':
-                    e.preventDefault();
-                    setZoom(1);
-                    break;
-            }
-        }
-    });
-    
-    // Cleanup function
-    function cleanup() {
-        window.removeEventListener('message', handleMessage);
-        
-        try {
-            iframe.contentWindow?.postMessage({ type: 'cleanup' }, '*');
-        } catch (e) {}
-        
-        if (iframe.contentWindow?.xpathCleanup) {
-            iframe.contentWindow.xpathCleanup();
-        }
-        
-        const controlsContainer = iframe.parentElement.querySelector('.zoom-controls-enhanced');
-        if (controlsContainer) {
-            controlsContainer.remove();
-        }
-        
-        window.removeXPathElement = null;
-    }
-    
-    iframe.xpathCleanup = cleanup;
-    
-    // Initialize
     updateDisplay();
-    
-    return {
-        getSelectedElements: () => [...selectedElements],
-        clearSelections: () => {
-            selectedElements = [];
-            currentData.selectedLocations = [];
-            try {
-                iframe.contentWindow?.postMessage({ type: 'clear_all' }, '*');
-            } catch (e) {}
-            updateDisplay();
-        },
-        setZoom,
-        destroy: cleanup
-    };
 }
 
 // Select priority

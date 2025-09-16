@@ -3541,6 +3541,12 @@ function loadWebsitePreview(url) {
         const count = selectedElements.length;
         currentData.selectedLocations = [...selectedElements];
         
+        const existingHeader = container.querySelector('h4');
+        let headerHTML = '';
+        if (existingHeader) {
+            headerHTML = existingHeader.outerHTML;
+        }
+        
         const contentHTML = count === 0 ? `
             <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
                 <p>Click on any element in the website preview above.</p>
@@ -3566,11 +3572,11 @@ function loadWebsitePreview(url) {
             `).join('')}
         `;
         
-        container.innerHTML = contentHTML;
+        container.innerHTML = headerHTML + contentHTML;
         updateZoomControls();
     }
     
-    // Enhanced zoom controls
+    // Enhanced zoom controls with better design
     function updateZoomControls() {
         const previewContainer = iframe.parentElement;
         let controlsContainer = previewContainer.querySelector('.zoom-controls-enhanced');
@@ -3583,39 +3589,142 @@ function loadWebsitePreview(url) {
                 top: 12px;
                 right: 12px;
                 z-index: 20;
-                background: rgba(255,255,255,0.95);
+                background: linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%);
                 border: 1px solid rgba(226,232,240,0.8);
                 border-radius: 12px;
                 padding: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1);
+                backdrop-filter: blur(8px);
                 display: flex;
                 align-items: center;
                 gap: 8px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             `;
             previewContainer.appendChild(controlsContainer);
         }
         
         controlsContainer.innerHTML = `
-            <button onclick="event.stopPropagation(); setZoom(${Math.max(0.25, zoomLevel - 0.25)})" style="background: #ef4444; color: white; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 16px;">−</button>
-            <div style="min-width: 60px; text-align: center; font-size: 12px; font-weight: 600;">${Math.round(zoomLevel * 100)}%</div>
-            <button onclick="event.stopPropagation(); setZoom(${Math.min(2, zoomLevel + 0.25)})" style="background: #10b981; color: white; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 16px;">+</button>
-            <button onclick="event.stopPropagation(); setZoom(1)" style="background: #6366f1; color: white; border: none; padding: 0 10px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 600;">Reset</button>
+            <button id="zoomOutBtn" style="
+                background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%);
+                color: white;
+                border: none;
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 16px;
+                transition: all 0.2s ease;
+                box-shadow: 0 2px 4px rgba(239,68,68,0.3);
+            " title="Zoom Out">−</button>
+            
+            <div style="
+                min-width: 60px;
+                text-align: center;
+                font-size: 12px;
+                font-weight: 600;
+                color: #374151;
+                padding: 4px 8px;
+                background: rgba(249,250,251,0.9);
+                border-radius: 6px;
+                border: 1px solid rgba(209,213,219,0.5);
+            ">${Math.round(zoomLevel * 100)}%</div>
+            
+            <button id="zoomInBtn" style="
+                background: linear-gradient(145deg, #10b981 0%, #059669 100%);
+                color: white;
+                border: none;
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 16px;
+                transition: all 0.2s ease;
+                box-shadow: 0 2px 4px rgba(16,185,129,0.3);
+            " title="Zoom In">+</button>
+            
+            <button id="zoomResetBtn" style="
+                background: linear-gradient(145deg, #6366f1 0%, #4f46e5 100%);
+                color: white;
+                border: none;
+                padding: 0 10px;
+                height: 32px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+                font-weight: 600;
+                transition: all 0.2s ease;
+                box-shadow: 0 2px 4px rgba(99,102,241,0.3);
+            " title="Reset Zoom">Reset</button>
         `;
+        
+        // Add working event listeners with hover effects
+        const zoomOut = controlsContainer.querySelector('#zoomOutBtn');
+        const zoomIn = controlsContainer.querySelector('#zoomInBtn');
+        const zoomReset = controlsContainer.querySelector('#zoomResetBtn');
+        
+        [zoomOut, zoomIn, zoomReset].forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                btn.style.transform = 'translateY(-1px)';
+                btn.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'translateY(0)';
+                btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            });
+        });
+        
+        zoomOut?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setZoom(Math.max(0.25, zoomLevel - 0.25));
+        });
+        
+        zoomIn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setZoom(Math.min(2, zoomLevel + 0.25));
+        });
+        
+        zoomReset?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setZoom(1);
+        });
     }
     
-    window.setZoom = function(scale) {
+    function setZoom(scale) {
         zoomLevel = Math.max(0.25, Math.min(2, scale));
+        
+        // Apply zoom with proper transform origin
         iframe.style.transform = `scale(${zoomLevel})`;
         iframe.style.transformOrigin = '0 0';
         iframe.style.width = `${100/zoomLevel}%`;
         iframe.style.height = `${100/zoomLevel}%`;
-        updateZoomControls();
-    };
+        
+        // Update zoom display
+        const zoomDisplay = document.querySelector('.zoom-controls-enhanced div');
+        if (zoomDisplay) {
+            zoomDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
+        }
+    }
     
-    // Element management
+    // Element management with Robula+ XPath generation
     function addElement(data) {
         if (selectedElements.length >= maxSelections) {
-            showToast(`Maximum ${maxSelections} selections reached`, 'warning');
+            if (window.showToast) {
+                showToast(`Maximum ${maxSelections} selections reached`, 'warning');
+            }
             return;
         }
         
@@ -3633,7 +3742,10 @@ function loadWebsitePreview(url) {
         
         selectedElements.push(element);
         updateDisplay();
-        showToast(`Selected ${element.tag ? element.tag.toUpperCase() : 'element'}`, 'success');
+        
+        if (window.showToast) {
+            showToast(`Selected ${element.tag ? element.tag.toUpperCase() : 'element'}`, 'success');
+        }
     }
     
     function removeElement(id) {
@@ -3646,7 +3758,8 @@ function loadWebsitePreview(url) {
         
         selectedElements.splice(index, 1);
         updateDisplay();
-        showToast('Element removed', 'info');
+        
+        if (window.showToast) showToast('Element removed', 'info');
     }
     
     // Message handling
@@ -3661,7 +3774,7 @@ function loadWebsitePreview(url) {
                 break;
             case 'iframe_ready':
                 isReady = true;
-                console.log('XPath selector ready');
+                console.log('Advanced XPath selector with Robula+ ready');
                 updateDisplay();
                 break;
         }
@@ -3670,9 +3783,9 @@ function loadWebsitePreview(url) {
     // Global functions
     window.removeXPathElement = removeElement;
     
-    // Setup iframe with CSP to block external scripts
-    iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
+    // Setup iframe with enhanced Robula+ algorithm
     iframe.src = `https://cors.seotize.workers.dev/?url=${encodeURIComponent(url)}`;
+    iframe.setAttribute('scrolling', 'yes');
     iframe.style.cssText = 'width:100%;height:100%;border:none;overflow:auto;';
     
     window.addEventListener('message', handleMessage);
@@ -3684,15 +3797,7 @@ function loadWebsitePreview(url) {
         setTimeout(() => {
             const script = `
                 (function() {
-                    console.log('Initializing XPath Selector...');
-                    
-                    // Block external scripts
-                    if (window.Cloudflare) delete window.Cloudflare;
-                    if (window.require) delete window.require;
-                    if (window.turnstile) delete window.turnstile;
-                    
-                    // Remove all Cloudflare scripts
-                    document.querySelectorAll('script[src*="cloudflare"], script[src*="turnstile"]').forEach(s => s.remove());
+                    console.log('Injecting Advanced XPath Selector with Robula+ Algorithm...');
                     
                     try {
                         let selectedElements = new Map();
@@ -3700,34 +3805,19 @@ function loadWebsitePreview(url) {
                         const maxSelections = ${maxSelections};
                         let isActive = true;
                         
-                        // Disable ALL navigation
-                        document.querySelectorAll('a').forEach(link => {
-                            link.removeAttribute('href');
-                            link.removeAttribute('target');
-                            link.style.cursor = 'crosshair';
-                            link.onclick = function(e) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                return false;
-                            };
-                        });
+                        // Enable full scrolling
+                        document.documentElement.style.overflow = 'auto';
+                        document.documentElement.style.height = 'auto';
+                        document.body.style.overflow = 'auto';
+                        document.body.style.height = 'auto';
+                        document.body.style.minHeight = '100vh';
                         
-                        // Disable forms
-                        document.querySelectorAll('form').forEach(form => {
-                            form.onsubmit = function(e) {
-                                e.preventDefault();
-                                return false;
-                            };
-                        });
-                        
-                        // Style injection
                         const style = document.createElement('style');
                         style.textContent = \`
-                            * { cursor: crosshair !important; }
-                            a, button { pointer-events: all !important; cursor: crosshair !important; }
                             .xpath-hover { 
                                 outline: 3px solid #3b82f6 !important; 
                                 background: rgba(59, 130, 246, 0.15) !important; 
+                                cursor: crosshair !important;
                                 position: relative !important;
                                 z-index: 999998 !important;
                             }
@@ -3749,47 +3839,116 @@ function loadWebsitePreview(url) {
                                 display: flex !important; 
                                 align-items: center !important; 
                                 justify-content: center !important; 
-                                font: bold 12px sans-serif !important; 
+                                font: bold 12px -apple-system, BlinkMacSystemFont, sans-serif !important; 
                                 z-index: 999999 !important; 
                                 border: 3px solid white !important;
                                 box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
                                 pointer-events: none !important;
+                                animation: markerPulse 2s infinite !important;
+                            }
+                            @keyframes markerPulse {
+                                0%, 100% { transform: scale(1); }
+                                50% { transform: scale(1.1); }
+                            }
+                            body { 
+                                user-select: none !important;
                             }
                         \`;
                         document.head.appendChild(style);
                         
-                        // Robula+ XPath generation
+                        // Robula+ Algorithm Implementation
                         function generateRobulaXPath(element) {
-                            if (!element || element.nodeType !== 1) return null;
+                            if (!element || element.nodeType !== Node.ELEMENT_NODE) {
+                                return null;
+                            }
                             
+                            // Quick check for unique ID
                             if (element.id && document.querySelectorAll('#' + CSS.escape(element.id)).length === 1) {
                                 return '//*[@id="' + element.id + '"]';
                             }
                             
+                            let currentElement = element;
                             let path = [];
-                            let current = element;
                             
-                            while (current && current !== document.documentElement) {
-                                let selector = current.tagName.toLowerCase();
-                                let siblings = Array.from(current.parentNode?.children || []).filter(e => e.tagName === current.tagName);
+                            while (currentElement && currentElement !== document.documentElement) {
+                                let selector = currentElement.tagName.toLowerCase();
                                 
-                                if (siblings.length > 1) {
-                                    let index = siblings.indexOf(current) + 1;
-                                    selector += '[' + index + ']';
+                                // Try class-based selector first (Robula+ optimization)
+                                if (currentElement.className && typeof currentElement.className === 'string') {
+                                    const classes = currentElement.className.trim().split(/\\s+/)
+                                        .filter(cls => cls && !cls.includes('xpath-') && cls.length > 2)
+                                        .slice(0, 2); // Use max 2 most significant classes
+                                    
+                                    if (classes.length > 0) {
+                                        const classSelector = classes.map(cls => 'contains(@class, "' + cls + '")').join(' and ');
+                                        selector += '[' + classSelector + ']';
+                                        
+                                        // Test uniqueness with class selector
+                                        const testPath = '//' + [selector, ...path].join('/');
+                                        try {
+                                            const result = document.evaluate(testPath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                                            if (result.snapshotLength === 1 && result.snapshotItem(0) === element) {
+                                                return testPath;
+                                            }
+                                        } catch (e) {}
+                                    }
+                                }
+                                
+                                // Try attributes (Robula+ attribute priority)
+                                const attrs = ['name', 'type', 'role', 'data-testid', 'data-cy'];
+                                for (const attr of attrs) {
+                                    const value = currentElement.getAttribute(attr);
+                                    if (value && value.length < 50) {
+                                        const attrSelector = selector + '[@' + attr + '="' + value + '"]';
+                                        const testPath = '//' + [attrSelector, ...path].join('/');
+                                        try {
+                                            const result = document.evaluate(testPath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                                            if (result.snapshotLength === 1) {
+                                                return testPath;
+                                            }
+                                        } catch (e) {}
+                                    }
+                                }
+                                
+                                // Position-based selector as fallback
+                                if (currentElement.parentElement) {
+                                    const siblings = Array.from(currentElement.parentElement.children)
+                                        .filter(sibling => sibling.tagName === currentElement.tagName);
+                                    
+                                    if (siblings.length > 1) {
+                                        const position = siblings.indexOf(currentElement) + 1;
+                                        selector += '[' + position + ']';
+                                    }
                                 }
                                 
                                 path.unshift(selector);
-                                current = current.parentElement;
+                                currentElement = currentElement.parentElement;
                             }
                             
                             return '//' + path.join('/');
                         }
                         
-                        function handleClick(e) {
+                        function onMouseOver(e) {
+                            if (!isActive || selectedElements.has(e.target)) return;
+                            
+                            document.querySelectorAll('.xpath-hover').forEach(el => 
+                                el.classList.remove('xpath-hover')
+                            );
+                            e.target.classList.add('xpath-hover');
+                        }
+                        
+                        function onMouseOut(e) {
+                            if (!isActive) return;
+                            e.target.classList.remove('xpath-hover');
+                        }
+                        
+                        function onClick(e) {
+                            if (!isActive) return;
+                            
                             e.preventDefault();
                             e.stopPropagation();
+                            e.stopImmediatePropagation();
                             
-                            if (!isActive) return false;
                             if (selectedElements.has(e.target)) return false;
                             if (selectedCount >= maxSelections) return false;
                             if (e.target.classList.contains('xpath-marker')) return false;
@@ -3797,13 +3956,15 @@ function loadWebsitePreview(url) {
                             const xpath = generateRobulaXPath(e.target);
                             if (!xpath) return false;
                             
+                            e.target.classList.remove('xpath-hover');
                             e.target.classList.add('xpath-selected');
                             
                             const marker = document.createElement('div');
                             marker.className = 'xpath-marker';
                             marker.textContent = selectedCount + 1;
-                            marker.dataset.id = 'xpath_' + Date.now();
+                            marker.dataset.id = 'xpath_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                             
+                            // Ensure element can contain the marker
                             if (getComputedStyle(e.target).position === 'static') {
                                 e.target.style.position = 'relative';
                             }
@@ -3821,7 +3982,7 @@ function loadWebsitePreview(url) {
                                 data: {
                                     id: marker.dataset.id,
                                     xpath: xpath,
-                                    text: (e.target.textContent || '').trim().slice(0, 50),
+                                    text: (e.target.textContent || e.target.innerText || '').trim().slice(0, 50),
                                     tag: e.target.tagName.toLowerCase()
                                 }
                             }, '*');
@@ -3829,21 +3990,7 @@ function loadWebsitePreview(url) {
                             return false;
                         }
                         
-                        function handleHover(e) {
-                            if (!isActive || selectedElements.has(e.target)) return;
-                            document.querySelectorAll('.xpath-hover').forEach(el => el.classList.remove('xpath-hover'));
-                            e.target.classList.add('xpath-hover');
-                        }
-                        
-                        function handleOut(e) {
-                            e.target.classList.remove('xpath-hover');
-                        }
-                        
-                        document.addEventListener('click', handleClick, true);
-                        document.addEventListener('mouseover', handleHover, true);
-                        document.addEventListener('mouseout', handleOut, true);
-                        
-                        window.addEventListener('message', function(e) {
+                        function onMessage(e) {
                             if (e.data.type === 'remove_element') {
                                 for (const [element, data] of selectedElements.entries()) {
                                     if (data.id === e.data.id) {
@@ -3852,20 +3999,44 @@ function loadWebsitePreview(url) {
                                         selectedElements.delete(element);
                                         selectedCount--;
                                         
+                                        // Renumber remaining markers
                                         let index = 1;
-                                        selectedElements.forEach(data => {
-                                            if (data.marker) data.marker.textContent = index++;
-                                        });
+                                        for (const [el, elData] of selectedElements.entries()) {
+                                            if (elData.marker) elData.marker.textContent = index++;
+                                        }
                                         break;
                                     }
                                 }
                             }
-                        });
+                        }
+                        
+                        // Event listeners with proper capture
+                        document.addEventListener('mouseover', onMouseOver, { capture: true, passive: true });
+                        document.addEventListener('mouseout', onMouseOut, { capture: true, passive: true });
+                        document.addEventListener('click', onClick, { capture: true, passive: false });
+                        window.addEventListener('message', onMessage);
+                        
+                        window.xpathCleanup = function() {
+                            isActive = false;
+                            document.removeEventListener('mouseover', onMouseOver, true);
+                            document.removeEventListener('mouseout', onMouseOut, true);
+                            document.removeEventListener('click', onClick, true);
+                            window.removeEventListener('message', onMessage);
+                            
+                            selectedElements.forEach(data => {
+                                if (data.marker) data.marker.remove();
+                            });
+                            selectedElements.clear();
+                        };
+                        
+                        // Enable full document scrolling
+                        document.body.style.overflow = 'visible';
+                        document.documentElement.style.overflow = 'visible';
                         
                         window.parent.postMessage({ type: 'iframe_ready' }, '*');
                         
                     } catch (error) {
-                        console.error('XPath selector error:', error);
+                        console.error('XPath selector initialization failed:', error);
                     }
                 })();
             `;
@@ -3876,18 +4047,78 @@ function loadWebsitePreview(url) {
                     const scriptEl = doc.createElement('script');
                     scriptEl.textContent = script;
                     doc.body.appendChild(scriptEl);
+                } else {
+                    console.warn('Could not access iframe document');
                 }
             } catch (e) {
                 console.error('Script injection failed:', e);
             }
-        }, 1500);
+        }, 2000); // Increased timeout for better load reliability
     };
     
     iframe.onerror = () => {
         loader.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--danger)">Failed to load website</div>';
     };
     
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && document.querySelector('.step-content.active#step2')) {
+            switch (e.key) {
+                case '+':
+                case '=':
+                    e.preventDefault();
+                    setZoom(zoomLevel + 0.25);
+                    break;
+                case '-':
+                    e.preventDefault();
+                    setZoom(zoomLevel - 0.25);
+                    break;
+                case '0':
+                    e.preventDefault();
+                    setZoom(1);
+                    break;
+            }
+        }
+    });
+    
+    // Cleanup function
+    function cleanup() {
+        window.removeEventListener('message', handleMessage);
+        
+        try {
+            iframe.contentWindow?.postMessage({ type: 'cleanup' }, '*');
+        } catch (e) {}
+        
+        if (iframe.contentWindow?.xpathCleanup) {
+            iframe.contentWindow.xpathCleanup();
+        }
+        
+        const controlsContainer = iframe.parentElement.querySelector('.zoom-controls-enhanced');
+        if (controlsContainer) {
+            controlsContainer.remove();
+        }
+        
+        window.removeXPathElement = null;
+    }
+    
+    iframe.xpathCleanup = cleanup;
+    
+    // Initialize
     updateDisplay();
+    
+    return {
+        getSelectedElements: () => [...selectedElements],
+        clearSelections: () => {
+            selectedElements = [];
+            currentData.selectedLocations = [];
+            try {
+                iframe.contentWindow?.postMessage({ type: 'clear_all' }, '*');
+            } catch (e) {}
+            updateDisplay();
+        },
+        setZoom,
+        destroy: cleanup
+    };
 }
 
 // Select priority
@@ -6653,7 +6884,7 @@ async function logout() {
 // Mobile responsiveness
 window.addEventListener('resize', () => {
     const sidebarToggle = document.getElementById('sidebarToggle');
-    // if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 768) {
         sidebarToggle.style.display = 'block';
     } else {
         sidebarToggle.style.display = 'none';

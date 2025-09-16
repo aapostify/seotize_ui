@@ -3576,7 +3576,7 @@ function loadWebsitePreview(url) {
         updateZoomControls();
     }
     
-    // Enhanced zoom controls with better design
+    // Enhanced zoom controls
     function updateZoomControls() {
         const previewContainer = iframe.parentElement;
         let controlsContainer = previewContainer.querySelector('.zoom-controls-enhanced');
@@ -3604,85 +3604,16 @@ function loadWebsitePreview(url) {
         }
         
         controlsContainer.innerHTML = `
-            <button id="zoomOutBtn" style="
-                background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%);
-                color: white;
-                border: none;
-                width: 32px;
-                height: 32px;
-                border-radius: 8px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: bold;
-                font-size: 16px;
-                transition: all 0.2s ease;
-                box-shadow: 0 2px 4px rgba(239,68,68,0.3);
-            " title="Zoom Out">−</button>
-            
-            <div style="
-                min-width: 60px;
-                text-align: center;
-                font-size: 12px;
-                font-weight: 600;
-                color: #374151;
-                padding: 4px 8px;
-                background: rgba(249,250,251,0.9);
-                border-radius: 6px;
-                border: 1px solid rgba(209,213,219,0.5);
-            ">${Math.round(zoomLevel * 100)}%</div>
-            
-            <button id="zoomInBtn" style="
-                background: linear-gradient(145deg, #10b981 0%, #059669 100%);
-                color: white;
-                border: none;
-                width: 32px;
-                height: 32px;
-                border-radius: 8px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: bold;
-                font-size: 16px;
-                transition: all 0.2s ease;
-                box-shadow: 0 2px 4px rgba(16,185,129,0.3);
-            " title="Zoom In">+</button>
-            
-            <button id="zoomResetBtn" style="
-                background: linear-gradient(145deg, #6366f1 0%, #4f46e5 100%);
-                color: white;
-                border: none;
-                padding: 0 10px;
-                height: 32px;
-                border-radius: 8px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 11px;
-                font-weight: 600;
-                transition: all 0.2s ease;
-                box-shadow: 0 2px 4px rgba(99,102,241,0.3);
-            " title="Reset Zoom">Reset</button>
+            <button id="zoomOutBtn" style="background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%); color: white; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(239,68,68,0.3);" title="Zoom Out">−</button>
+            <div style="min-width: 60px; text-align: center; font-size: 12px; font-weight: 600; color: #374151; padding: 4px 8px; background: rgba(249,250,251,0.9); border-radius: 6px; border: 1px solid rgba(209,213,219,0.5);">${Math.round(zoomLevel * 100)}%</div>
+            <button id="zoomInBtn" style="background: linear-gradient(145deg, #10b981 0%, #059669 100%); color: white; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(16,185,129,0.3);" title="Zoom In">+</button>
+            <button id="zoomResetBtn" style="background: linear-gradient(145deg, #6366f1 0%, #4f46e5 100%); color: white; border: none; padding: 0 10px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(99,102,241,0.3);" title="Reset Zoom">Reset</button>
         `;
         
-        // Add working event listeners with hover effects
+        // Add event listeners for zoom controls
         const zoomOut = controlsContainer.querySelector('#zoomOutBtn');
         const zoomIn = controlsContainer.querySelector('#zoomInBtn');
         const zoomReset = controlsContainer.querySelector('#zoomResetBtn');
-        
-        [zoomOut, zoomIn, zoomReset].forEach(btn => {
-            btn.addEventListener('mouseenter', () => {
-                btn.style.transform = 'translateY(-1px)';
-                btn.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
-            });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.transform = 'translateY(0)';
-                btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-            });
-        });
         
         zoomOut?.addEventListener('click', (e) => {
             e.preventDefault();
@@ -3705,21 +3636,18 @@ function loadWebsitePreview(url) {
     
     function setZoom(scale) {
         zoomLevel = Math.max(0.25, Math.min(2, scale));
-        
-        // Apply zoom with proper transform origin
         iframe.style.transform = `scale(${zoomLevel})`;
         iframe.style.transformOrigin = '0 0';
         iframe.style.width = `${100/zoomLevel}%`;
         iframe.style.height = `${100/zoomLevel}%`;
         
-        // Update zoom display
         const zoomDisplay = document.querySelector('.zoom-controls-enhanced div');
         if (zoomDisplay) {
             zoomDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
         }
     }
     
-    // Element management with Robula+ XPath generation
+    // Element management
     function addElement(data) {
         if (selectedElements.length >= maxSelections) {
             if (window.showToast) {
@@ -3783,7 +3711,7 @@ function loadWebsitePreview(url) {
     // Global functions
     window.removeXPathElement = removeElement;
     
-    // Setup iframe with enhanced Robula+ algorithm
+    // Setup iframe
     iframe.src = `https://cors.seotize.workers.dev/?url=${encodeURIComponent(url)}`;
     iframe.setAttribute('scrolling', 'yes');
     iframe.style.cssText = 'width:100%;height:100%;border:none;overflow:auto;';
@@ -3795,9 +3723,10 @@ function loadWebsitePreview(url) {
         iframe.style.display = 'block';
         
         setTimeout(() => {
+            // CRITICAL: This is the script that prevents navigation and captures XPath
             const script = `
                 (function() {
-                    console.log('Injecting Advanced XPath Selector with Robula+ Algorithm...');
+                    console.log('Injecting XPath Selector with Navigation Prevention...');
                     
                     try {
                         let selectedElements = new Map();
@@ -3805,15 +3734,51 @@ function loadWebsitePreview(url) {
                         const maxSelections = ${maxSelections};
                         let isActive = true;
                         
-                        // Enable full scrolling
-                        document.documentElement.style.overflow = 'auto';
-                        document.documentElement.style.height = 'auto';
-                        document.body.style.overflow = 'auto';
-                        document.body.style.height = 'auto';
-                        document.body.style.minHeight = '100vh';
+                        // CRITICAL: Disable ALL links and prevent navigation
+                        document.querySelectorAll('a').forEach(link => {
+                            link.removeAttribute('href');
+                            link.style.cursor = 'crosshair';
+                            link.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+                                return false;
+                            }, true);
+                        });
                         
+                        // Disable forms
+                        document.querySelectorAll('form').forEach(form => {
+                            form.addEventListener('submit', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return false;
+                            }, true);
+                        });
+                        
+                        // Disable buttons that might navigate
+                        document.querySelectorAll('button').forEach(button => {
+                            button.type = 'button';
+                            button.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                            }, true);
+                        });
+                        
+                        // Override window.open
+                        window.open = function() { return null; };
+                        
+                        // Prevent any navigation attempts
+                        window.addEventListener('beforeunload', function(e) {
+                            e.preventDefault();
+                            e.returnValue = '';
+                            return '';
+                        });
+                        
+                        // Style for selection mode
                         const style = document.createElement('style');
                         style.textContent = \`
+                            * {
+                                cursor: crosshair !important;
+                            }
                             .xpath-hover { 
                                 outline: 3px solid #3b82f6 !important; 
                                 background: rgba(59, 130, 246, 0.15) !important; 
@@ -3850,13 +3815,14 @@ function loadWebsitePreview(url) {
                                 0%, 100% { transform: scale(1); }
                                 50% { transform: scale(1.1); }
                             }
-                            body { 
-                                user-select: none !important;
+                            a, button, input[type="submit"], input[type="button"] {
+                                pointer-events: all !important;
+                                cursor: crosshair !important;
                             }
                         \`;
                         document.head.appendChild(style);
                         
-                        // Robula+ Algorithm Implementation
+                        // Robula+ XPath generation
                         function generateRobulaXPath(element) {
                             if (!element || element.nodeType !== Node.ELEMENT_NODE) {
                                 return null;
@@ -3873,17 +3839,16 @@ function loadWebsitePreview(url) {
                             while (currentElement && currentElement !== document.documentElement) {
                                 let selector = currentElement.tagName.toLowerCase();
                                 
-                                // Try class-based selector first (Robula+ optimization)
+                                // Try class-based selector first
                                 if (currentElement.className && typeof currentElement.className === 'string') {
                                     const classes = currentElement.className.trim().split(/\\s+/)
                                         .filter(cls => cls && !cls.includes('xpath-') && cls.length > 2)
-                                        .slice(0, 2); // Use max 2 most significant classes
+                                        .slice(0, 2);
                                     
                                     if (classes.length > 0) {
                                         const classSelector = classes.map(cls => 'contains(@class, "' + cls + '")').join(' and ');
                                         selector += '[' + classSelector + ']';
                                         
-                                        // Test uniqueness with class selector
                                         const testPath = '//' + [selector, ...path].join('/');
                                         try {
                                             const result = document.evaluate(testPath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
@@ -3894,7 +3859,7 @@ function loadWebsitePreview(url) {
                                     }
                                 }
                                 
-                                // Try attributes (Robula+ attribute priority)
+                                // Try attributes
                                 const attrs = ['name', 'type', 'role', 'data-testid', 'data-cy'];
                                 for (const attr of attrs) {
                                     const value = currentElement.getAttribute(attr);
@@ -3945,9 +3910,15 @@ function loadWebsitePreview(url) {
                         function onClick(e) {
                             if (!isActive) return;
                             
+                            // CRITICAL: Prevent ALL default actions
                             e.preventDefault();
                             e.stopPropagation();
                             e.stopImmediatePropagation();
+                            
+                            // Don't allow navigation
+                            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                                e.preventDefault();
+                            }
                             
                             if (selectedElements.has(e.target)) return false;
                             if (selectedCount >= maxSelections) return false;
@@ -3964,7 +3935,6 @@ function loadWebsitePreview(url) {
                             marker.textContent = selectedCount + 1;
                             marker.dataset.id = 'xpath_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                             
-                            // Ensure element can contain the marker
                             if (getComputedStyle(e.target).position === 'static') {
                                 e.target.style.position = 'relative';
                             }
@@ -3999,7 +3969,6 @@ function loadWebsitePreview(url) {
                                         selectedElements.delete(element);
                                         selectedCount--;
                                         
-                                        // Renumber remaining markers
                                         let index = 1;
                                         for (const [el, elData] of selectedElements.entries()) {
                                             if (elData.marker) elData.marker.textContent = index++;
@@ -4010,11 +3979,32 @@ function loadWebsitePreview(url) {
                             }
                         }
                         
-                        // Event listeners with proper capture
+                        // CRITICAL: Use capture phase to intercept ALL clicks before they bubble
                         document.addEventListener('mouseover', onMouseOver, { capture: true, passive: true });
                         document.addEventListener('mouseout', onMouseOut, { capture: true, passive: true });
                         document.addEventListener('click', onClick, { capture: true, passive: false });
                         window.addEventListener('message', onMessage);
+                        
+                        // Additional prevention for any dynamically added elements
+                        const observer = new MutationObserver(function(mutations) {
+                            mutations.forEach(function(mutation) {
+                                mutation.addedNodes.forEach(function(node) {
+                                    if (node.nodeType === 1) { // Element node
+                                        if (node.tagName === 'A') {
+                                            node.removeAttribute('href');
+                                            node.style.cursor = 'crosshair';
+                                            node.addEventListener('click', function(e) {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                return false;
+                                            }, true);
+                                        }
+                                    }
+                                });
+                            });
+                        });
+                        
+                        observer.observe(document.body, { childList: true, subtree: true });
                         
                         window.xpathCleanup = function() {
                             isActive = false;
@@ -4022,16 +4012,13 @@ function loadWebsitePreview(url) {
                             document.removeEventListener('mouseout', onMouseOut, true);
                             document.removeEventListener('click', onClick, true);
                             window.removeEventListener('message', onMessage);
+                            observer.disconnect();
                             
                             selectedElements.forEach(data => {
                                 if (data.marker) data.marker.remove();
                             });
                             selectedElements.clear();
                         };
-                        
-                        // Enable full document scrolling
-                        document.body.style.overflow = 'visible';
-                        document.documentElement.style.overflow = 'visible';
                         
                         window.parent.postMessage({ type: 'iframe_ready' }, '*');
                         
@@ -4053,33 +4040,12 @@ function loadWebsitePreview(url) {
             } catch (e) {
                 console.error('Script injection failed:', e);
             }
-        }, 2000); // Increased timeout for better load reliability
+        }, 2000);
     };
     
     iframe.onerror = () => {
         loader.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--danger)">Failed to load website</div>';
     };
-    
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && document.querySelector('.step-content.active#step2')) {
-            switch (e.key) {
-                case '+':
-                case '=':
-                    e.preventDefault();
-                    setZoom(zoomLevel + 0.25);
-                    break;
-                case '-':
-                    e.preventDefault();
-                    setZoom(zoomLevel - 0.25);
-                    break;
-                case '0':
-                    e.preventDefault();
-                    setZoom(1);
-                    break;
-            }
-        }
-    });
     
     // Cleanup function
     function cleanup() {
@@ -6884,7 +6850,7 @@ async function logout() {
 // Mobile responsiveness
 window.addEventListener('resize', () => {
     const sidebarToggle = document.getElementById('sidebarToggle');
-    if (window.innerWidth <= 768) {
+    // if (window.innerWidth <= 768) {
         sidebarToggle.style.display = 'block';
     } else {
         sidebarToggle.style.display = 'none';

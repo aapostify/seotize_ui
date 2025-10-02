@@ -3247,143 +3247,143 @@ function closeModal() {
     currentData.currentStep = 1;
 }
 
+
 // Enhanced Task Modal with Priority First
 async function showTaskModal() {
     showModal('Create New SEO Task', `
     <div class="step-content active" id="step1">
-    <div class="form-group">
-    <label class="form-label">Website URL</label>
-    <input type="url" class="form-input" id="taskUrl" required placeholder="https://example.com">
-    <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
-    Enter the full URL of your website to analyze and preview
-    </small>
-    </div>
+        <div class="form-group">
+            <label class="form-label">Website URL</label>
+            <input type="url" class="form-input" id="taskUrl" required placeholder="https://example.com">
+            <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                Enter the full URL of your website to analyze.
+            </small>
+        </div>
 
-    <div class="form-group">
-    <label class="form-label">Task Priority</label>
-    <div class="priority-options">
-    <div class="priority-option" data-priority="basic" onclick="selectPriority('basic')">
-    <div class="priority-title">Basic</div>
-    <div class="priority-price">$0.10/click</div>
-    <div class="priority-locations">2 locations</div>
-    </div>
-    <div class="priority-option selected" data-priority="standard" onclick="selectPriority('standard')">
-    <div class="priority-title">Standard</div>
-    <div class="priority-price">$0.12/click</div>
-    <div class="priority-locations">3 locations</div>
-    </div>
-    <div class="priority-option" data-priority="premium" onclick="selectPriority('premium')">
-    <div class="priority-title">Premium</div>
-    <div class="priority-price">$0.15/click</div>
-    <div class="priority-locations">5 locations</div>
-    </div>
-    </div>
-    </div>
+        <div class="form-group">
+            <label class="form-label">Task Priority</label>
+            <div class="priority-options">
+                <div class="priority-option" data-priority="basic" onclick="selectPriority('basic')">
+                    <div class="priority-title">Basic</div>
+                    <div class="priority-price">$0.10/click</div>
+                    <div class="priority-locations">2 Locations</div>
+                </div>
+                <div class="priority-option selected" data-priority="standard" onclick="selectPriority('standard')">
+                    <div class="priority-title">Standard</div>
+                    <div class="priority-price">$0.12/click</div>
+                    <div class="priority-locations">3 Locations</div>
+                </div>
+                <div class="priority-option" data-priority="premium" onclick="selectPriority('premium')">
+                    <div class="priority-title">Premium</div>
+                    <div class="priority-price">$0.15/click</div>
+                    <div class="priority-locations">5 Locations</div>
+                </div>
+            </div>
+        </div>
 
-    <div class="step-navigation">
-    <div></div>
-    <button class="btn btn-primary" onclick="goToStep(3)">Next: Keywords & Payment</button>
-    </div>
+        <div class="step-navigation">
+            <div></div>
+            <button class="btn btn-primary" onclick="goToStep(3)">Next: Keywords & Payment</button>
+        </div>
     </div>
 
     <div class="step-content" id="step3">
-    <div class="form-group">
-    <label class="form-label">Keywords</label>
-    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-    <input type="text" class="form-input" id="keywordsInput" placeholder="Enter keywords separated by commas">
-    <button class="btn btn-secondary" id="aiKeywordsBtn" onclick="generateAIKeywords()">
-    <i class="ri-magic-line"></i> AI Suggest
-    </button>
-    </div>
-    <div id="keywordSuggestions" class="keyword-suggestions"></div>
-    <div id="selectedKeywordsDisplay" style="margin-top: 1rem;"></div>
-    </div>
+        <div class="form-group">
+            <label class="form-label">Keywords</label>
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <input type="text" class="form-input" id="keywordsInput" placeholder="Enter keywords separated by commas">
+                <button class="btn btn-secondary" id="aiKeywordsBtn" onclick="generateAIKeywords()">
+                    <i class="ri-magic-line"></i> AI Suggest
+                </button>
+            </div>
+            <div id="keywordSuggestions" class="keyword-suggestions"></div>
+            <div id="selectedKeywordsDisplay" style="margin-top: 1rem;"></div>
+        </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-    <div class="form-group">
-    <label class="form-label">Total Budget ($)</label>
-    <input type="number" class="form-input" id="taskBudget" min="10" value="150" onchange="updateEstimates()">
-    </div>
-    <div class="form-group">
-    <label class="form-label">Estimated Clicks</label>
-    <input type="text" class="form-input" id="estimatedClicks" readonly>
-    </div>
-    </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="form-group">
+                <label class="form-label">Total Budget ($)</label>
+                <input type="number" class="form-input" id="taskBudget" min="10" value="150" onchange="updateEstimates()">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Estimated Clicks</label>
+                <input type="text" class="form-input" id="estimatedClicks" readonly>
+            </div>
+        </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-    <div class="form-group">
-    <label class="form-label">Payment Method</label>
-    <select class="form-select" id="paymentMethod">
-    <option value="stripe">Stripe (Credit/Debit Cards)</option>
-    <option value="oxapay">OxaPay (Cryptocurrency)</option>
-    </select>
-    </div>
-    <div class="form-group">
-    <label class="form-label">Payment Type</label>
-    <select class="form-select" id="paymentType" onchange="toggleSubscriptionOptions()">
-    <option value="one-time">One-time Payment</option>
-    <option value="subscription">Recurring Subscription</option>
-    </select>
-    </div>
-    </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="form-group">
+                <label class="form-label">Payment Method</label>
+                <select class="form-select" id="paymentMethod">
+                    <option value="stripe">Stripe (Credit/Debit Cards)</option>
+                    <option value="oxapay">OxaPay (Cryptocurrency)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Payment Type</label>
+                <select class="form-select" id="paymentType" onchange="toggleSubscriptionOptions()">
+                    <option value="one-time">One-time Payment</option>
+                    <option value="subscription">Recurring Subscription</option>
+                </select>
+            </div>
+        </div>
 
-    <div id="subscriptionOptions" style="display: none; margin-bottom: 1.5rem;">
-    <div class="form-group">
-    <label class="form-label">Billing Cycle</label>
-    <select class="form-select" id="billingCycle">
-    <option value="monthly">Monthly</option>
-    <option value="quarterly">Quarterly (3 months)</option>
-    <option value="yearly">Yearly</option>
-    </select>
-    </div>
-    </div>
+        <div id="subscriptionOptions" style="display: none; margin-bottom: 1.5rem;">
+            <div class="form-group">
+                <label class="form-label">Billing Cycle</label>
+                <select class="form-select" id="billingCycle">
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly (3 months)</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+            </div>
+        </div>
 
-    <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
-    <div style="display: flex; align-items: start; gap: 0.5rem; margin-bottom: 1rem;">
-    <input type="checkbox" id="cancelPrevious" style="margin-top: 0.25rem;">
-    <label for="cancelPrevious" style="font-size: 0.875rem; cursor: pointer;">
-    <strong>Cancel Previous Tasks</strong><br>
-    <span style="color: var(--text-secondary);">Automatically cancel any pending or active payments for previous tasks. This will stop any ongoing SEO campaigns and refund unused credits.</span>
-    </label>
-    </div>
+        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: start; gap: 0.5rem; margin-bottom: 1rem;">
+                <input type="checkbox" id="cancelPrevious" style="margin-top: 0.25rem;">
+                <label for="cancelPrevious" style="font-size: 0.875rem; cursor: pointer;">
+                    <strong>Cancel Previous Tasks</strong><br>
+                    <span style="color: var(--text-secondary);">Automatically cancel any pending or active payments for previous tasks.</span>
+                </label>
+            </div>
+            <div id="previousTasksWarning" style="display: none; background: var(--warning); color: white; padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.875rem;">
+                <i class="ri-alert-line"></i> This will cancel <span id="previousTaskCount">0</span> active task(s).
+            </div>
+        </div>
 
-    <div id="previousTasksWarning" style="display: none; background: var(--warning); color: white; padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.875rem;">
-    <i class="ri-alert-line"></i> This will cancel <span id="previousTaskCount">0</span> active task(s) and any pending payments.
-    </div>
-    </div>
+        <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1rem;">
+            <h4 style="margin-bottom: 1rem;">Order Summary</h4>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Task Budget:</span>
+                <span id="orderBudget">$150.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                <span>Priority:</span>
+                <span id="orderPriority">Standard</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                <span>Keywords:</span>
+                <span id="orderKeywords">0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                <span>Click Locations:</span>
+                <span id="orderLocations">0</span>
+            </div>
+            <div style="border-top: 1px solid var(--border); padding-top: 0.5rem; margin-top: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 1.125rem;">
+                    <span>Total:</span>
+                    <span id="orderTotal">$150.00</span>
+                </div>
+            </div>
+        </div>
 
-    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1rem;">
-    <h4 style="margin-bottom: 1rem;">Order Summary</h4>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-    <span>Task Budget:</span>
-    <span id="orderBudget">$150.00</span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
-    <span>Priority:</span>
-    <span id="orderPriority">Standard</span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
-    <span>Keywords:</span>
-    <span id="orderKeywords">0</span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
-    <span>Click Locations:</span>
-    <span id="orderLocations">0</span>
-    </div>
-    <div style="border-top: 1px solid var(--border); padding-top: 0.5rem; margin-top: 0.5rem;">
-    <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 1.125rem;">
-    <span>Total:</span>
-    <span id="orderTotal">$150.00</span>
-    </div>
-    </div>
-    </div>
-
-    <div class="step-navigation">
-    <button class="btn btn-secondary" onclick="goToStep(1)">Back</button>
-    <button class="btn btn-primary" onclick="createTask()" id="createTaskBtn">
-    <i class="ri-wallet-line"></i> Create Task & Pay
-    </button>
-    </div>
+        <div class="step-navigation">
+            <button class="btn btn-secondary" onclick="goToStep(1)">Back</button>
+            <button class="btn btn-primary" onclick="createTask()" id="createTaskBtn">
+                <i class="ri-wallet-line"></i> Create Task & Pay
+            </button>
+        </div>
     </div>
     `);
 
@@ -3395,7 +3395,6 @@ async function showTaskModal() {
     // Check for existing active tasks
     checkForActiveTasks();
 }
-
 function toggleSubscriptionOptions() {
     const paymentType = document.getElementById('paymentType').value;
     const subscriptionOptions = document.getElementById('subscriptionOptions');
@@ -3448,33 +3447,31 @@ function updateOrderSummary() {
 }
 // Complete Fixed Step Navigation System
 function goToStep(step) {
-    // When moving to the final step, automatically create the locations array
+    // If we are moving to the final step (step 3)
     if (step === 3) {
         const url = document.getElementById('taskUrl').value.trim();
         if (!url) {
             showToast('Please enter a valid URL', 'error');
-            return; // Stop the function if the URL is missing
+            return; // Stop if there's no URL
         }
 
-        // Get the number of locations based on the selected priority
+        // Automatically generate the locations array
         const numLocations = getPriorityMaxLocations(currentData.taskPriority);
-        
-        // Create an array with the specified number of "-" items
         currentData.selectedLocations = Array(numLocations).fill({ xpath: '-' });
 
-        // Initialize the elements on the final step
+        // Update the summary display on the next screen
         setTimeout(() => {
             updateEstimates();
             updateOrderSummary();
         }, 100);
     }
 
-    // Hide all step content
+    // Hide all step sections
     document.querySelectorAll('.step-content').forEach(content => {
         content.classList.remove('active');
     });
 
-    // Show the target step
+    // Show the correct step section
     const targetStep = document.getElementById(`step\${step}`);
     if (targetStep) {
         targetStep.classList.add('active');

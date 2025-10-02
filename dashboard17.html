@@ -2156,24 +2156,24 @@ function navigateTo(page) {
 
 // Update User Info
 function updateUserInfo() {
-    const user = currentData.user;
-    if (!user) return;
+    const user = currentData.user;
+    if (!user) return;
 
-    const email = user.email;
-    const name = email.split('@')[0];
-    const initial = email[0].toUpperCase();
+    const email = user.email;
+    const name = email.split('@')[0];
+    const initial = email[0].toUpperCase();
 
-    // Update all user display elements
-    document.getElementById('userInitial').textContent = initial;
-    document.getElementById('userName').textContent = name;
-    document.getElementById('userEmail').textContent = email;
+    // Update all user display elements
+    document.getElementById('userInitial').textContent = initial;
+    document.getElementById('userName').textContent = name;
+    document.getElementById('userEmail').textContent = email;
 
-    // Update session count (excluding current session)
-    const otherSessions = getOtherSessions();
+    // Update session count (excluding current session)
+    const otherSessions = getOtherSessions();
     const totalSessions = otherSessions.length + 1;
 
     // Update both desktop and mobile session counts
-    const desktopCountEl = document.getElementById('sessionCount');
+    const desktopCountEl = document.getElementById('sessionCount');
     if (desktopCountEl) desktopCountEl.textContent = totalSessions;
 
     const mobileCountEl = document.getElementById('sessionCountMobile');
@@ -3247,7 +3247,7 @@ function closeModal() {
     currentData.currentStep = 1;
 }
 
-
+// Enhanced Task Modal with Priority First
 // Enhanced Task Modal with Priority First
 async function showTaskModal() {
     showModal('Create New SEO Task', `
@@ -3256,7 +3256,7 @@ async function showTaskModal() {
             <label class="form-label">Website URL</label>
             <input type="url" class="form-input" id="taskUrl" required placeholder="https://example.com">
             <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
-                Enter the full URL of your website to analyze.
+                Enter the full URL of your website.
             </small>
         </div>
 
@@ -3266,17 +3266,17 @@ async function showTaskModal() {
                 <div class="priority-option" data-priority="basic" onclick="selectPriority('basic')">
                     <div class="priority-title">Basic</div>
                     <div class="priority-price">$0.10/click</div>
-                    <div class="priority-locations">2 Locations</div>
+                    <div class="priority-locations">2 locations</div>
                 </div>
                 <div class="priority-option selected" data-priority="standard" onclick="selectPriority('standard')">
                     <div class="priority-title">Standard</div>
                     <div class="priority-price">$0.12/click</div>
-                    <div class="priority-locations">3 Locations</div>
+                    <div class="priority-locations">3 locations</div>
                 </div>
                 <div class="priority-option" data-priority="premium" onclick="selectPriority('premium')">
                     <div class="priority-title">Premium</div>
                     <div class="priority-price">$0.15/click</div>
-                    <div class="priority-locations">5 Locations</div>
+                    <div class="priority-locations">5 locations</div>
                 </div>
             </div>
         </div>
@@ -3344,11 +3344,12 @@ async function showTaskModal() {
                 <input type="checkbox" id="cancelPrevious" style="margin-top: 0.25rem;">
                 <label for="cancelPrevious" style="font-size: 0.875rem; cursor: pointer;">
                     <strong>Cancel Previous Tasks</strong><br>
-                    <span style="color: var(--text-secondary);">Automatically cancel any pending or active payments for previous tasks.</span>
+                    <span style="color: var(--text-secondary);">Automatically cancel any pending or active payments for previous tasks. This will stop any ongoing SEO campaigns and refund unused credits.</span>
                 </label>
             </div>
+
             <div id="previousTasksWarning" style="display: none; background: var(--warning); color: white; padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.875rem;">
-                <i class="ri-alert-line"></i> This will cancel <span id="previousTaskCount">0</span> active task(s).
+                <i class="ri-alert-line"></i> This will cancel <span id="previousTaskCount">0</span> active task(s) and any pending payments.
             </div>
         </div>
 
@@ -3395,6 +3396,7 @@ async function showTaskModal() {
     // Check for existing active tasks
     checkForActiveTasks();
 }
+
 function toggleSubscriptionOptions() {
     const paymentType = document.getElementById('paymentType').value;
     const subscriptionOptions = document.getElementById('subscriptionOptions');
@@ -3447,37 +3449,42 @@ function updateOrderSummary() {
 }
 // Complete Fixed Step Navigation System
 function goToStep(step) {
-    // If we are moving to the final step (step 3)
-    if (step === 3) {
+    // If moving from step 1 to step 3, validate URL and auto-generate locations
+    if (currentData.currentStep === 1 && step === 3) {
         const url = document.getElementById('taskUrl').value.trim();
         if (!url) {
             showToast('Please enter a valid URL', 'error');
-            return; // Stop if there's no URL
+            return; // Stop the process if URL is missing
         }
+        // Automatically create the locations array with '-' based on priority
+        const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
+        currentData.selectedLocations = Array(maxLocations).fill('-');
+        console.log(`Auto-generated ${maxLocations} locations for '${currentData.taskPriority}' priority.`);
+    }
 
-        // Automatically generate the locations array
-        const numLocations = getPriorityMaxLocations(currentData.taskPriority);
-        currentData.selectedLocations = Array(numLocations).fill({ xpath: '-' });
-
-        // Update the summary display on the next screen
+    // This part runs when step 3 is about to be displayed
+    if (step === 3) {
         setTimeout(() => {
             updateEstimates();
-            updateOrderSummary();
+            updateOrderSummary(); // This will now correctly show the count of locations
         }, 100);
     }
 
-    // Hide all step sections
+    // Hide all step content divs
     document.querySelectorAll('.step-content').forEach(content => {
         content.classList.remove('active');
     });
 
-    // Show the correct step section
-    const targetStep = document.getElementById(`step\${step}`);
+    // Show the target step content div
+    const targetStep = document.getElementById(`step${step}`);
     if (targetStep) {
         targetStep.classList.add('active');
-        currentData.currentStep = step;
+        currentData.currentStep = step; // Update the current step number
+    } else {
+        console.error(`Step ${step} element not found`);
     }
 }
+
 function loadWebsitePreview(url) {
     const iframe = document.getElementById('taskPreviewFrame');
     const loader = document.getElementById('websiteLoader');
@@ -4083,22 +4090,45 @@ function loadWebsitePreview(url) {
 }
 
 // Select priority
-// Select priority
 function selectPriority(priority) {
-    // Visually update which priority is selected
+    console.log('Selecting priority:', priority); // Debug log
+
     document.querySelectorAll('.priority-option').forEach(option => {
         option.classList.remove('selected');
     });
-    const selectedOption = document.querySelector(`[data-priority="\${priority}"]`);
+
+    const selectedOption = document.querySelector(`[data-priority="${priority}"]`);
     if (selectedOption) {
         selectedOption.classList.add('selected');
+        currentData.taskPriority = priority;
+
+        // Update max locations display
+        const maxLocations = getPriorityMaxLocations(priority);
+        const maxLocationsSpan = document.getElementById('maxLocations');
+        if (maxLocationsSpan) {
+            maxLocationsSpan.textContent = maxLocations;
+        }
+
+        // Trim locations if they exceed the new limit
+        if (currentData.selectedLocations.length > maxLocations) {
+            const removedCount = currentData.selectedLocations.length - maxLocations;
+            currentData.selectedLocations = currentData.selectedLocations.slice(0, maxLocations);
+
+            // Remove excess markers from overlay
+            const overlay = document.getElementById('xpathOverlay');
+            if (overlay) {
+                const markers = overlay.querySelectorAll('.xpath-marker');
+                for (let i = maxLocations; i < markers.length; i++) {
+                    markers[i].remove();
+                }
+            }
+
+            showToast(`Reduced to ${maxLocations} locations for ${priority} priority (removed ${removedCount})`, 'warning');
+        }
+
+        updateEstimates();
+        console.log('Priority updated to:', priority, 'Max locations:', maxLocations); // Debug log
     }
-
-    // Store the selected priority
-    currentData.taskPriority = priority;
-
-    // Update the cost and click estimates
-    updateEstimates();
 }
 
 // Get priority max locations
@@ -4302,7 +4332,8 @@ async function createTask() {
     }
 
     if (!currentData.selectedLocations.length) {
-        showToast('Please select at least one click location', 'error');
+        // This check is now for the auto-generated array
+        showToast('Something went wrong with location selection. Please try again.', 'error');
         return;
     }
 
@@ -4324,13 +4355,6 @@ async function createTask() {
         return;
     }
 
-    // Validate locations count based on priority
-    const maxLocations = getPriorityMaxLocations(currentData.taskPriority);
-    if (currentData.selectedLocations.length > maxLocations) {
-        showToast(`Maximum ${maxLocations} locations allowed for ${currentData.taskPriority} priority`, 'error');
-        return;
-    }
-
     const createButton = document.getElementById('createTaskBtn');
     createButton.innerHTML = '<i class="ri-loader-line"></i> Creating Task...';
     createButton.disabled = true;
@@ -4341,7 +4365,8 @@ async function createTask() {
             task_details: {
                 url: url.startsWith('http') ? url : `https://${url}`,
                 keywords: keywords,
-                html_locations: currentData.selectedLocations.map(loc => loc.xpath)
+                // THIS IS THE IMPORTANT CHANGE
+                html_locations: currentData.selectedLocations
             },
             task_priority: currentData.taskPriority, // priority name as string
             total_charge: budget,

@@ -3266,7 +3266,7 @@ async function showTaskModal() {
                 <div class="priority-option" data-priority="basic" onclick="selectPriority('basic')">
                     <div class="priority-title">Basic</div>
                     <div class="priority-price">$0.10/click</div>
-                    <div class="priority-locations">2 locations</div>
+                    <div class="priority-locations">1 location</div>
                 </div>
                 <div class="priority-option selected" data-priority="standard" onclick="selectPriority('standard')">
                     <div class="priority-title">Standard</div>
@@ -4133,7 +4133,7 @@ function selectPriority(priority) {
 
 // Get priority max locations
 function getPriorityMaxLocations(priority) {
-    const limits = { basic: 2, standard: 3, premium: 5 };
+    const limits = { basic: 1, standard: 3, premium: 5 };
     return limits[priority] || 3;
 }
 

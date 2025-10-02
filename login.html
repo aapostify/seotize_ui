@@ -6,6 +6,7 @@
     <title>Sign In - SEOTIZE | AI SEO Platform</title>
     <meta name="description" content="Sign in to your SEOTIZE account and access powerful AI SEO tools to boost your website rankings.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -57,7 +58,6 @@
             transition: var(--transition);
         }
 
-        /* Main Container - Full height with no scroll */
         .app-container {
             display: flex;
             flex-direction: column;
@@ -88,12 +88,6 @@
             letter-spacing: -0.5px;
         }
 
-        .header-actions {
-            display: flex;
-            gap: 0.75rem;
-            align-items: center;
-        }
-
         .theme-toggle {
             width: 40px;
             height: 40px;
@@ -112,26 +106,22 @@
             transform: scale(0.95);
         }
 
-        /* Main Content Area */
+        /* Main Content */
         .main-content {
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
-            padding: 1.5rem 1rem;
+            padding: 2rem 1rem 5rem;
             display: flex;
             flex-direction: column;
             background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%);
         }
 
-        /* Login Form Container */
         .login-container {
             width: 100%;
             max-width: 400px;
             margin: 0 auto;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
         }
 
         .login-header {
@@ -152,15 +142,15 @@
             font-size: 1rem;
         }
 
-        /* Form Styles */
+        /* Form */
         .login-form {
-            flex: 1;
             display: flex;
             flex-direction: column;
+            gap: 1.25rem;
         }
 
         .form-group {
-            margin-bottom: 1.25rem;
+            margin-bottom: 0;
         }
 
         .form-label {
@@ -201,7 +191,6 @@
             background: rgba(16, 185, 129, 0.05);
         }
 
-        /* Password Input Container */
         .password-container {
             position: relative;
         }
@@ -219,12 +208,10 @@
             font-size: 1.25rem;
         }
 
-        /* Form Options */
         .form-options {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
             font-size: 0.875rem;
         }
 
@@ -272,7 +259,6 @@
             color: var(--primary-dark);
         }
 
-        /* Error Message */
         .error-message {
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.2);
@@ -280,7 +266,6 @@
             padding: 0.75rem 1rem;
             border-radius: var(--radius-sm);
             font-size: 0.875rem;
-            margin-bottom: 1rem;
             display: none;
         }
 
@@ -288,11 +273,9 @@
             display: block;
         }
 
-        /* Divider */
         .divider {
             display: flex;
             align-items: center;
-            margin: 1.5rem 0;
             color: var(--text-muted);
             font-size: 0.875rem;
         }
@@ -307,11 +290,6 @@
 
         .divider span {
             padding: 0 1rem;
-        }
-
-        /* Social Login */
-        .social-login {
-            margin-bottom: 1.5rem;
         }
 
         .social-btn {
@@ -330,7 +308,6 @@
             cursor: pointer;
             transition: var(--transition);
             text-decoration: none;
-            margin-bottom: 0.75rem;
         }
 
         .social-btn:hover {
@@ -340,29 +317,6 @@
 
         .social-btn:active {
             transform: scale(0.98);
-        }
-
-        .social-btn img {
-            width: 20px;
-            height: 20px;
-        }
-
-        /* Bottom Actions - Sticky */
-        .bottom-actions {
-            background: var(--bg);
-            border-top: 1px solid var(--border);
-            padding: 1rem;
-            position: relative;
-            z-index: 10;
-            flex-shrink: 0;
-        }
-
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            max-width: 400px;
-            margin: 0 auto;
         }
 
         .btn {
@@ -379,8 +333,6 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            position: relative;
-            overflow: hidden;
         }
 
         .btn-primary {
@@ -401,21 +353,6 @@
             opacity: 0.8;
         }
 
-        .btn-secondary {
-            background: transparent;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(37, 99, 235, 0.1);
-        }
-
-        .btn-secondary:active {
-            transform: scale(0.98);
-        }
-
-        /* Loading Spinner */
         .spinner {
             width: 16px;
             height: 16px;
@@ -430,18 +367,56 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Success Animation */
-        .success-checkmark {
+        /* Mobile Bottom Navigation */
+        .mobile-nav {
             display: none;
-            color: var(--success);
-            font-size: 1.5rem;
-            animation: checkmark 0.5s ease;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            z-index: 50;
+            padding: 0.5rem;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        @keyframes checkmark {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+        .mobile-nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.75rem;
+            transition: var(--transition);
+            border-radius: var(--radius);
+            flex: 1;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+
+        .mobile-nav-item:active {
+            transform: scale(0.95);
+        }
+
+        .mobile-nav-item.active {
+            color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        .mobile-nav-item i {
+            font-size: 1.25rem;
         }
 
         /* Notification Toast */
@@ -474,36 +449,20 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* Responsive Design */
-        @media (min-width: 768px) {
-            .header {
-                padding: 1.25rem 2rem;
+        /* Responsive */
+        @media (max-width: 768px) {
+            .mobile-nav {
+                display: block;
             }
 
             .main-content {
-                padding: 2rem;
+                padding-bottom: 80px;
             }
 
-            .login-container {
-                max-width: 440px;
+            .login-header h1 {
+                font-size: 1.75rem;
             }
 
-            .bottom-actions {
-                padding: 1.5rem 2rem;
-            }
-
-            .action-buttons {
-                flex-direction: row;
-                gap: 1rem;
-            }
-
-            .btn-secondary {
-                width: auto;
-                flex: 1;
-            }
-        }
-
-        @media (max-width: 380px) {
             .header {
                 padding: 0.875rem 1rem;
             }
@@ -511,15 +470,9 @@
             .logo {
                 font-size: 1.25rem;
             }
+        }
 
-            .login-header h1 {
-                font-size: 1.75rem;
-            }
-
-            .main-content {
-                padding: 1rem;
-            }
-
+        @media (max-width: 380px) {
             .form-input {
                 padding: 0.75rem 0.875rem;
                 font-size: 0.9375rem;
@@ -531,77 +484,13 @@
             }
         }
 
-        /* Landscape Mode Adjustments */
-        @media (orientation: landscape) and (max-height: 600px) {
-            .header {
-                padding: 0.75rem 1.25rem;
-            }
-
-            .main-content {
-                padding: 1rem;
-            }
-
-            .login-header {
-                margin-bottom: 1rem;
-            }
-
-            .login-header h1 {
-                font-size: 1.5rem;
-            }
-
-            .form-group {
-                margin-bottom: 0.875rem;
-            }
-
-            .form-input {
-                padding: 0.625rem 0.875rem;
-            }
-
-            .bottom-actions {
-                padding: 0.75rem 1rem;
-            }
-
-            .btn {
-                padding: 0.75rem;
-            }
-        }
-
-        /* PWA Support */
         @media (display-mode: standalone) {
             .header {
                 padding-top: env(safe-area-inset-top, 1rem);
             }
 
-            .bottom-actions {
-                padding-bottom: env(safe-area-inset-bottom, 1rem);
-            }
-        }
-
-        /* Focus Visible for Accessibility */
-        .form-input:focus-visible,
-        .btn:focus-visible,
-        .theme-toggle:focus-visible {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-        }
-
-        /* Reduced Motion Support */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-
-        /* High Contrast Mode Support */
-        @media (prefers-contrast: high) {
-            .form-input {
-                border-width: 3px;
-            }
-
-            .btn {
-                border: 2px solid currentColor;
+            .mobile-nav {
+                padding-bottom: env(safe-area-inset-bottom, 0.5rem);
             }
         }
     </style>
@@ -611,11 +500,9 @@
         <!-- Header -->
         <header class="header">
             <a href="index.html" class="logo">SEOTIZE</a>
-            <div class="header-actions">
-                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-                    <span id="themeIcon">🌙</span>
-                </button>
-            </div>
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                <span id="themeIcon">🌙</span>
+            </button>
         </header>
 
         <!-- Main Content -->
@@ -639,10 +526,7 @@
                             placeholder="Enter your email"
                             autocomplete="email"
                             required
-                            aria-required="true"
-                            aria-describedby="email-error"
                         >
-                        <span id="email-error" class="sr-only"></span>
                     </div>
 
                     <div class="form-group">
@@ -656,8 +540,6 @@
                                 placeholder="Enter your password"
                                 autocomplete="current-password"
                                 required
-                                aria-required="true"
-                                aria-describedby="password-error"
                             >
                             <button 
                                 type="button" 
@@ -668,7 +550,6 @@
                                 <span id="passwordIcon">👁</span>
                             </button>
                         </div>
-                        <span id="password-error" class="sr-only"></span>
                     </div>
 
                     <div class="form-options">
@@ -679,52 +560,55 @@
                         <a href="forgot-password.html" class="forgot-link">Forgot password?</a>
                     </div>
 
+                    <button type="submit" class="btn btn-primary" id="loginBtn">
+                        <span id="btnText">Sign In</span>
+                        <div class="spinner" id="spinner" style="display: none;"></div>
+                    </button>
+
                     <div class="divider">
                         <span>or continue with</span>
                     </div>
 
-                    <div class="social-login">
-                        <a href="https://api.seotize.net/login/google" class="social-btn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                            </svg>
-                            Sign in with Google
-                        </a>
-                    </div>
+                    <a href="https://api.seotize.net/login/google" class="social-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        Sign in with Google
+                    </a>
                 </form>
             </div>
         </main>
 
-        <!-- Bottom Actions -->
-        <div class="bottom-actions">
-            <div class="action-buttons">
-                <button type="submit" form="loginForm" class="btn btn-primary" id="loginBtn">
-                    <span id="btnText">Sign In</span>
-                    <div class="spinner" id="spinner" style="display: none;"></div>
-                    <span class="success-checkmark" id="successIcon">✓</span>
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-nav">
+            <div class="mobile-nav-items">
+                <a href="register.html" class="mobile-nav-item">
+                    <i class="ri-user-add-line"></i>
+                    <span>Register</span>
+                </a>
+                <button type="submit" form="loginForm" class="mobile-nav-item active">
+                    <i class="ri-login-box-line"></i>
+                    <span>Sign In</span>
                 </button>
-                <a href="register.html" class="btn btn-secondary">Create Account</a>
+                <a href="index.html" class="mobile-nav-item">
+                    <i class="ri-home-line"></i>
+                    <span>Home</span>
+                </a>
             </div>
-        </div>
+        </nav>
     </div>
 
-    <!-- Notification Toast -->
     <div class="notification" id="notification"></div>
 
-    <!-- Clean JavaScript without external dependencies -->
     <script>
-        // API Configuration
         const API_BASE = 'https://api.seotize.net';
-        
-        // State Management
         let isRemembered = false;
         let isPasswordVisible = false;
         let isSubmitting = false;
 
-        // Theme Management
         function toggleTheme() {
             const body = document.body;
             const isDark = body.classList.toggle('dark');
@@ -741,36 +625,22 @@
             }
         }
 
-        // Password Visibility Toggle
         function togglePassword() {
             const passwordInput = document.getElementById('password');
             const passwordIcon = document.getElementById('passwordIcon');
             isPasswordVisible = !isPasswordVisible;
-            
-            if (isPasswordVisible) {
-                passwordInput.type = 'text';
-                passwordIcon.textContent = '👁‍🗨';
-            } else {
-                passwordInput.type = 'password';
-                passwordIcon.textContent = '👁';
-            }
+            passwordInput.type = isPasswordVisible ? 'text' : 'password';
+            passwordIcon.textContent = isPasswordVisible ? '👁‍🗨' : '👁';
         }
 
-        // Remember Me Toggle
         function toggleCheckbox() {
             isRemembered = !isRemembered;
             const checkbox = document.getElementById('rememberCheckbox');
-            if (isRemembered) {
-                checkbox.classList.add('checked');
-            } else {
-                checkbox.classList.remove('checked');
-            }
+            checkbox.classList.toggle('checked', isRemembered);
         }
 
-        // Form Validation
         function validateEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         }
 
         function validateForm() {
@@ -778,12 +648,10 @@
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('errorMessage');
             
-            // Reset error state
             errorMessage.classList.remove('show');
             document.getElementById('email').classList.remove('error');
             document.getElementById('password').classList.remove('error');
             
-            // Validate email
             if (!email) {
                 showError('Please enter your email address');
                 document.getElementById('email').classList.add('error');
@@ -796,7 +664,6 @@
                 return false;
             }
             
-            // Validate password
             if (!password) {
                 showError('Please enter your password');
                 document.getElementById('password').classList.add('error');
@@ -812,25 +679,19 @@
             return true;
         }
 
-        // Error Display
         function showError(message) {
             const errorMessage = document.getElementById('errorMessage');
             errorMessage.textContent = message;
             errorMessage.classList.add('show');
         }
 
-        // Notification Display
         function showNotification(message, type) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.className = `notification ${type} show`;
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+            setTimeout(() => notification.classList.remove('show'), 3000);
         }
 
-        // Cookie Management
         function setCookie(name, value, days) {
             let expires = "";
             if (days) {
@@ -845,10 +706,7 @@
             const nameEQ = name + "=";
             const cookies = document.cookie.split(';');
             for (let i = 0; i < cookies.length; i++) {
-                let cookie = cookies[i];
-                while (cookie.charAt(0) === ' ') {
-                    cookie = cookie.substring(1);
-                }
+                let cookie = cookies[i].trim();
                 if (cookie.indexOf(nameEQ) === 0) {
                     return cookie.substring(nameEQ.length);
                 }
@@ -856,13 +714,10 @@
             return null;
         }
 
-        // Login Handler
         async function handleLogin(event) {
             event.preventDefault();
             
-            if (isSubmitting) return;
-            
-            if (!validateForm()) return;
+            if (isSubmitting || !validateForm()) return;
             
             isSubmitting = true;
             
@@ -871,9 +726,7 @@
             const loginBtn = document.getElementById('loginBtn');
             const btnText = document.getElementById('btnText');
             const spinner = document.getElementById('spinner');
-            const successIcon = document.getElementById('successIcon');
             
-            // Show loading state
             btnText.style.display = 'none';
             spinner.style.display = 'block';
             loginBtn.classList.add('loading');
@@ -881,37 +734,18 @@
             try {
                 const response = await fetch(`${API_BASE}/login`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
                 });
                 
                 const data = await response.json();
                 
-                if (data.status === 'success' && data.data && data.data.session_token) {
-                    // Set session cookie
-                    const cookieDays = isRemembered ? 7 : null;
-                    setCookie('session_token', data.data.session_token, cookieDays);
-                    
-                    // Show success state
-                    spinner.style.display = 'none';
-                    successIcon.style.display = 'block';
+                if (data.status === 'success' && data.data?.session_token) {
+                    setCookie('session_token', data.data.session_token, isRemembered ? 7 : null);
                     showNotification('Login successful! Redirecting...', 'success');
-                    
-                    // Redirect to dashboard
-                    setTimeout(() => {
-                        window.location.href = '/dashboard';
-                    }, 1000);
+                    setTimeout(() => window.location.href = '/dashboard', 1000);
                 } else {
-                    // Show error
-                    const errorMsg = data.error?.message || 'Invalid email or password';
-                    showError(errorMsg);
-                    
-                    // Reset button state
+                    showError(data.error?.message || 'Invalid email or password');
                     spinner.style.display = 'none';
                     btnText.style.display = 'block';
                     loginBtn.classList.remove('loading');
@@ -920,8 +754,6 @@
             } catch (error) {
                 console.error('Login error:', error);
                 showError('Connection error. Please try again.');
-                
-                // Reset button state
                 spinner.style.display = 'none';
                 btnText.style.display = 'block';
                 loginBtn.classList.remove('loading');
@@ -929,20 +761,14 @@
             }
         }
 
-        // Real-time Validation
         function setupRealtimeValidation() {
             const emailInput = document.getElementById('email');
             const passwordInput = document.getElementById('password');
             
             emailInput.addEventListener('blur', function() {
                 if (this.value.trim()) {
-                    if (validateEmail(this.value.trim())) {
-                        this.classList.remove('error');
-                        this.classList.add('success');
-                    } else {
-                        this.classList.remove('success');
-                        this.classList.add('error');
-                    }
+                    this.classList.toggle('success', validateEmail(this.value.trim()));
+                    this.classList.toggle('error', !validateEmail(this.value.trim()));
                 } else {
                     this.classList.remove('error', 'success');
                 }
@@ -950,84 +776,31 @@
             
             passwordInput.addEventListener('blur', function() {
                 if (this.value) {
-                    if (this.value.length >= 8) {
-                        this.classList.remove('error');
-                        this.classList.add('success');
-                    } else {
-                        this.classList.remove('success');
-                        this.classList.add('error');
-                    }
+                    this.classList.toggle('success', this.value.length >= 8);
+                    this.classList.toggle('error', this.value.length < 8);
                 } else {
                     this.classList.remove('error', 'success');
                 }
             });
             
-            // Clear error styles on input
-            emailInput.addEventListener('input', function() {
-                this.classList.remove('error');
-                document.getElementById('errorMessage').classList.remove('show');
-            });
-            
-            passwordInput.addEventListener('input', function() {
-                this.classList.remove('error');
-                document.getElementById('errorMessage').classList.remove('show');
+            [emailInput, passwordInput].forEach(input => {
+                input.addEventListener('input', function() {
+                    this.classList.remove('error');
+                    document.getElementById('errorMessage').classList.remove('show');
+                });
             });
         }
 
-        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if already logged in
             if (getCookie('session_token')) {
                 window.location.href = '/dashboard';
                 return;
             }
             
-            // Load theme
             loadTheme();
-            
-            // Setup form
-            const loginForm = document.getElementById('loginForm');
-            loginForm.addEventListener('submit', handleLogin);
-            
-            // Setup real-time validation
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
             setupRealtimeValidation();
-            
-            // Prevent viewport zooming on input focus (mobile)
-            const inputs = document.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('focus', function() {
-                    if (window.innerWidth < 768) {
-                        document.querySelector('meta[name="viewport"]').setAttribute('content', 
-                            'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-                    }
-                });
-            });
         });
-
-        // Handle orientation changes
-        window.addEventListener('orientationchange', function() {
-            // Adjust viewport after orientation change
-            setTimeout(() => {
-                window.scrollTo(0, 0);
-            }, 100);
-        });
-
-        // Prevent pull-to-refresh on mobile
-        let lastTouchY = 0;
-        document.addEventListener('touchstart', function(e) {
-            lastTouchY = e.touches[0].clientY;
-        }, { passive: false });
-
-        document.addEventListener('touchmove', function(e) {
-            const touchY = e.touches[0].clientY;
-            const touchDiff = touchY - lastTouchY;
-            
-            if (window.scrollY === 0 && touchDiff > 0) {
-                e.preventDefault();
-            }
-            
-            lastTouchY = touchY;
-        }, { passive: false });
     </script>
 </body>
 </html>

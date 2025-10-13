@@ -4801,16 +4801,7 @@ async function viewTaskDetails(taskId) {
                 </div>
 
 
-                <div class="task-modal-section">
-                    <h3 class="task-modal-section-title" style="color: var(--warning);"><i class="ri-cursor-line"></i>Click Locations (${(task.html_locations || []).length})</h3>
-                    ${(task.html_locations || []).length > 0 ? `
-                        <div class="xpath-list">
-                            ${task.html_locations.map(loc => `<code>${loc}</code>`).join('')}
-                        </div>
-                    ` : `
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">No specific click locations were configured for this task.</p>
-                    `}
-                </div>
+                
             </div>
         </div>
         `;

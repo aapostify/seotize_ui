@@ -4737,16 +4737,69 @@ async function viewTaskDetails(taskId) {
                 `}
 
                 <div class="task-modal-section">
-                    <h3 class="task-modal-section-title" style="color: var(--info);"><i class="ri-settings-3-line"></i>Configuration</h3>
-                    <div style="font-size: 0.9rem; line-height: 2;">
-                        <p><strong>Priority:</strong> <span class="badge badge-${priorityBadge}">${priorityName}</span> ($${priorityRate.toFixed(3)}/click)</p>
-                        <p><strong>Keywords:</strong></p>
-                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: -0.5rem;">
-                            ${(task.keywords || []).map(k => `<span class="badge badge-primary">${k}</span>`).join('')}
-                        </div>
-                        ${task.sitekey ? `<p style="margin-top: 1rem;"><strong>Site Key:</strong><br><code>${task.sitekey}</code></p>` : ''}
+                  <style>
+                    .install-instructions {
+                      background-color: #f8f9fa;
+                      border: 1px solid #e0e0e0;
+                      border-radius: 8px;
+                      padding: 1rem;
+                      margin-top: 0.5rem;
+                      font-size: 0.85rem;
+                      line-height: 1.6;
+                    }
+                    .install-instructions code {
+                      display: block;
+                      background: #282c34;
+                      color: #f8f8f2;
+                      padding: 0.75rem;
+                      border-radius: 6px;
+                      overflow-x: auto;
+                      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+                      margin-top: 0.5rem;
+                      font-size: 0.8rem;
+                    }
+                    .copy-btn {
+                      background-color: var(--info);
+                      color: white;
+                      border: none;
+                      padding: 0.4rem 0.8rem;
+                      border-radius: 4px;
+                      cursor: pointer;
+                      font-size: 0.8rem;
+                      margin-top: 0.5rem;
+                    }
+                    .copy-btn:hover {
+                      background-color: #0a7ac2;
+                    }
+                  </style>
+                
+                  <h3 class="task-modal-section-title" style="color: var(--info);">
+                    <i class="ri-settings-3-line"></i>Configuration
+                  </h3>
+                
+                  <div style="font-size: 0.9rem; line-height: 2;">
+                    <p>
+                      <strong>Priority:</strong>
+                      <span class="badge badge-${priorityBadge}">${priorityName}</span>
+                      ($${priorityRate.toFixed(3)}/click)
+                    </p>
+                
+                    <p><strong>Keywords:</strong></p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: -0.5rem;">
+                      ${(task.keywords || []).map(k => `<span class="badge badge-primary">${k}</span>`).join('')}
                     </div>
+                
+                    ${task.sitekey ? `
+                      <div class="install-instructions">
+                        <p><strong>Installation Instruction:</strong></p>
+                        <p>Add the following code into your website’s <code>&lt;head&gt;</code> section, right before <code>&lt;/head&gt;</code>:</p>
+                        <code id="install-code">&lt;script type="text/javascript" src="https://seotize.net/seotize-engine.js?id=${task.sitekey}"&gt;&lt;/script&gt;</code>
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('install-code').innerText)">Copy Code</button>
+                      </div>
+                    ` : ''}
+                  </div>
                 </div>
+
 
                 <div class="task-modal-section">
                     <h3 class="task-modal-section-title" style="color: var(--warning);"><i class="ri-cursor-line"></i>Click Locations (${(task.html_locations || []).length})</h3>

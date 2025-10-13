@@ -1718,6 +1718,14 @@ div#modalBody {
         grid-template-columns: 300px 1fr; /* Two columns on desktop */
     }
 }
+
+.swal2-toast button:where(.swal2-close) {
+    grid-column: 3 / 3;
+    grid-row: 1 / 99;
+    align-self: flex-start;
+    margin: 0;
+    font-size: 3em;
+}
 </style>
 </head>
 <body data-theme="light">

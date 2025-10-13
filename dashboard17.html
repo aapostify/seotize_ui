@@ -22,7 +22,8 @@ Dashboard v13 Changes:
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/turnstile@0/turnstile.min.js" async defer></script>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <style>
 /* CSS Variables */
 :root {
@@ -1630,6 +1631,92 @@ tr:hover {
 }
 div#modalBody {
     padding-bottom: 100px;
+}
+
+/* ADD THIS CSS to your main <style> block */
+
+.swal2-popup.swal2-toast {
+    box-shadow: var(--shadow-xl) !important;
+    background: var(--card) !important;
+}
+.swal2-title {
+    color: var(--text) !important;
+}
+
+/* Custom CSS for our new Image Details Modal */
+.image-details-modal-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: left;
+}
+.image-details-modal-container .modal-header-section {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+.image-details-modal-container .modal-preview-container {
+    text-align: center;
+}
+.image-details-modal-container .modal-image-preview {
+    max-width: 100%;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 2px solid var(--border);
+    cursor: pointer;
+}
+.image-details-modal-container .modal-info-list {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+.image-details-modal-container .modal-info-list strong {
+    color: var(--text);
+    font-weight: 600;
+}
+.image-details-modal-container .modal-info-list code {
+    background: var(--bg-tertiary);
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    word-break: break-all;
+}
+.image-details-modal-container .modal-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.image-details-modal-container .modal-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+.image-details-modal-container .modal-chart-container {
+    height: 250px;
+    background: var(--card);
+    padding: 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+.image-details-modal-container .analytics-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.5rem;
+}
+
+@media (min-width: 769px) {
+    .image-details-modal-container .modal-header-section {
+        grid-template-columns: 300px 1fr; /* Two columns on desktop */
+    }
 }
 </style>
 </head>
@@ -5738,401 +5825,191 @@ async function uploadImages(e) {
     }
 }
 
-// Enhanced Image Details with Mobile-Optimized Layout
+    
+// [NEW] Enhanced Image Details using SweetAlert2
 async function showImageDetails(imageId) {
-    try {
-        // Get the image from current data
-        const image = currentData.images.find(img => img.image_id === imageId);
-
-        if (!image) {
-            showToast('Image not found', 'error');
-            return;
-        }
-
-        const monthlyStats = image.monthly_stats || {};
-
-        // Aggregate analytics data properly
-        const countries = {};
-        const browsers = {};
-        const devices = {};
-        const viewsByDate = {};
-
-        // Process each month's data
-        Object.entries(monthlyStats).forEach(([month, stats]) => {
-            // Country data aggregation
-            if (stats.country) {
-                Object.entries(stats.country).forEach(([country, views]) => {
-                    const countryCode = country.toUpperCase();
-                    countries[countryCode] = (countries[countryCode] || 0) + views;
-                });
-            }
-
-            // Browser data aggregation
-            if (stats.browser) {
-                Object.entries(stats.browser).forEach(([browser, views]) => {
-                    browsers[browser] = (browsers[browser] || 0) + views;
-                });
-            }
-
-            // Device data aggregation
-            if (stats.devices) {
-                Object.entries(stats.devices).forEach(([device, views]) => {
-                    devices[device] = (devices[device] || 0) + views;
-                });
-            }
-
-            // Daily views data - Create full dates
-            if (stats.daily) {
-                Object.entries(stats.daily).forEach(([day, views]) => {
-                    const [year, monthNum] = month.split('-');
-                    const fullDate = `${year}-${monthNum}-${day.padStart(2, '0')}`;
-                    viewsByDate[fullDate] = views;
-                });
-            }
-        });
-
-        // Sort dates chronologically for the timeline
-        const sortedDates = Object.entries(viewsByDate).sort(([a], [b]) => new Date(a) - new Date(b));
-
-        // Calculate top performers for better insights
-        const topCountries = Object.entries(countries).sort(([,a], [,b]) => b - a).slice(0, 5);
-        const topBrowsers = Object.entries(browsers).sort(([,a], [,b]) => b - a).slice(0, 5);
-        const topDevices = Object.entries(devices).sort(([,a], [,b]) => b - a).slice(0, 5);
-
-        showModal('Image Analytics', `
-        <div>
-            <!-- Desktop Layout -->
-            <div class="desktop-only">
-                <div style="display: grid; grid-template-columns: 300px 1fr; gap: 2rem;">
-                    <!-- Image Info Panel -->
-                    <div>
-                        <div onclick="window.open('${image.cdn_url}', '_blank')" style="cursor: pointer; position: relative; margin-bottom: 1rem;" title="Click to open full size">
-                            <img src="${image.cdn_url}" style="width: 100%; border-radius: var(--radius); box-shadow: var(--shadow);" alt="${image.original_filename}">
-                            <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">
-                                <i class="ri-external-link-line"></i> Full Size
-                            </div>
-                        </div>
-
-                        <div class="stat-card" style="text-align: center; margin-bottom: 1rem;">
-                            <div class="stat-value" style="font-size: 2rem; color: var(--primary);">${formatNumber(image.total_views)}</div>
-                            <div class="stat-label">Total Views</div>
-                        </div>
-
-                        <div style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
-                            <div style="margin-bottom: 0.75rem;">
-                                <strong>Filename:</strong><br>
-                                <span style="word-break: break-all; font-family: monospace; font-size: 0.8rem;">${image.original_filename}</span>
-                            </div>
-                            <div style="margin-bottom: 0.75rem;">
-                                <strong>Uploaded:</strong><br>
-                                ${new Date(image.upload_date).toLocaleDateString('en-US', {
-                                    weekday: 'long',
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                })}
-                            </div>
-                            <div style="margin-bottom: 0.75rem;">
-                                <strong>Available Formats:</strong><br>
-                                ${Object.keys(image.formats || {}).length > 0 ?
-                                    Object.entries(image.formats).map(([format, count]) =>
-                                        `${format.toUpperCase()} (${formatNumber(count)} views)`
-                                    ).join(', ') : 'Original only'
-                                }
-                            </div>
-                            <div>
-                                <strong>Image ID:</strong><br>
-                                <code style="font-size: 0.75rem; word-break: break-all;">${image.image_id}</code>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Analytics Panel -->
-                    <div>
-                        <h4 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="ri-bar-chart-line" style="color: var(--primary);"></i>
-                            Detailed Analytics
-                        </h4>
-
-                        <!-- Top Level Stats -->
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
-                            <div class="stat-card" style="text-align: center;">
-                                <div class="stat-value" style="color: var(--success);">${topCountries.length}</div>
-                                <div class="stat-label">Countries</div>
-                            </div>
-                            <div class="stat-card" style="text-align: center;">
-                                <div class="stat-value" style="color: var(--primary);">${topBrowsers.length}</div>
-                                <div class="stat-label">Browsers</div>
-                            </div>
-                            <div class="stat-card" style="text-align: center;">
-                                <div class="stat-value" style="color: var(--warning);">${topDevices.length}</div>
-                                <div class="stat-label">Devices</div>
-                            </div>
-                        </div>
-
-                        <!-- Analytics Breakdown -->
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
-                            <div>
-                                <h5 style="margin-bottom: 1rem; color: var(--success); display: flex; align-items: center; gap: 0.5rem;">
-                                    <i class="ri-global-line"></i> Top Countries
-                                </h5>
-                                <div style="max-height: 180px; overflow-y: auto;">
-                                    ${topCountries.length > 0 ? topCountries.map(([country, views]) => `
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
-                                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                                <span style="font-weight: 600;">${country}</span>
-                                            </div>
-                                            <span class="badge badge-success">${formatNumber(views)} views</span>
-                                        </div>
-                                    `).join('') : '<div style="color: var(--text-secondary); font-size: 0.875rem; text-align: center; padding: 1rem;">No country data</div>'}
-                                </div>
-                            </div>
-
-                            <div>
-                                <h5 style="margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
-                                    <i class="ri-computer-line"></i> Top Browsers
-                                </h5>
-                                <div style="max-height: 180px; overflow-y: auto;">
-                                    ${topBrowsers.length > 0 ? topBrowsers.map(([browser, views]) => `
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
-                                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                                <i class="ri-${browser.toLowerCase() === 'firefox' ? 'firefox' : browser.toLowerCase() === 'chrome' ? 'chrome' : 'computer'}-line" style="color: var(--primary);"></i>
-                                                <span style="text-transform: capitalize; font-weight: 500;">${browser}</span>
-                                            </div>
-                                            <span class="badge badge-primary">${formatNumber(views)} views</span>
-                                        </div>
-                                    `).join('') : '<div style="color: var(--text-secondary); font-size: 0.875rem; text-align: center; padding: 1rem;">No browser data</div>'}
-                                </div>
-                            </div>
-
-                            <div>
-                                <h5 style="margin-bottom: 1rem; color: var(--warning); display: flex; align-items: center; gap: 0.5rem;">
-                                    <i class="ri-device-line"></i> Top Devices
-                                </h5>
-                                <div style="max-height: 180px; overflow-y: auto;">
-                                    ${topDevices.length > 0 ? topDevices.map(([device, views]) => `
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
-                                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                                <i class="ri-${device.toLowerCase() === 'android' ? 'android' : device.toLowerCase() === 'linux' ? 'ubuntu' : 'device'}-line" style="color: var(--warning);"></i>
-                                                <span style="text-transform: capitalize; font-weight: 500;">${device}</span>
-                                            </div>
-                                            <span class="badge badge-warning">${formatNumber(views)} views</span>
-                                        </div>
-                                    `).join('') : '<div style="color: var(--text-secondary); font-size: 0.875rem; text-align: center; padding: 1rem;">No device data</div>'}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Views by Date Analytics -->
-                        ${sortedDates.length > 0 ? `
-                            <div>
-                                <h5 style="margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
-                                    <i class="ri-calendar-line"></i> Views by Date Analytics
-                                </h5>
-                                <div style="max-height: 300px; overflow-y: auto; background: var(--bg-tertiary); border-radius: var(--radius); padding: 1rem;">
-                                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; font-weight: 600; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); margin-bottom: 0.5rem;">
-                                        <div>Date</div>
-                                        <div>Views</div>
-                                    </div>
-                                    ${sortedDates.map(([date, views]) => `
-                                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
-                                            <div style="color: var(--text-secondary);">${new Date(date).toLocaleDateString('en-US', {
-                                                weekday: 'short',
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric'
-                                            })}</div>
-                                            <div>
-                                                <span class="badge badge-primary">${formatNumber(views)} view${views !== 1 ? 's' : ''}</span>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                                <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary); text-align: center;">
-                                    Total: ${formatNumber(sortedDates.reduce((sum, [,views]) => sum + views, 0))} views across ${sortedDates.length} days
-                                </div>
-                            </div>
-                        ` : `
-                            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                                <div style="font-size: 2rem; margin-bottom: 1rem;"><i class="ri-calendar-line"></i></div>
-                                <div>No date analytics available yet</div>
-                                <div style="font-size: 0.875rem; margin-top: 0.5rem;">Analytics will appear once your image receives views</div>
-                            </div>
-                        `}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mobile Layout -->
-            <div class="mobile-only">
-                <!-- Mobile Image Header -->
-                <div style="text-align: center; margin-bottom: 1.5rem;">
-                    <div onclick="window.open('${image.cdn_url}', '_blank')" style="cursor: pointer; position: relative; margin-bottom: 1rem;" title="Tap to open full size">
-                        <img src="${image.cdn_url}" style="width: 100%; max-width: 280px; border-radius: var(--radius); box-shadow: var(--shadow);" alt="${image.original_filename}">
-                        <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8); color: white; padding: 0.5rem; border-radius: var(--radius); font-size: 0.8rem;">
-                            <i class="ri-external-link-line"></i> Full Size
-                        </div>
-                    </div>
-
-                    <!-- Mobile Stats Cards -->
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                        <div style="background: var(--primary); color: white; padding: 1rem; border-radius: var(--radius); text-align: center;">
-                            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">${formatNumber(image.total_views)}</div>
-                            <div style="font-size: 0.8rem; opacity: 0.9;">Total Views</div>
-                        </div>
-                        <div style="background: var(--success); color: white; padding: 1rem; border-radius: var(--radius); text-align: center;">
-                            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">${topCountries.length}</div>
-                            <div style="font-size: 0.8rem; opacity: 0.9;">Countries</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mobile Image Info -->
-                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1.5rem;">
-                    <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="ri-information-line"></i> Image Details
-                    </h4>
-                    <div style="font-size: 0.85rem; line-height: 1.6;">
-                        <div style="margin-bottom: 0.75rem;">
-                            <strong>Filename:</strong><br>
-                            <span style="word-break: break-all; font-family: monospace; font-size: 0.75rem; color: var(--text-secondary);">${image.original_filename}</span>
-                        </div>
-                        <div style="margin-bottom: 0.75rem;">
-                            <strong>Uploaded:</strong><br>
-                            <span style="color: var(--text-secondary);">${new Date(image.upload_date).toLocaleDateString('en-US', {
-                                weekday: 'long',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                            })}</span>
-                        </div>
-                        <div>
-                            <strong>Formats:</strong><br>
-                            <span style="color: var(--text-secondary);">
-                                ${Object.keys(image.formats || {}).length > 0 ?
-                                    Object.entries(image.formats).map(([format, count]) =>
-                                        `${format.toUpperCase()} (${formatNumber(count)} views)`
-                                    ).join(', ') : 'Original only'
-                                }
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mobile Analytics -->
-                ${(topCountries.length > 0 || topBrowsers.length > 0 || topDevices.length > 0) ? `
-                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1.5rem;">
-                        <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="ri-bar-chart-line"></i> Analytics Overview
-                        </h4>
-
-                        ${topCountries.length > 0 ? `
-                            <div style="margin-bottom: 1.5rem;">
-                                <h5 style="margin-bottom: 0.75rem; color: var(--success); font-size: 0.9rem;">
-                                    <i class="ri-global-line"></i> Top Countries
-                                </h5>
-                                ${topCountries.slice(0, 3).map(([country, views]) => `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
-                                        <span style="font-weight: 500; font-size: 0.85rem;">${country}</span>
-                                        <span class="badge badge-success" style="font-size: 0.7rem;">${formatNumber(views)}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-
-                        ${topBrowsers.length > 0 ? `
-                            <div style="margin-bottom: 1.5rem;">
-                                <h5 style="margin-bottom: 0.75rem; color: var(--primary); font-size: 0.9rem;">
-                                    <i class="ri-computer-line"></i> Top Browsers
-                                </h5>
-                                ${topBrowsers.slice(0, 3).map(([browser, views]) => `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
-                                        <span style="font-weight: 500; font-size: 0.85rem; text-transform: capitalize;">${browser}</span>
-                                        <span class="badge badge-primary" style="font-size: 0.7rem;">${formatNumber(views)}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-
-                        ${topDevices.length > 0 ? `
-                            <div>
-                                <h5 style="margin-bottom: 0.75rem; color: var(--warning); font-size: 0.9rem;">
-                                    <i class="ri-device-line"></i> Top Devices
-                                </h5>
-                                ${topDevices.slice(0, 3).map(([device, views]) => `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
-                                        <span style="font-weight: 500; font-size: 0.85rem; text-transform: capitalize;">${device}</span>
-                                        <span class="badge badge-warning" style="font-size: 0.7rem;">${formatNumber(views)}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                    </div>
-                ` : ''}
-
-                <!-- Mobile Views Timeline -->
-                ${sortedDates.length > 0 ? `
-                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1.5rem;">
-                        <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="ri-calendar-line"></i> Recent Views
-                        </h4>
-                        <div style="max-height: 200px; overflow-y: auto;">
-                            ${sortedDates.slice(-5).map(([date, views]) => `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.85rem;">
-                                    <span style="color: var(--text-secondary);">${new Date(date).toLocaleDateString('en-US', {
-                                        month: 'short',
-                                        day: 'numeric'
-                                    })}</span>
-                                    <span class="badge badge-primary" style="font-size: 0.7rem;">${formatNumber(views)}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-secondary); text-align: center;">
-                            Total: ${formatNumber(sortedDates.reduce((sum, [,views]) => sum + views, 0))} views across ${sortedDates.length} days
-                        </div>
-                    </div>
-                ` : ''}
-            </div>
-
-            <!-- Action Buttons -->
-            <div style="display: flex; gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); justify-content: center; flex-wrap: wrap;">
-                <button class="btn btn-secondary" onclick="copyToClipboard('${image.cdn_url}')">
-                    <i class="ri-file-copy-line"></i> Copy URL
-                </button>
-                <button class="btn btn-primary" onclick="window.open('${image.cdn_url}', '_blank')">
-                    <i class="ri-external-link-line"></i> View Full Size
-                </button>
-                <button class="btn btn-danger" onclick="deleteImageFromModal('${image.image_id}')">
-                    <i class="ri-delete-bin-line"></i> Delete Image
-                </button>
-            </div>
-        </div>
-        `, '95vw');
-
-    } catch (error) {
-        console.error('Image details error:', error);
-        showToast('Failed to load image details', 'error');
-    }
-}
-
-async function deleteImage(imageId) {
-    if (!confirm('Are you sure you want to delete this image? This action cannot be undone.')) {
+    const image = currentData.images.find(img => img.image_id === imageId);
+    if (!image) {
+        showToast('Image not found', 'error');
         return;
     }
 
-    try {
-        await api('/images', {
-            method: 'DELETE',
-            body: JSON.stringify({ image_ids: [imageId] })
+    // --- 1. Process Analytics Data (Same logic, preserved) ---
+    const monthlyStats = image.monthly_stats || {};
+    const countries = {}, browsers = {}, devices = {}, viewsByDate = {};
+    Object.entries(monthlyStats).forEach(([month, stats]) => {
+        if (stats.country) Object.entries(stats.country).forEach(([k, v]) => { countries[k.toUpperCase()] = (countries[k.toUpperCase()] || 0) + v; });
+        if (stats.browser) Object.entries(stats.browser).forEach(([k, v]) => { browsers[k] = (browsers[k] || 0) + v; });
+        if (stats.devices) Object.entries(stats.devices).forEach(([k, v]) => { devices[k] = (devices[k] || 0) + v; });
+        if (stats.daily) Object.entries(stats.daily).forEach(([day, views]) => {
+            const [year, monthNum] = month.split('-');
+            viewsByDate[`${year}-${monthNum}-${day.padStart(2, '0')}`] = views;
         });
+    });
+    const sortedDates = Object.entries(viewsByDate).sort(([a], [b]) => new Date(a) - new Date(b));
+    const topCountries = Object.entries(countries).sort(([,a], [,b]) => b - a).slice(0, 5);
+    const topBrowsers = Object.entries(browsers).sort(([,a], [,b]) => b - a).slice(0, 5);
 
-        showToast('Image deleted successfully', 'success');
-        loadImages();
+    // --- 2. Construct Modal HTML (New Responsive Layout) ---
+    const modalHtml = `
+    <div class="image-details-modal-container">
+        <div class="modal-header-section">
+            <div class="modal-preview-container">
+                <img src="${image.cdn_url}" alt="${image.original_filename}" class="modal-image-preview" onclick="window.open('${image.cdn_url}', '_blank')">
+            </div>
+            <div class="modal-info-list">
+                <p><strong>Filename:</strong><br><code>${image.original_filename}</code></p>
+                <p><strong>Uploaded:</strong><br>${new Date(image.upload_date).toLocaleString()}</p>
+                <p><strong>Total Views:</strong><br><span class="badge badge-primary" style="font-size: 1rem;">${formatNumber(image.total_views)}</span></p>
+                <p><strong>CDN URL:</strong><br>
+                    <button class="btn btn-sm" onclick="copyToClipboard('${image.cdn_url}')"><i class="ri-file-copy-line"></i> Copy URL</button>
+                </p>
+                <p><strong>Image ID:</strong><br><code>${image.image_id}</code></p>
+            </div>
+        </div>
 
-    } catch (error) {
-        console.error('Delete image error:', error);
-        showToast('Failed to delete image: ' + error.message, 'error');
+        ${sortedDates.length > 0 ? `
+            <div>
+                <h3 class="modal-section-title" style="color: var(--primary);"><i class="ri-bar-chart-2-line"></i>Analytics Overview</h3>
+                <div class="modal-stat-grid">
+                    <div class="modal-chart-container">
+                        <canvas id="imageViewsTimelineChart"></canvas>
+                    </div>
+                    <div class="modal-chart-container">
+                        <canvas id="imageCountriesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 class="modal-section-title" style="color: var(--warning);"><i class="ri-list-check"></i>Top Referrers</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">Browsers</h4>
+                        ${topBrowsers.map(b => `<div class="analytics-list-item"><span>${b[0]}</span><span class="badge badge-primary">${formatNumber(b[1])}</span></div>`).join('')}
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">Devices</h4>
+                        ${Object.entries(devices).map(d => `<div class="analytics-list-item"><span>${d[0]}</span><span class="badge badge-warning">${formatNumber(d[1])}</span></div>`).join('')}
+                    </div>
+                </div>
+            </div>
+        ` : `
+            <div class="empty-state" style="padding: 1rem 0;">
+                <div class="empty-state-icon"><i class="ri-bar-chart-line"></i></div>
+                <div class="empty-state-title" style="font-size: 1.2rem;">No Analytics Yet</div>
+                <div class="empty-state-description">View data will appear here once the image is viewed.</div>
+            </div>
+        `}
+    </div>`;
+
+    // --- 3. Fire SweetAlert2 Modal ---
+    Swal.fire({
+        title: 'Image Details',
+        html: modalHtml,
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: '90vw',
+        maxWidth: '900px',
+        customClass: {
+            popup: 'swal2-toast', // Re-use toast class for theming
+        },
+        showClass: { popup: 'swal2-show-super-fast' },
+        hideClass: { popup: 'swal2-hide-super-fast' },
+        didOpen: () => {
+            // Initialize charts only if there is data
+            if (sortedDates.length > 0) {
+                initializeImageAnalyticsCharts(sortedDates, topCountries);
+            }
+        }
+    });
+}
+
+// [NEW] Helper function to initialize charts inside the modal
+function initializeImageAnalyticsCharts(sortedDates, topCountries) {
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#a0a0a0' : '#6c757d';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+
+    // Views Timeline Chart (Line Chart)
+    const timelineCtx = document.getElementById('imageViewsTimelineChart');
+    if (timelineCtx) {
+        new Chart(timelineCtx, {
+            type: 'line',
+            data: {
+                labels: sortedDates.map(([date]) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+                datasets: [{
+                    label: 'Views',
+                    data: sortedDates.map(([, views]) => views),
+                    borderColor: 'var(--primary)',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, title: { display: true, text: 'Views Over Time', color: textColor } },
+                scales: {
+                    x: { ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor } },
+                    y: { ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor }, beginAtZero: true }
+                }
+            }
+        });
     }
+
+    // Top Countries Chart (Bar Chart - better for ranking)
+    const countriesCtx = document.getElementById('imageCountriesChart');
+    if (countriesCtx) {
+        new Chart(countriesCtx, {
+            type: 'bar',
+            data: {
+                labels: topCountries.map(([country]) => country),
+                datasets: [{
+                    label: 'Views',
+                    data: topCountries.map(([, views]) => views),
+                    backgroundColor: 'var(--success)',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, indexAxis: 'y', // Horizontal bars
+                plugins: { legend: { display: false }, title: { display: true, text: 'Top 5 Countries', color: textColor } },
+                scales: {
+                    x: { ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor }, beginAtZero: true },
+                    y: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } }
+                }
+            }
+        });
+    }
+}
+
+// [NEW] Improved delete function with confirmation via SweetAlert2
+async function deleteImage(imageId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--error)',
+        cancelButtonColor: 'var(--secondary)',
+        confirmButtonText: 'Yes, delete it!',
+        customClass: { popup: 'swal2-toast' } // Use our theme
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                await api('/images', {
+                    method: 'DELETE',
+                    body: JSON.stringify({ image_ids: [imageId] })
+                });
+                showToast('Image deleted successfully', 'success');
+                // Close any open modal and reload the list
+                Swal.close();
+                loadImages(paginationState.images.page); // Reload current page
+            } catch (error) {
+                showToast('Failed to delete image: ' + error.message, 'error');
+            }
+        }
+    });
 }
 
 function deleteImageFromModal(imageId) {

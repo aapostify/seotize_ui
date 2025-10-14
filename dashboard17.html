@@ -6074,6 +6074,7 @@ async function showImageUploadModal() {
                     throw new Error(data.error?.message || data.message || 'Upload failed');
                 }
 
+                Swal.close(); // <-- ADD THIS LINE
                 showToast(`Successfully uploaded ${data.data.uploaded_images.length} images!`, 'success');
                 loadImages(); // Refresh the images list
 

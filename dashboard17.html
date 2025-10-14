@@ -1916,6 +1916,18 @@ div#modalBody {
     padding: 0.5rem 0;
     font-size: 0.9rem;
 }
+    /* ADD THIS CSS to your main <style> block */
+
+/* Custom width for the Recharge Task modal */
+.swal2-popup.recharge-modal-custom {
+    width: 95vw !important; /* Mobile-first: default width */
+}
+
+@media (min-width: 550px) { /* On screens wider than 550px... */
+    .swal2-popup.recharge-modal-custom {
+        width: 500px !important; /* ...lock the width to 500px */
+    }
+}
 </style>
 </head>
 <body data-theme="light">
@@ -5021,9 +5033,10 @@ async function rechargeTask(taskId) {
         cancelButtonText: 'Cancel',
         confirmButtonText: '<i class="ri-wallet-3-line"></i> Proceed to Payment',
         confirmButtonColor: 'var(--primary)',
-        width: '95vw',
-        maxWidth: '500px',
-        customClass: { popup: 'swal2-toast' },
+        // REMOVED width and maxWidth properties from here
+        customClass: {
+            popup: 'swal2-toast recharge-modal-custom' // ADDED our new class here
+        },
         didOpen: () => {
             // --- Logic for the interactive modal ---
             const amountInput = document.getElementById('rechargeAmount');

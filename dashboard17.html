@@ -1953,6 +1953,77 @@ div#modalBody {
     margin: 0 !important;
     padding: 0 !important;
 }
+/* ADD THIS CSS to your main <style> block */
+
+/* Custom CSS for the new Active Sessions Modal */
+.sessions-modal-custom {
+    width: 95vw !important;
+}
+@media (min-width: 900px) {
+    .sessions-modal-custom {
+        width: 800px !important; /* Lock width on larger screens */
+    }
+}
+
+.sessions-modal-container {
+    text-align: left;
+    font-size: 0.9rem;
+}
+.sessions-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.5rem 0 1rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.sessions-section-title:first-child {
+    margin-top: 0;
+}
+.session-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+.session-card--current {
+    border-left: 4px solid var(--success);
+    background: rgba(16, 185, 129, 0.05);
+}
+.session-icon {
+    font-size: 1.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+.session-details {
+    flex: 1;
+}
+.session-main-info {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+}
+.session-meta-info {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.session-actions {
+    margin-left: auto;
+}
+.swal2-footer {
+    border-top: 1px solid var(--border) !important;
+    margin-top: 1.5rem !important;
+    padding-top: 1.5rem !important;
+}
 </style>
 </head>
 <body data-theme="light">
@@ -2273,163 +2344,160 @@ function getCurrentSession() {
     return sessions.find(session => session.token === sessionToken);
 }
 
-// Show Sessions Modal
+// [NEW] Rebuilt Active Sessions Modal using SweetAlert2
 function showSessionsModal() {
+    // Close any other open modals first
+    document.getElementById('userDropdown').classList.remove('active');
+
     const otherSessions = getOtherSessions();
     const currentSession = getCurrentSession();
 
-    showModal('Active Sessions', `
-        <div style="max-height: 75vh; display: flex; flex-direction: column;">
-            <!-- Header -->
-            <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
-                <p style="color: var(--text-secondary); font-size: 0.875rem; margin: 0;">
-                    Manage your active login sessions. You can revoke access for sessions you don't recognize.
-                </p>
+    // Helper to create a single session card
+    const createSessionCard = (session, isCurrent = false) => {
+        const createdDate = new Date(session.timestamp);
+        const expiresDate = new Date(session.expires_at);
+        const isExpired = expiresDate < new Date();
+        
+        return `
+        <div class="session-card ${isCurrent ? 'session-card--current' : ''}">
+            <div class="session-icon">
+                <i class="ri-computer-line"></i>
             </div>
-
-            <!-- Other Sessions Section -->
-            <div style="flex: 1; min-height: 0; margin-bottom: 1.5rem;">
-                <h4 style="margin: 0 0 1rem 0; color: var(--text); display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="ri-device-line"></i> Other Sessions
-                    ${otherSessions.length > 0 ? `<span style="background: var(--warning); color: white; padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.7rem; font-weight: 600;">${otherSessions.length}</span>` : ''}
-                </h4>
-
-                <div style="border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-secondary); max-height: 200px; overflow-y: auto;">
-                    ${otherSessions.length > 0 ? otherSessions.map((session, index) => {
-                        const createdDate = new Date(session.timestamp);
-                        const expiresDate = new Date(session.expires_at);
-                        const isExpired = expiresDate < new Date();
-
-                        return `
-                        <div style="padding: 1rem; border-bottom: ${index === otherSessions.length - 1 ? 'none' : '1px solid var(--border)'};">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <div style="flex: 1;">
-                                    <div style="font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                                        <i class="ri-map-pin-line" style="color: var(--primary);"></i>
-                                        ${session.country_code} - ${session.ip_address}
-                                        ${isExpired ? `<span style="background: var(--error); color: white; padding: 0.1rem 0.4rem; border-radius: var(--radius-sm); font-size: 0.65rem;">EXPIRED</span>` : ''}
-                                    </div>
-                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
-                                        <div><i class="ri-time-line"></i> ${createdDate.toLocaleDateString()} ${createdDate.toLocaleTimeString()}</div>
-                                        <div><i class="ri-calendar-line"></i> ${isExpired ? '<span style="color: var(--error);">Expired</span>' : `Expires ${expiresDate.toLocaleDateString()}`}</div>
-                                    </div>
-                                    <code style="font-size: 0.65rem; color: var(--text-tertiary); word-break: break-all;">
-                                        ${session.token.substring(0, 20)}...
-                                    </code>
-                                </div>
-                                <button onclick="revokeSession('${session.token}')" style="margin-left: 1rem; padding: 0.4rem 0.8rem; background: var(--error); color: white; border: none; border-radius: var(--radius-sm); font-size: 0.75rem; cursor: pointer;">
-                                    Revoke
-                                </button>
-                            </div>
-                        </div>
-                        `;
-                    }).join('') : `
-                        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                            <i class="ri-shield-check-line" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
-                            <p style="margin: 0; font-weight: 500;">No other sessions</p>
-                            <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem;">You're only logged in here</p>
-                        </div>
-                    `}
+            <div class="session-details">
+                <div class="session-main-info">
+                    ${session.country_code} - ${session.ip_address}
+                    ${isCurrent ? '<span class="badge badge-success" style="margin-left: 0.5rem;">This Device</span>' : ''}
+                    ${isExpired ? '<span class="badge badge-danger" style="margin-left: 0.5rem;">Expired</span>' : ''}
+                </div>
+                <div class="session-meta-info">
+                    <span><strong>Created:</strong> ${createdDate.toLocaleString()}</span>
+                    <span><strong>Expires:</strong> ${isExpired ? 'Already Expired' : expiresDate.toLocaleString()}</span>
                 </div>
             </div>
+            ${!isCurrent ? `
+                <div class="session-actions">
+                    <button class="btn btn-sm btn-danger" onclick="revokeSession('${session.token}')">Revoke</button>
+                </div>
+            ` : ''}
         </div>
+        `;
+    };
 
-        <!-- Current Session Section (Outside main container) -->
+    let modalHtml = `
+    <div class="sessions-modal-container">
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Manage your active login sessions. For security, revoke any sessions you don't recognize.</p>
+        
         ${currentSession ? `
-            <div style="margin-top: 1rem; padding: 1rem; background: var(--card); border: 1px solid var(--success); border-radius: var(--radius);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-weight: 600; color: var(--success); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="ri-computer-line"></i> Current Session
-                        </div>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary);">
-                            ${currentSession.country_code} - ${currentSession.ip_address}
-                        </div>
-                        <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.25rem;">
-                            Created: ${new Date(currentSession.timestamp).toLocaleDateString()}
-                        </div>
-                    </div>
-                    <span style="background: var(--success); color: white; padding: 0.3rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 600;">
-                        Active
-                    </span>
-                </div>
-            </div>
+            <h3 class="sessions-section-title"><i class="ri-shield-check-line"></i>Current Session</h3>
+            ${createSessionCard(currentSession, true)}
         ` : ''}
-
-        <!-- Revoke All Button -->
+        
         ${otherSessions.length > 0 ? `
-            <div style="margin-top: 1.5rem; text-align: center; padding-top: 1rem; border-top: 1px solid var(--border);">
-                <button class="btn btn-danger" onclick="revokeAllSessions()" style="padding: 0.6rem 1.5rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.5rem;">
-                    <i class="ri-logout-box-line"></i> Revoke All Other Sessions (${otherSessions.length})
-                </button>
-                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">
-                    Logs you out from all other devices
-                </div>
+            <h3 class="sessions-section-title"><i class="ri-device-line"></i>Other Active Sessions</h3>
+            <div>
+                ${otherSessions.map(session => createSessionCard(session)).join('')}
             </div>
-        ` : ''}
-    `, '85vw');
+        ` : `
+            <div class="empty-state" style="padding: 1rem 0;">
+                <div class="empty-state-icon"><i class="ri-shield-star-line"></i></div>
+                <div class="empty-state-title" style="font-size: 1.2rem;">You're only logged in here.</div>
+                <p class="empty-state-description">No other active sessions were found.</p>
+            </div>
+        `}
+    </div>`;
 
-    // Close dropdown
-    document.getElementById('userDropdown').classList.remove('active');
+    Swal.fire({
+        title: 'Active Sessions',
+        html: modalHtml,
+        showConfirmButton: false,
+        showCancelButton: true,
+        cancelButtonText: 'Close',
+        width: '95vw',
+        customClass: {
+            popup: 'swal2-toast sessions-modal-custom',
+            footer: 'swal2-footer'
+        },
+        footer: otherSessions.length > 0 ?
+            `<button class="btn btn-danger" onclick="revokeAllSessions()"><i class="ri-logout-box-r-line"></i> Revoke All Other Sessions (${otherSessions.length})</button>` :
+            ''
+    });
 }
 
-// Revoke Session
+// [NEW] Updated to work with SweetAlert2
 async function revokeSession(token) {
-    if (!confirm('Are you sure you want to revoke this session?')) {
-        return;
-    }
+    Swal.fire({
+        title: 'Revoke this session?',
+        text: "The user logged in on that device will be signed out.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--error)',
+        confirmButtonText: 'Yes, revoke it!',
+        customClass: { popup: 'swal2-toast' }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Revoking...',
+                didOpen: () => Swal.showLoading(),
+                customClass: { popup: 'swal2-toast' }
+            });
 
-    try {
-        // Use the logout endpoint with GET request (as per the user's correction)
-        const response = await fetch(`${API_BASE}/logout`, {
-            method: 'GET',
-            headers: {
-                'Session-Token': token,  // Use the token to be revoked instead of current session
-                'Content-Type': 'application/json'
+            try {
+                // The API endpoint for revoking a single session is the logout endpoint with that session's token.
+                await fetch(`${API_BASE}/logout`, {
+                    method: 'GET',
+                    headers: { 'Session-Token': token, 'Content-Type': 'application/json' }
+                });
+                
+                // Update local data
+                if (currentData.user && currentData.user.sessions) {
+                    currentData.user.sessions = currentData.user.sessions.filter(s => s.token !== token);
+                }
+                
+                Swal.close(); // Close the "Revoking..." popup
+                showToast('Session revoked successfully', 'success');
+                showSessionsModal(); // Refresh the main sessions modal
+                updateUserInfo(); // Update session count badges
+            } catch (error) {
+                Swal.fire('Error!', 'Failed to revoke session: ' + error.message, 'error');
             }
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to revoke session');
         }
-
-        // Remove from local data
-        if (currentData.user && currentData.user.sessions) {
-            currentData.user.sessions = currentData.user.sessions.filter(s => s.token !== token);
-        }
-
-        showToast('Session revoked successfully', 'success');
-        showSessionsModal(); // Refresh modal
-        updateUserInfo(); // Update session count
-
-    } catch (error) {
-        console.error('Revoke session error:', error);
-        showToast('Failed to revoke session', 'error');
-    }
+    });
 }
 
-// Revoke All Sessions
+// [NEW] Updated to work with SweetAlert2
 async function revokeAllSessions() {
-    if (!confirm('Are you sure you want to revoke all other sessions? This will log you out from all other devices.')) {
-        return;
-    }
+    Swal.fire({
+        title: 'Revoke all other sessions?',
+        text: "You will be logged out from all other devices immediately.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--error)',
+        confirmButtonText: 'Yes, revoke all!',
+        customClass: { popup: 'swal2-toast' }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Revoking all...',
+                didOpen: () => Swal.showLoading(),
+                customClass: { popup: 'swal2-toast' }
+            });
+            try {
+                await api('/sessions/revoke-all', { method: 'POST' });
 
-    try {
-        await api('/sessions/revoke-all', { method: 'POST' });
+                // Keep only current session in local data
+                if (currentData.user && currentData.user.sessions) {
+                    currentData.user.sessions = currentData.user.sessions.filter(s => s.token === sessionToken);
+                }
 
-        // Keep only current session
-        if (currentData.user && currentData.user.sessions) {
-            currentData.user.sessions = currentData.user.sessions.filter(s => s.token === sessionToken);
+                Swal.close(); // Close loading popup
+                showToast('All other sessions revoked!', 'success');
+                showSessionsModal(); // Refresh the main sessions modal
+                updateUserInfo(); // Update session count badges
+            } catch (error) {
+                Swal.fire('Error!', 'Failed to revoke sessions: ' + error.message, 'error');
+            }
         }
-
-        showToast('All other sessions revoked successfully', 'success');
-        closeModal();
-        updateUserInfo(); // Update session count
-
-    } catch (error) {
-        console.error('Revoke all sessions error:', error);
-        showToast('Failed to revoke sessions', 'error');
-    }
+    });
 }
 
 // Theme Management

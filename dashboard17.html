@@ -5187,59 +5187,71 @@ async function verifyDomain(url) {
     }
 }
 
+// ADD THIS NEW, IMPROVED FUNCTION
 function showVerificationInstructions(domain, txtRecord = '') {
-    showModal('Domain Verification Instructions', `
-    <div>
-        <h4>How to verify your domain: ${domain}</h4>
+    const modalHtml = `
+    <div style="text-align: left;">
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            To use <strong>${domain}</strong> for publishing articles, you must first prove you own it by adding a simple record to its DNS settings.
+        </p>
 
         ${txtRecord ? `
-            <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); margin: 1.5rem 0; border: 1px solid var(--border);">
-                <h5 style="margin-bottom: 0.5rem;">Your TXT Record:</h5>
+            <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                <h5 style="margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text);">Your TXT Record:</h5>
                 <div style="background: var(--bg); padding: 0.75rem; border-radius: var(--radius-sm); font-family: monospace; word-break: break-all; border: 1px solid var(--border);">
                     ${txtRecord}
                 </div>
-                <button class="btn btn-sm btn-primary" onclick="copyToClipboard('${txtRecord}')" style="margin-top: 0.5rem;">
-                    <i class="ri-file-copy-line"></i> Copy TXT Record
-                </button>
             </div>
         ` : ''}
 
         <ol style="margin: 1.5rem 0; padding-left: 1.5rem;" class="mobileol">
             <li style="margin-bottom: 1rem;">
-                <strong>Access your DNS provider:</strong> Log in to your domain registrar or DNS hosting provider (like Cloudflare, GoDaddy, Namecheap, etc.)
+                <strong>Access your DNS provider:</strong> Log in to your domain registrar (like Cloudflare, GoDaddy, etc.).
             </li>
             <li style="margin-bottom: 1rem;">
-                <strong>Find DNS management:</strong> Look for "DNS Management", "DNS Settings", or "Zone Editor" in your control panel
+                <strong>Find DNS management:</strong> Look for "DNS Settings" or "Zone Editor".
             </li>
             <li style="margin-bottom: 1rem;">
-                <strong>Add TXT record:</strong> Create a new TXT record with:
-                <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                <strong>Add a new TXT record</strong> with these settings:
+                <ul style="margin-left: 1rem; margin-top: 0.5rem; list-style-type: disc;">
                     <li><strong>Type:</strong> TXT</li>
-                    <li><strong>Name:</strong> @ (or leave blank for root domain)</li>
-                    <li><strong>Value:</strong> ${txtRecord || 'The verification code shown above'}</li>
+                    <li><strong>Name/Host:</strong> @ (or your root domain)</li>
+                    <li><strong>Value/Content:</strong> Paste the TXT record from above.</li>
                 </ul>
             </li>
-            <li style="margin-bottom: 1rem;">
-                <strong>Wait for propagation:</strong> DNS changes can take up to 24 hours to propagate globally
-            </li>
             <li>
-                <strong>Click verify:</strong> Come back here and click "Verify Now" once you've added the record
+                <strong>Wait & Verify:</strong> DNS changes can take a few minutes or hours. Once done, click the "Verify Now" button.
             </li>
         </ol>
-
-        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); margin: 1rem 0;">
-            <p style="font-size: 0.875rem; margin: 0;">
-                <strong>Tip:</strong> You can use online DNS checker tools to verify if your TXT record has been added correctly.
-            </p>
-        </div>
-
-        <div style="display: flex; justify-content: center; margin-top: 2rem;">
-            <button class="btn btn-primary" onclick="verifyDomain('${domain}')">
-                <i class="ri-check-line"></i> Try Verification Again
-            </button>
-        </div>
     </div>
-    `);
+    `;
+
+    Swal.fire({
+        title: 'Domain Verification',
+        html: modalHtml,
+        icon: 'info',
+        width: '95vw',
+        maxWidth: '700px',
+        showCloseButton: true, // Adds the 'X' button
+        showConfirmButton: true,
+        confirmButtonText: '<i class="ri-check-line"></i> Verify Now',
+        confirmButtonColor: 'var(--primary)',
+        showDenyButton: true,
+        denyButtonText: '<i class="ri-file-copy-line"></i> Copy Record',
+        customClass: {
+            popup: 'swal2-toast', // Use our theme
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // User clicked "Verify Now"
+            verifyDomain(domain);
+        } else if (result.isDenied) {
+            // User clicked "Copy Record"
+            copyToClipboard(txtRecord);
+            // We return false to prevent the modal from closing, so they can see the 'copied' toast.
+            return false; 
+        }
+    });
 }
 
 // Article Modal - Fixed

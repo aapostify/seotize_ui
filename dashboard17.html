@@ -5559,7 +5559,7 @@ async function showArticleModal(articleId = null) {
         showCancelButton: true,
         confirmButtonText: isEdit ? 'Update Article' : 'Create Article',
         confirmButtonColor: 'var(--primary)',
-        customClass: { popup: 'swal2-toast' },
+
         didOpen: () => {
             // If we are editing, pre-fill the form with the fetched data
             if (isEdit && articleData) {
@@ -5595,7 +5595,7 @@ async function showArticleModal(articleId = null) {
                 title: isEdit ? 'Updating...' : 'Creating...',
                 didOpen: () => Swal.showLoading(),
                 allowOutsideClick: false,
-                customClass: { popup: 'swal2-toast' }
+
             });
 
             try {
@@ -5619,7 +5619,7 @@ async function showArticleModal(articleId = null) {
                     icon: 'error',
                     title: 'Operation Failed',
                     text: error.message,
-                    customClass: { popup: 'swal2-toast' }
+
                 });
             }
         }

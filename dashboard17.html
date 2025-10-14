@@ -4983,7 +4983,8 @@ async function rechargeTask(taskId) {
                 <button class="recharge-preset-btn" data-amount="100">$100</button>
                 <button class="recharge-preset-btn" data-amount="200">$200</button>
             </div>
-            <input type="number" id="rechargeAmount" class="form-input" min="10" value="50" placeholder="Or enter a custom amount (min $10)">
+            <label class="recharge-modal-label">Or enter a custom amount (min $10):</label>
+            <input type="number" id="rechargeAmount" class="form-input" min="10" value="50" placeholder="">
         </div>
 
         <div class="recharge-modal-section">
@@ -5021,7 +5022,7 @@ async function rechargeTask(taskId) {
         confirmButtonText: '<i class="ri-wallet-3-line"></i> Proceed to Payment',
         confirmButtonColor: 'var(--primary)',
         width: '95vw',
-        maxWidth: '550px',
+        maxWidth: '500px',
         customClass: { popup: 'swal2-toast' },
         didOpen: () => {
             // --- Logic for the interactive modal ---

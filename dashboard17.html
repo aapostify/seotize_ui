@@ -5204,7 +5204,7 @@ function showVerificationInstructions(domain, txtRecord = '') {
             </div>
         ` : ''}
 
-        <ol style="margin: 1.5rem 0; padding-left: 1.5rem;" class="mobileol">
+        <ol style="margin: 1.5rem 0; padding-left: 1.5rem;    overflow-y: scroll;" class="mobileol">
             <li style="margin-bottom: 1rem;">
                 <strong>Access your DNS provider:</strong> Log in to your domain registrar (like Cloudflare, GoDaddy, etc.).
             </li>
@@ -5229,7 +5229,6 @@ function showVerificationInstructions(domain, txtRecord = '') {
     Swal.fire({
         title: 'Domain Verification',
         html: modalHtml,
-        icon: 'info',
         width: '95vw',
         maxWidth: '700px',
         showCloseButton: true, // Adds the 'X' button
@@ -5238,9 +5237,6 @@ function showVerificationInstructions(domain, txtRecord = '') {
         confirmButtonColor: 'var(--primary)',
         showDenyButton: true,
         denyButtonText: '<i class="ri-file-copy-line"></i> Copy Record',
-        customClass: {
-            popup: 'swal2-toast', // Use our theme
-        }
     }).then((result) => {
         if (result.isConfirmed) {
             // User clicked "Verify Now"

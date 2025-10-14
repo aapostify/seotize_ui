@@ -1834,6 +1834,88 @@ div#modalBody {
 .task-modal-header {
     background: transparent!important;
 }
+
+/* ADD THIS CSS to your main <style> block */
+
+/* Custom CSS for the new Recharge Modal */
+.recharge-modal-container {
+    text-align: left;
+    padding-top: 1rem;
+}
+.recharge-modal-section {
+    margin-bottom: 1.5rem;
+}
+.recharge-modal-label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 1rem;
+}
+.recharge-preset-amounts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+.recharge-preset-btn {
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 700;
+    border: 2px solid var(--border);
+    background: var(--card);
+    color: var(--primary);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+.recharge-preset-btn:hover {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+.recharge-payment-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+.recharge-payment-option {
+    padding: 1rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+}
+.recharge-payment-option:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+.recharge-payment-option.selected {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+.recharge-payment-option i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary);
+}
+.recharge-payment-option .provider-name {
+    font-weight: 600;
+    color: var(--text);
+}
+.recharge-summary {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    margin-top: 1.5rem;
+}
+.recharge-summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+}
 </style>
 </head>
 <body data-theme="light">
@@ -4885,60 +4967,143 @@ function initializeTaskAnalyticsChart(sortedDates) {
     }
 }
 // Recharge Task
+// [NEW] Rebuilt Recharge Task Modal using SweetAlert2
 async function rechargeTask(taskId) {
-    showModal('Recharge Task', `
-    <form id="rechargeForm">
-    <div class="form-group">
-    <label class="form-label">Recharge Amount ($)</label>
-    <input type="number" class="form-input" name="amount" required min="10" value="50" placeholder="50">
+    // Find the task to show its URL in the modal
+    const task = currentData.tasks.find(t => t._id === taskId);
+    const taskUrl = task ? task.url : `Task ID: ${taskId}`;
+
+    const modalHtml = `
+    <div class="recharge-modal-container">
+        <div class="recharge-modal-section">
+            <label class="recharge-modal-label">Choose an amount to add:</label>
+            <div class="recharge-preset-amounts">
+                <button class="recharge-preset-btn" data-amount="25">$25</button>
+                <button class="recharge-preset-btn" data-amount="50">$50</button>
+                <button class="recharge-preset-btn" data-amount="100">$100</button>
+                <button class="recharge-preset-btn" data-amount="200">$200</button>
+            </div>
+            <input type="number" id="rechargeAmount" class="form-input" min="10" value="50" placeholder="Or enter a custom amount (min $10)">
+        </div>
+
+        <div class="recharge-modal-section">
+            <label class="recharge-modal-label">Select payment method:</label>
+            <div class="recharge-payment-options">
+                <div class="recharge-payment-option selected" id="payment-stripe" data-provider="stripe">
+                    <i class="ri-bank-card-line"></i>
+                    <div class="provider-name">Card (Stripe)</div>
+                </div>
+                <div class="recharge-payment-option" id="payment-oxapay" data-provider="oxapay">
+                    <i class="ri-bit-coin-line"></i>
+                    <div class="provider-name">Crypto (OxaPay)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recharge-summary">
+            <div class="recharge-summary-item">
+                <span>Recharging Task:</span>
+                <strong style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${taskUrl}">${taskUrl}</strong>
+            </div>
+            <div class="recharge-summary-item" style="border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.5rem;">
+                <strong style="font-size: 1.1rem;">Total to Add:</strong>
+                <strong id="rechargeTotal" style="font-size: 1.2rem; color: var(--primary);">$50.00</strong>
+            </div>
+        </div>
     </div>
+    `;
 
-    <div class="form-group">
-    <label class="form-label">Payment Method</label>
-    <select class="form-select" name="provider">
-    <option value="stripe">Stripe (Credit/Debit Cards)</option>
-    <option value="oxapay">OxaPay (Cryptocurrency)</option>
-    </select>
-    </div>
+    Swal.fire({
+        title: 'Recharge Task Budget',
+        html: modalHtml,
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
+        confirmButtonText: '<i class="ri-wallet-3-line"></i> Proceed to Payment',
+        confirmButtonColor: 'var(--primary)',
+        width: '95vw',
+        maxWidth: '550px',
+        customClass: { popup: 'swal2-toast' },
+        didOpen: () => {
+            // --- Logic for the interactive modal ---
+            const amountInput = document.getElementById('rechargeAmount');
+            const totalDisplay = document.getElementById('rechargeTotal');
 
-    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-    <button type="submit" class="btn btn-primary" style="flex: 1;">Recharge Task</button>
-    </div>
-    </form>
-    `);
+            const updateTotal = () => {
+                const amount = parseFloat(amountInput.value) || 0;
+                totalDisplay.textContent = `$${amount.toFixed(2)}`;
+            };
 
-    document.getElementById('rechargeForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
+            amountInput.addEventListener('input', updateTotal);
 
-        try {
-            const response = await api('/recharge', {
-                method: 'POST',
-                body: JSON.stringify({
-                    task_ids: [taskId],
-                    payment_method: formData.get('provider'),
-                                     cancel_previous: false
-                })
+            document.querySelectorAll('.recharge-preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    amountInput.value = btn.dataset.amount;
+                    updateTotal();
+                });
             });
 
-            if (response.data.payment_url) {
-                window.open(response.data.payment_url, '_blank');
-                showToast('Recharge initiated! Complete payment to add funds.', 'success');
-            } else {
-                showToast('Task recharged successfully', 'success');
+            document.querySelectorAll('.recharge-payment-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.recharge-payment-option').forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                });
+            });
+        },
+        preConfirm: () => {
+            // --- Gather data before confirming ---
+            const amount = parseFloat(document.getElementById('rechargeAmount').value);
+            const provider = document.querySelector('.recharge-payment-option.selected').dataset.provider;
+
+            if (!amount || amount < 10) {
+                Swal.showValidationMessage('Minimum recharge amount is $10');
+                return false;
             }
 
-            closeModal();
-            loadTasks();
+            return { amount, provider, taskId };
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            const { amount, provider, taskId } = result.value;
 
-        } catch (error) {
-            console.error('Recharge error:', error);
-            showToast('Failed to recharge task: ' + error.message, 'error');
+            try {
+                // This API call now correctly includes the amount
+                const response = await api('/recharge', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        task_id: taskId,
+                        amount: amount,
+                        payment_method: provider
+                    })
+                });
+
+                if (response.data.payment_url) {
+                    Swal.fire({
+                        title: 'Redirecting...',
+                        text: 'Redirecting you to the payment page to complete your recharge.',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        customClass: { popup: 'swal2-toast' }
+                    });
+                    window.open(response.data.payment_url, '_blank');
+                } else {
+                    showToast('Task recharged successfully!', 'success');
+                }
+                
+                // Refresh the list to show the new budget
+                if (document.querySelector('.nav-item[data-page="tasks"]').classList.contains('active')) {
+                    loadTasks();
+                } else {
+                    loadDashboard();
+                }
+
+            } catch (error) {
+                Swal.fire('Error!', 'Failed to initiate recharge: ' + error.message, 'error');
+            }
         }
     });
 }
-
+    
 // Domain Modal
 async function showDomainModal() {
     showModal('Add Domain', `

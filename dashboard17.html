@@ -5362,377 +5362,113 @@ async function createArticle(e) {
     }
 }
 
+// ADD THIS NEW, IMPROVED FUNCTION
 async function viewArticle(articleId) {
     try {
         const response = await api(`/dashboard/articles?article_id=${articleId}`);
         const article = response.data.article;
 
-        // Process analytics data
+        // --- Data processing (This part is unchanged) ---
         const stats = article.stats || {};
-        const countries = {};
-        const browsers = {};
-        const devices = {};
-        const viewsByDate = {};
-
+        const countries = {}, browsers = {}, devices = {}, viewsByDate = {};
         Object.entries(stats).forEach(([month, monthStats]) => {
-            if (monthStats.country) {
-                Object.entries(monthStats.country).forEach(([country, views]) => {
-                    const key = String(country || '').toUpperCase();
-                    countries[key] = (countries[key] || 0) + views;
-                });
-            }
-            if (monthStats.browser) {
-                Object.entries(monthStats.browser).forEach(([browser, views]) => {
-                    const key = String(browser || '');
-                    browsers[key] = (browsers[key] || 0) + views;
-                });
-            }
-            if (monthStats.devices) {
-                Object.entries(monthStats.devices).forEach(([device, views]) => {
-                    const key = String(device || '');
-                    devices[key] = (devices[key] || 0) + views;
-                });
-            }
-            if (monthStats.daily) {
-                Object.entries(monthStats.daily).forEach(([day, views]) => {
-                    const [year, monthNum] = month.split('-');
-                    const fullDate = `${year}-${monthNum}-${String(day).padStart(2, '0')}`;
-                    viewsByDate[fullDate] = (viewsByDate[fullDate] || 0) + views;
-                });
-            }
+            if (monthStats.country) Object.entries(monthStats.country).forEach(([k, v]) => { countries[k.toUpperCase()] = (countries[k.toUpperCase()] || 0) + v; });
+            if (monthStats.browser) Object.entries(monthStats.browser).forEach(([k, v]) => { browsers[k] = (browsers[k] || 0) + v; });
+            if (monthStats.devices) Object.entries(monthStats.devices).forEach(([k, v]) => { devices[k] = (devices[k] || 0) + v; });
+            if (monthStats.daily) Object.entries(monthStats.daily).forEach(([day, views]) => {
+                const [year, monthNum] = month.split('-');
+                const fullDate = `${year}-${monthNum}-${String(day).padStart(2, '0')}`;
+                viewsByDate[fullDate] = (viewsByDate[fullDate] || 0) + views;
+            });
         });
-
         const sortedDates = Object.entries(viewsByDate).sort(([a], [b]) => new Date(a) - new Date(b));
         const haveStats = Object.keys(stats).length > 0;
-
-        showModal('Article Analytics', `
-        <div>
-            <!-- Desktop Layout -->
-            <div class="desktop-only">
-                <div style="height: 80vh; display: grid; grid-template-rows: auto 1fr; gap: 1rem;">
-                    <!-- Compact Header -->
-                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center; padding: 0.75rem 1rem; background: var(--primary); color: white; border-radius: var(--radius); margin: -1.5rem -1.5rem 0 -1.5rem;">
-                        <div>
-                            <h4 style="color: white; margin-bottom: 0.5rem; font-size: 1.05rem; line-height: 1.2;">${article.subject}</h4>
-                            <div style="display: flex; gap: 1rem; font-size: 0.85rem; opacity: 0.9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                <span title="${article.url}"><i class="ri-global-line"></i> ${article.url}</span>
-                                <span><i class="ri-eye-line"></i> ${formatNumber(article.total_views || 0)} views</span>
-                                <span><i class="ri-calendar-line"></i> ${new Date(article.creation_date).toLocaleDateString()}</span>
-                            </div>
+        
+        // --- Build new responsive HTML for Swal ---
+        const modalHtml = `
+        <div style="text-align: left;">
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+                ${haveStats ? `
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title">Views Timeline</h3></div>
+                        <div class="card-body" style="height: 250px;"><canvas id="articleViewsChart"></canvas></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title">Top Countries</h3></div>
+                            <div class="card-body" style="height: 220px;"><canvas id="articleCountriesChart"></canvas></div>
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-sm" onclick="window.open('https://${article.url}', '_blank')" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.375rem 0.75rem;">
-                                <i class="ri-external-link-line"></i>
-                            </button>
-                            <button class="btn btn-sm" onclick="editArticle('${article.article_id}')" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.375rem 0.75rem;">
-                                <i class="ri-edit-line"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="confirmDeleteArticle('${article.article_id}')" style="padding: 0.375rem 0.75rem;">
-                                <i class="ri-delete-bin-line"></i>
-                            </button>
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title">Browsers</h3></div>
+                            <div class="card-body" style="height: 220px;"><canvas id="articleBrowsersChart"></canvas></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title">Devices</h3></div>
+                            <div class="card-body" style="height: 220px;"><canvas id="articleDevicesChart"></canvas></div>
                         </div>
                     </div>
-
-                    <!-- Main Content Grid -->
-                    <div style="display: grid; grid-template-columns: 2fr 300px; gap: 1.5rem; min-height: 0;">
-                        <!-- Charts Area -->
-                        <div style="display: flex; flex-direction: column; gap: 1rem; overflow: hidden;">
-                            ${haveStats ? `
-                                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
-                                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem;">
-                                        <h6 style="margin-bottom: 0.5rem; color: var(--primary); font-size: 0.9rem;">Views Timeline</h6>
-                                        <div style="height: 220px; position: relative;">
-                                            <canvas id="articleViewsChart"></canvas>
-                                        </div>
-                                    </div>
-                                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem;">
-                                        <h6 style="margin-bottom: 0.5rem; color: var(--warning); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
-                                            <i class="ri-smartphone-line"></i> Devices
-                                        </h6>
-                                        <div style="height: 200px; position: relative;">
-                                            <canvas id="articleDevicesChart"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem;">
-                                        <h6 style="margin-bottom: 0.5rem; color: var(--success); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
-                                            <i class="ri-global-line"></i> Countries
-                                        </h6>
-                                        <div style="height: 200px; position: relative;">
-                                            <canvas id="articleCountriesChart"></canvas>
-                                        </div>
-                                    </div>
-                                    <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem;">
-                                        <h6 style="margin-bottom: 0.5rem; color: var(--primary); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
-                                            <i class="ri-computer-line"></i> Browsers
-                                        </h6>
-                                        <div style="height: 200px; position: relative;">
-                                            <canvas id="articleBrowsersChart"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                            ` : `
-                                <div style="display: flex; align-items: center; justify-content: center; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--text-secondary);">
-                                    <div>
-                                        <i class="ri-bar-chart-line" style="font-size: 2.5rem; opacity: 0.5; margin-bottom: 1rem; display: block;"></i>
-                                        <h5 style="margin-bottom: 0.5rem;">No Analytics Data</h5>
-                                        <p style="font-size: 0.9rem; margin: 0;">Analytics will appear once your article receives views.</p>
-                                    </div>
-                                </div>
-                            `}
-                        </div>
-
-                        <!-- Sidebar -->
-                        <div style="display: flex; flex-direction: column; gap: 1rem; overflow-y: auto;">
-                            ${article.images && article.images.length > 0 ? `
-                                <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
-                                    <h6 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Images (${article.images.length})</h6>
-                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 0.5rem;">
-                                        ${article.images.map(img => `
-                                            <div onclick="window.open('${img}', '_blank')" style="cursor: pointer; aspect-ratio: 1; border-radius: 4px; overflow: hidden; background: var(--bg-tertiary); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                                                <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            ` : ''}
-                            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; flex: 1; min-height: 0;">
-                                <h6 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Content Preview</h6>
-                                <div style="overflow-y: auto; font-family: Georgia, serif; line-height: 1.5; font-size: 0.8rem; max-height: 300px;">
-                                    ${article.body}
-                                </div>
-                            </div>
-                            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
-                                <h6 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Details</h6>
-                                <div style="font-size: 0.8rem; line-height: 1.4; color: var(--text-secondary);">
-                                    <div style="margin-bottom: 0.5rem;"><strong>ID: </strong><code style="font-size: 0.7rem;">${article.article_id}</code></div>
-                                    <div><strong>Views:</strong> <span style="color: var(--primary); font-weight: 600;">${formatNumber(article.total_views || 0)}</span></div>
-                                </div>
-                            </div>
-                        </div>
+                ` : `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="ri-bar-chart-line"></i></div>
+                        <div class="empty-state-title">No Analytics Yet</div>
+                        <p class="empty-state-description">Data will appear once your article receives views.</p>
                     </div>
-                </div>
-            </div>
+                `}
 
-            <!-- Perfect Mobile Layout -->
-            <div class="mobile-only" style="padding: 0; margin: -1.5rem; background: var(--bg);">
-
-                <!-- Compact Mobile Hero Header -->
-                <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 1rem; position: relative;">
-                    <div style="display: flex; align-items: flex-start; gap: 1rem;">
-                        <!-- Article Info -->
-                        <div style="flex: 1; min-width: 0;">
-                            <h3 style="color: white; font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${article.subject}</h3>
-                            <div style="display: flex; flex-direction: column; gap: 0.25rem; opacity: 0.9;">
-                                <div style="font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
-                                    <i class="ri-global-line" style="font-size: 0.7rem;"></i>
-                                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${article.url}</span>
-                                </div>
-                                <div style="font-size: 0.7rem; opacity: 0.8; display: flex; align-items: center; gap: 0.25rem;">
-                                    <i class="ri-calendar-line" style="font-size: 0.65rem;"></i>
-                                    <span>${new Date(article.creation_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Compact Views Badge -->
-                        <div style="background: rgba(255,255,255,0.2); padding: 0.6rem 0.8rem; border-radius: var(--radius); text-align: center; flex-shrink: 0; backdrop-filter: blur(5px);">
-                            <div style="font-size: 1.2rem; font-weight: 700; line-height: 1; margin-bottom: 0.15rem;">${formatNumber(article.total_views || 0)}</div>
-                            <div style="font-size: 0.65rem; opacity: 0.9; font-weight: 500; letter-spacing: 0.5px;">VIEWS</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mobile Actions Bar -->
-                <div style="background: var(--card); padding: 0.75rem; border-bottom: 1px solid var(--border); display: flex; gap: 0.5rem;">
-                    <button class="btn btn-primary" onclick="window.open('https://${article.url}', '_blank')" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem; font-size: 0.85rem;">
-                        <i class="ri-external-link-line"></i> View Live
-                    </button>
-                    <button class="btn btn-secondary" onclick="editArticle('${article.article_id}')" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem; font-size: 0.85rem;">
-                        <i class="ri-edit-line"></i> Edit
-                    </button>
-                    <button class="btn btn-danger" onclick="confirmDeleteArticle('${article.article_id}')" style="padding: 0.625rem 0.75rem;">
-                        <i class="ri-delete-bin-line"></i>
-                    </button>
-                </div>
-
-                <!-- Mobile Content -->
-                <div style="padding: 1rem; background: var(--bg);">
-
-                    <!-- Analytics Overview Cards -->
-                    ${haveStats ? `
-                        <div style="margin-bottom: 1.5rem;">
-                            <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text);">Analytics Overview</h4>
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                                ${Object.keys(countries).length > 0 ? `
-                                    <div style="background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; padding: 1.25rem; border-radius: var(--radius-lg); text-align: center; box-shadow: var(--shadow);">
-                                        <div style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.25rem;">${Object.keys(countries).length}</div>
-                                        <div style="font-size: 0.8rem; opacity: 0.9; font-weight: 500;">Countries</div>
-                                    </div>
-                                ` : ''}
-                                ${Object.keys(browsers).length > 0 ? `
-                                    <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 1.25rem; border-radius: var(--radius-lg); text-align: center; box-shadow: var(--shadow);">
-                                        <div style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.25rem;">${Object.keys(browsers).length}</div>
-                                        <div style="font-size: 0.8rem; opacity: 0.9; font-weight: 500;">Browsers</div>
-                                    </div>
-                                ` : ''}
-                                ${Object.keys(devices).length > 0 ? `
-                                    <div style="background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%); color: white; padding: 1.25rem; border-radius: var(--radius-lg); text-align: center; box-shadow: var(--shadow);">
-                                        <div style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.25rem;">${Object.keys(devices).length}</div>
-                                        <div style="font-size: 0.8rem; opacity: 0.9; font-weight: 500;">Devices</div>
-                                    </div>
-                                ` : ''}
-                                ${sortedDates.length > 0 ? `
-                                    <div style="background: linear-gradient(135deg, var(--info) 0%, #2563eb 100%); color: white; padding: 1.25rem; border-radius: var(--radius-lg); text-align: center; box-shadow: var(--shadow);">
-                                        <div style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.25rem;">${sortedDates.length}</div>
-                                        <div style="font-size: 0.8rem; opacity: 0.9; font-weight: 500;">Active Days</div>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    ` : ''}
-
-                    <!-- Article Information -->
-                    <div style="background: var(--card); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                        <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="ri-information-line" style="color: var(--primary);"></i> Article Information
-                        </h4>
-                        <div style="space-y: 1rem;">
-                            <div style="margin-bottom: 1rem;">
-                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Article ID</div>
-                                <code style="background: var(--bg-tertiary); padding: 0.5rem; border-radius: var(--radius-sm); font-size: 0.8rem; color: var(--text); display: block; word-break: break-all;">${article.article_id}</code>
-                            </div>
-                            <div style="margin-bottom: 1rem;">
-                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Domain</div>
-                                <a href="https://${article.url}" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
-                                    ${article.url} <i class="ri-external-link-line"></i>
-                                </a>
-                            </div>
-                            <div>
-                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Published Date</div>
-                                <div style="color: var(--text-secondary); font-weight: 500;">${new Date(article.creation_date).toLocaleDateString('en-US', {
-                                    weekday: 'long',
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                })}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Images Section -->
-                    ${article.images && article.images.length > 0 ? `
-                        <div style="background: var(--card); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                            <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="ri-image-line" style="color: var(--warning);"></i> Images (${article.images.length})
-                            </h4>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem;">
+                ${article.images && article.images.length > 0 ? `
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title">Images (${article.images.length})</h3></div>
+                        <div class="card-body">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.75rem;">
                                 ${article.images.map(img => `
-                                    <div onclick="window.open('${img}', '_blank')" style="cursor: pointer; aspect-ratio: 1; border-radius: var(--radius); overflow: hidden; background: var(--bg-tertiary); transition: all 0.3s ease; box-shadow: var(--shadow-sm);" ontouchstart="this.style.transform='scale(0.95)'; this.style.boxShadow='var(--shadow)'" ontouchend="this.style.transform='scale(1)'; this.style.boxShadow='var(--shadow-sm)'">
+                                    <div onclick="window.open('${img}', '_blank')" style="cursor: pointer; aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden; background: var(--bg-tertiary);">
                                         <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
                                     </div>
                                 `).join('')}
                             </div>
                         </div>
-                    ` : ''}
-
-                    <!-- Detailed Analytics -->
-                    ${haveStats ? `
-                        <!-- Top Countries -->
-                        ${Object.keys(countries).length > 0 ? `
-                            <div style="background: var(--card); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                                <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--success); display: flex; align-items: center; gap: 0.5rem;">
-                                    <i class="ri-global-line"></i> Top Countries
-                                </h4>
-                                <div style="space-y: 0.75rem;">
-                                    ${Object.entries(countries).sort(([,a], [,b]) => b - a).slice(0, 5).map(([country, views], index) => `
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-tertiary); border-radius: var(--radius); ${index === 0 ? 'border: 2px solid var(--success);' : ''}">
-                                            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                                ${index === 0 ? '<div style="width: 8px; height: 8px; background: var(--success); border-radius: 50%;"></div>' : '<div style="width: 8px; height: 8px; background: var(--text-tertiary); border-radius: 50%;"></div>'}
-                                                <span style="font-weight: 600; font-size: 0.95rem;">${country}</span>
-                                            </div>
-                                            <span style="background: var(--success); color: white; padding: 0.25rem 0.75rem; border-radius: var(--radius); font-size: 0.8rem; font-weight: 600;">${formatNumber(views)}</span>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        ` : ''}
-
-                        <!-- Top Browsers -->
-                        ${Object.keys(browsers).length > 0 ? `
-                            <div style="background: var(--card); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                                <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
-                                    <i class="ri-computer-line"></i> Top Browsers
-                                </h4>
-                                <div style="space-y: 0.75rem;">
-                                    ${Object.entries(browsers).sort(([,a], [,b]) => b - a).slice(0, 5).map(([browser, views], index) => `
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-tertiary); border-radius: var(--radius); ${index === 0 ? 'border: 2px solid var(--primary);' : ''}">
-                                            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                                ${index === 0 ? '<div style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%;"></div>' : '<div style="width: 8px; height: 8px; background: var(--text-tertiary); border-radius: 50%;"></div>'}
-                                                <span style="font-weight: 600; font-size: 0.95rem; text-transform: capitalize;">${browser}</span>
-                                            </div>
-                                            <span style="background: var(--primary); color: white; padding: 0.25rem 0.75rem; border-radius: var(--radius); font-size: 0.8rem; font-weight: 600;">${formatNumber(views)}</span>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        ` : ''}
-
-                        <!-- Recent Activity -->
-                        ${sortedDates.length > 0 ? `
-                            <div style="background: var(--card); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                                <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--info); display: flex; align-items: center; gap: 0.5rem;">
-                                    <i class="ri-calendar-line"></i> Recent Activity
-                                </h4>
-                                <div style="max-height: 250px; overflow-y: auto;">
-                                    ${sortedDates.slice(-7).reverse().map(([date, views], index) => `
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; ${index < sortedDates.slice(-7).length - 1 ? 'border-bottom: 1px solid var(--border);' : ''}">
-                                            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                                <div style="width: 6px; height: 6px; background: var(--info); border-radius: 50%;"></div>
-                                                <span style="font-size: 0.9rem; color: var(--text-secondary);">${new Date(date).toLocaleDateString('en-US', {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    year: new Date(date).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-                                                })}</span>
-                                            </div>
-                                            <span style="background: var(--info); color: white; padding: 0.25rem 0.75rem; border-radius: var(--radius); font-size: 0.8rem; font-weight: 600;">${formatNumber(views)}</span>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                                <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-                                    <div style="font-size: 0.85rem; color: var(--text-secondary);">
-                                        <strong style="color: var(--text);">${formatNumber(sortedDates.reduce((sum, [,views]) => sum + views, 0))}</strong> total views across <strong style="color: var(--text);">${sortedDates.length}</strong> days
-                                    </div>
-                                </div>
-                            </div>
-                        ` : ''}
-                    ` : `
-                        <div style="background: var(--card); border-radius: var(--radius-lg); padding: 2rem; text-align: center; color: var(--text-secondary); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                            <div style="background: var(--bg-tertiary); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                                <i class="ri-bar-chart-line" style="font-size: 2rem; opacity: 0.5;"></i>
-                            </div>
-                            <h5 style="margin-bottom: 0.5rem; color: var(--text);">No Analytics Yet</h5>
-                            <p style="font-size: 0.9rem; margin: 0; max-width: 250px; margin: 0 auto;">Analytics will appear once your article starts receiving views from readers.</p>
-                        </div>
-                    `}
-
-                    <!-- Content Preview -->
-                    <div style="background: var(--card); border-radius: var(--radius-lg); padding: 1.25rem; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                        <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="ri-file-text-line" style="color: var(--accent);"></i> Content Preview
-                        </h4>
-                        <div style="max-height: 300px; overflow-y: auto; font-family: Georgia, serif; line-height: 1.6; font-size: 0.9rem; color: var(--text-secondary); background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
-                            ${article.body}
-                        </div>
                     </div>
-
+                ` : ''}
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">Content Preview</h3></div>
+                    <div class="card-body" style="max-height: 300px; overflow-y: auto; font-family: Georgia, serif; line-height: 1.6; font-size: 0.9rem;">
+                        ${article.body}
+                    </div>
                 </div>
             </div>
         </div>
-        `, '95vw');
+        `;
 
-        // Initialize charts after DOM paints
+        Swal.fire({
+            title: `<div style="text-align: left; line-height: 1.3; font-size: 1.2rem;">${article.subject}</div>`,
+            html: modalHtml,
+            width: '95vw',
+            maxWidth: '1200px', // Allow it to be nice and wide on desktop
+            showCloseButton: true, // Adds the 'X' button
+            showConfirmButton: true,
+            confirmButtonText: '<i class="ri-external-link-line"></i> View Live',
+            confirmButtonColor: 'var(--primary)',
+            showDenyButton: true,
+            denyButtonText: '<i class="ri-edit-line"></i> Edit',
+            showCancelButton: true,
+            cancelButtonText: 'Delete',
+            customClass: {
+                popup: 'swal2-toast', // Use our theme
+                actions: 'swal2-actions-separated', // Optional: adds a bit more space
+                cancelButton: 'swal2-cancel btn-danger' // Style delete button
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.open(`https://${article.url}`, '_blank');
+            } else if (result.isDenied) {
+                editArticle(articleId);
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                // We call your existing confirm delete logic
+                deleteArticle(articleId); 
+            }
+        });
+        
+        // Initialize charts after the modal is in the DOM
         setTimeout(() => {
             initializeArticleCharts(countries, browsers, devices, sortedDates);
         }, 100);

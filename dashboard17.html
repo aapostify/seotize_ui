@@ -3539,7 +3539,7 @@ async function loadBilling(page = 1, type = 'all') {
                                     <td style="font-weight: 600;">$${(payment.total_payment || 0).toFixed(2)}</td>
                                     <td><span class="badge badge-${statusClass}">${statusText}</span></td>
                                     <td>
-                                        <button class="btn btn-sm" onclick="viewPaymentDetails('${payment.billing_id}')"><i class="ri-eye-line"></i> Details</button>
+                                        ${payment.status?.toLowerCase() === 'paid' ? `<button class="btn btn-sm" onclick="viewPaymentDetails('${payment.billing_id}')"><i class="ri-eye-line"></i> Details</button>` : ''}
                                         ${payment.payment_url ? `<button class="btn btn-sm btn-primary" onclick="window.open('${payment.payment_url}', '_blank')" style="margin-left: 0.25rem;"><i class="ri-external-link-line"></i> Pay</button>` : ''}
                                     </td>
                                 </tr>`;

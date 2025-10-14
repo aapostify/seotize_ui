@@ -1949,7 +1949,10 @@ div#modalBody {
         display: none!important;
     }
 }
-    
+.swal2-popup-custom-task {
+    margin: 0 !important;
+    padding: 0 !important;
+}
 </style>
 </head>
 <body data-theme="light">
@@ -4930,7 +4933,7 @@ async function viewTaskDetails(taskId) {
             width: '95vw',
             maxWidth: '1100px', // Large on desktop, as requested
             padding: '1.5rem',
-            customClass: { popup: 'swal2-toast' },
+            customClass: { popup: 'swal2-toast swal2-popup-custom-task' }, 
             showClass: { popup: 'swal2-show-super-fast' },
             hideClass: { popup: 'swal2-hide-super-fast' },
             didOpen: () => {

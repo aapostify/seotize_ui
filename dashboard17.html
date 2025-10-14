@@ -6263,7 +6263,6 @@ async function viewPaymentDetails(billingId) {
     // Show a loading indicator immediately for a better user experience
     Swal.fire({
         title: 'Fetching Payment Details...',
-        didOpen: () => Swal.showLoading(),
         showConfirmButton: false,
         customClass: { popup: 'swal2-toast' }
     });
@@ -6421,7 +6420,7 @@ async function viewPaymentDetails(billingId) {
             showConfirmButton: true,
             confirmButtonText: 'Close',
             customClass: {
-                popup: 'swal2-toast payment-details-custom'
+                popup: 'payment-details-custom'
             },
         });
 

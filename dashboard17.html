@@ -5257,110 +5257,9 @@ function showVerificationInstructions(domain, txtRecord = '') {
     });
 }
 
-// Article Modal - Fixed
-function showArticleModal(articleId = null) {
-    const isEdit = !!articleId;
 
-    showModal(isEdit ? 'Edit Article' : 'Create Article', `
-    <form id="articleForm" enctype="multipart/form-data">
-    <div class="form-group">
-    <label class="form-label">Domain URL</label>
-    <select class="form-select" name="url" required>
-    <option value="">Select a verified domain...</option>
-    ${currentData.domains.filter(d => d.verified).map(domain => `
-        <option value="${domain.domain}">${domain.domain}</option>
-        `).join('')}
-        </select>
-        ${currentData.domains.filter(d => d.verified).length === 0 ? `
-            <small style="color: var(--error); display: block; margin-top: 0.5rem;">
-            No verified domains available. Please add and verify a domain first.
-            </small>
-            ` : ''}
-            </div>
 
-            <div class="form-group">
-            <label class="form-label">Article Title</label>
-            <input type="text" class="form-input" name="subject" required placeholder="My Amazing Article Title">
-            </div>
 
-            <div class="form-group">
-            <label class="form-label">Article Content (HTML)</label>
-            <textarea class="form-textarea" name="body" required rows="12" placeholder="<h1>Article Title</h1><p>Your article content goes here...</p>"></textarea>
-            <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
-            You can use HTML tags to format your content. Images will be uploaded separately.
-            </small>
-            </div>
-
-            <div class="form-group">
-            <label class="form-label">Upload Images (Optional)</label>
-            <input type="file" class="form-input" name="image_data" multiple accept="image/*">
-            <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
-            Upload up to 10 images. Maximum 5MB per image, 20MB total.
-            </small>
-            </div>
-
-            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary" style="flex: 1;">
-            ${isEdit ? 'Update' : 'Create'} Article
-            </button>
-            </div>
-            </form>
-            `);
-
-    document.getElementById('articleForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (isEdit) {
-            updateArticle(articleId, e);
-        } else {
-            createArticle(e);
-        }
-    });
-}
-
-async function createArticle(e) {
-    const formData = new FormData(e.target);
-
-    // Check if domain is verified - Fixed to use domain.domain
-    const selectedDomain = formData.get('url');
-    const verifiedDomain = currentData.domains.find(d => d.domain === selectedDomain && d.verified);
-
-    if (!verifiedDomain) {
-        showToast('Please select a verified domain', 'error');
-        return;
-    }
-
-    const createButton = e.target.querySelector('button[type="submit"]');
-    createButton.innerHTML = '<i class="ri-loader-line"></i> Creating Article...';
-    createButton.disabled = true;
-
-    try {
-        const response = await fetch(`${API_BASE}/add-article`, {
-            method: 'POST',
-            headers: {
-                'Session-Token': sessionToken
-            },
-            body: formData
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error?.message || data.message || 'Failed to create article');
-        }
-
-        showToast('Article created successfully!', 'success');
-        closeModal();
-        loadArticles();
-
-    } catch (error) {
-        console.error('Create article error:', error);
-        showToast('Failed to create article: ' + error.message, 'error');
-    } finally {
-        createButton.innerHTML = 'Create Article';
-        createButton.disabled = false;
-    }
-}
 
 // ADD THIS NEW, IMPROVED FUNCTION
 async function viewArticle(articleId) {
@@ -5589,11 +5488,151 @@ function initializeArticleCharts(countries, browsers, devices, sortedDates) {
     });
 }
 
+// ADD THIS NEW, ALL-IN-ONE FUNCTION
+async function showArticleModal(articleId = null) {
+    const isEdit = !!articleId;
+    let articleData = null; // To store fetched article data for editing
 
-async function editArticle(articleId) {
-    closeModal();
-    setTimeout(() => showArticleModal(articleId), 100);
+    // If editing, show a loading state first while we fetch the article
+    if (isEdit) {
+        Swal.fire({
+            title: 'Loading Article...',
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false,
+            customClass: { popup: 'swal2-toast' }
+        });
+        try {
+            const response = await api(`/dashboard/articles?article_id=${articleId}`);
+            articleData = response.data.article;
+            Swal.close(); // Close the loading modal
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to load article',
+                text: error.message,
+                customClass: { popup: 'swal2-toast' }
+            });
+            return; // Stop execution if fetching fails
+        }
+    }
+
+    const modalHtml = `
+    <form id="articleForm" enctype="multipart/form-data" style="text-align: left;">
+        <div class="form-group">
+            <label class="form-label">Domain URL</label>
+            <select class="form-select" id="swal-url" name="url" required>
+                <option value="">Select a verified domain...</option>
+                ${currentData.domains.filter(d => d.verified).map(domain => `
+                    <option value="${domain.domain}">${domain.domain}</option>
+                `).join('')}
+            </select>
+            ${currentData.domains.filter(d => d.verified).length === 0 ? `
+                <small style="color: var(--error); display: block; margin-top: 0.5rem;">
+                    No verified domains found. Please add one first.
+                </small>
+            ` : ''}
+        </div>
+        <div class="form-group">
+            <label class="form-label">Article Title</label>
+            <input type="text" id="swal-subject" class="form-input" name="subject" required placeholder="My Amazing Article Title">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Article Content (HTML)</label>
+            <textarea class="form-textarea" id="swal-body" name="body" required rows="12" placeholder="<h1>Title</h1><p>Content...</p>"></textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Upload New Images (Optional)</label>
+            <input type="file" class="form-input" name="image_data" multiple accept="image/*">
+            <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                ${isEdit ? 'Uploading new images will replace all existing ones for this article.' : 'Max 10 files, 5MB per file.'}
+            </small>
+        </div>
+    </form>
+    `;
+
+    Swal.fire({
+        title: isEdit ? 'Edit Article' : 'Create New Article',
+        html: modalHtml,
+        width: '95vw',
+        maxWidth: '900px',
+        showCloseButton: true,
+        showCancelButton: true,
+        confirmButtonText: isEdit ? 'Update Article' : 'Create Article',
+        confirmButtonColor: 'var(--primary)',
+        customClass: { popup: 'swal2-toast' },
+        didOpen: () => {
+            // If we are editing, pre-fill the form with the fetched data
+            if (isEdit && articleData) {
+                document.getElementById('swal-url').value = articleData.url;
+                document.getElementById('swal-subject').value = articleData.subject;
+                document.getElementById('swal-body').value = articleData.body;
+            }
+        },
+        preConfirm: () => {
+            const form = document.getElementById('articleForm');
+            const url = form.querySelector('[name="url"]').value;
+            const subject = form.querySelector('[name="subject"]').value;
+
+            if (!url) {
+                Swal.showValidationMessage('Please select a verified domain.');
+                return false;
+            }
+            if (!subject) {
+                Swal.showValidationMessage('Please enter an article title.');
+                return false;
+            }
+            return new FormData(form);
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            const formData = result.value;
+            const endpoint = isEdit ? `/edit-article` : '/add-article';
+            if (isEdit) {
+                formData.append('article_id', articleId);
+            }
+
+            Swal.fire({
+                title: isEdit ? 'Updating...' : 'Creating...',
+                didOpen: () => Swal.showLoading(),
+                allowOutsideClick: false,
+                customClass: { popup: 'swal2-toast' }
+            });
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST', // Both create and edit use POST for FormData
+                    headers: { 'Session-Token': sessionToken },
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error?.message || data.message || 'Operation failed');
+                }
+
+                Swal.close();
+                showToast(`Article ${isEdit ? 'updated' : 'created'} successfully!`, 'success');
+                loadArticles();
+
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Operation Failed',
+                    text: error.message,
+                    customClass: { popup: 'swal2-toast' }
+                });
+            }
+        }
+    });
 }
+
+// ADD THIS SMALL HELPER FUNCTION BACK
+function editArticle(articleId) {
+    // This now simply closes the details modal and opens the new edit modal
+    Swal.close();
+    showArticleModal(articleId);
+}
+
 
 async function deleteArticle(articleId) {
     if (!confirm('Are you sure you want to delete this article? This action cannot be undone.')) {

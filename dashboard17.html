@@ -3551,7 +3551,18 @@ async function loadBilling(page = 1, type = 'all') {
             </div>
         </div>
 
-        ${paginationState.billing.total > paginationState.billing.pageSize ? generatePagination('billing', (page) => loadBilling(page, type)) : ''}
+        // REPLACE WITH THIS
+${(() => {
+    if (paginationState.billing.total > paginationState.billing.pageSize) {
+        // This helper function captures the current 'type' filter
+        // and has a name, which generatePagination needs.
+        function loadBillingWithFilter(page) {
+            loadBilling(page, type);
+        }
+        return generatePagination('billing', loadBillingWithFilter);
+    }
+    return '';
+})()}
         `;
 
         // Initialize the interactive plan selection

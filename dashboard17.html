@@ -6257,135 +6257,182 @@ function deleteImageFromModal(imageId) {
     setTimeout(() => deleteImage(imageId), 100);
 }
 
-// Payment Details
+// [NEW] Rebuilt Payment Details Modal using SweetAlert2
 async function viewPaymentDetails(billingId) {
+
+    // Show a loading indicator immediately for a better user experience
+    Swal.fire({
+        title: 'Fetching Payment Details...',
+        didOpen: () => Swal.showLoading(),
+        showConfirmButton: false,
+        customClass: { popup: 'swal2-toast' }
+    });
+
     try {
-        // Find payment in current data first (faster)
-        const taskPayments = currentData.billing?.tasks || [];
-        const hostingPayments = currentData.billing?.hosting || [];
-        const allPayments = [...taskPayments, ...hostingPayments];
+        const response = await api(`/get-payment-status?payment_id=${billingId}`);
+        const payment = response.data;
 
-        let payment = allPayments.find(p => p.billing_id === billingId);
-
-        // If not found in current data, try API call
         if (!payment) {
-            try {
-                const response = await api(`/get-payment-status?payment_id=${billingId}`);
-                payment = response.data;
-            } catch (apiError) {
-                console.error('API payment details error:', apiError);
-                showToast('Payment details not found', 'error');
-                return;
+            throw new Error('Payment details not found in API response.');
+        }
+
+        // --- 1. Prepare Data for Display ---
+        const status = (payment.payment_status || 'unknown').toLowerCase();
+        let statusInfo = {
+            text: 'Unknown',
+            color: 'var(--text-secondary)',
+            icon: 'ri-question-mark'
+        };
+        if (status === 'paid' || status === 'succeeded') {
+            statusInfo = { text: 'Paid', color: 'var(--success)', icon: 'ri-checkbox-circle-fill' };
+        } else if (status === 'pending') {
+            statusInfo = { text: 'Pending', color: 'var(--warning)', icon: 'ri-time-line' };
+        } else if (status === 'failed' || status === 'cancelled') {
+            statusInfo = { text: 'Failed', color: 'var(--error)', icon: 'ri-close-circle-fill' };
+        }
+
+        const type = (payment.type || 'unknown').replace('_', ' ');
+        const paymentMethod = (payment.payment_method || 'N/A').toLowerCase();
+        
+        // --- 2. Construct Modal HTML with Embedded Styles ---
+        const modalHtml = `
+        <style>
+            /* Custom styles ONLY for this modal */
+            .payment-details-custom {
+                width: 95vw !important;
             }
-        }
+            @media (min-width: 800px) {
+                .payment-details-custom {
+                    width: 750px !important;
+                }
+            }
+            .payment-receipt {
+                text-align: left;
+            }
+            .receipt-header {
+                text-align: center;
+                padding-bottom: 1.5rem;
+                border-bottom: 2px dashed var(--border);
+                margin-bottom: 1.5rem;
+            }
+            .receipt-header .amount {
+                font-size: 2.5rem;
+                font-weight: 800;
+                line-height: 1;
+                color: var(--text);
+            }
+            .receipt-header .status-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 1rem;
+                border-radius: var(--radius-lg);
+                font-weight: 600;
+                margin-top: 1rem;
+            }
+            .detail-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+            .detail-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                padding: 0.85rem 0;
+                border-bottom: 1px solid var(--border);
+                font-size: 0.9rem;
+                gap: 1rem;
+            }
+            .detail-item:last-child {
+                border-bottom: none;
+            }
+            .detail-item .label {
+                color: var(--text-secondary);
+                white-space: nowrap;
+            }
+            .detail-item .value {
+                color: var(--text);
+                font-weight: 500;
+                text-align: right;
+                word-break: break-all;
+            }
+            .detail-item .value code {
+                background: var(--bg-tertiary);
+                padding: 0.2rem 0.5rem;
+                border-radius: var(--radius-sm);
+                font-size: 0.85rem;
+            }
+        </style>
 
-        if (!payment) {
-            showToast('Payment details not found', 'error');
-            return;
-        }
-
-        // Calculate fees and amounts
-        const totalAmount = payment.total_payment || 0;
-        const finalAmount = payment.final_amount || 0;
-        const platformFee = payment.platform_fee || 0;
-        const providerFee = payment.provider_fee || 0;
-
-        showModal('Payment Details', `
-        <div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-        <div class="stat-card">
-        <div class="stat-value">$${totalAmount.toFixed(2)}</div>
-        <div class="stat-label">Total Amount</div>
-        </div>
-        <div class="stat-card">
-        <div class="stat-value">$${finalAmount.toFixed(2)}</div>
-        <div class="stat-label">Final Amount</div>
-        </div>
-        <div class="stat-card">
-        <div class="stat-value">${payment.provider || 'N/A'}</div>
-        <div class="stat-label">Provider</div>
-        </div>
-        <div class="stat-card">
-        <div class="stat-value">${payment.status || 'Unknown'}</div>
-        <div class="stat-label">Status</div>
-        </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-        <div>
-        <h4 style="margin-bottom: 1rem;">Payment Information</h4>
-        <table style="width: 100%; font-size: 0.875rem;">
-        <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Billing ID:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-family: monospace;">${payment.billing_id}</td></tr>
-        <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Transaction ID:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-family: monospace;">${payment.txID || payment.trackId || 'N/A'}</td></tr>
-        <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Date Created:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">${new Date(payment.dates?.created || Date.now()).toLocaleString()}</td></tr>
-        <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Date Updated:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">${payment.dates?.updated ? new Date(payment.dates.updated).toLocaleString() : 'N/A'}</td></tr>
-        <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Currency:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">${payment.transaction_data?.currency?.toUpperCase() || 'USD'}</td></tr>
-        <tr><td style="padding: 0.5rem 0; font-weight: 500;">Customer:</td><td style="padding: 0.5rem 0;">${payment.transaction_data?.customer_details?.email || 'N/A'}</td></tr>
-        </table>
-        </div>
-
-        <div>
-        <h4 style="margin-bottom: 1rem;">Fee Breakdown</h4>
-        <table style="width: 100%; font-size: 0.875rem;">
-        <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Platform Fee:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">$${platformFee.toFixed(2)}</td></tr>
-        <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Provider Fee:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">$${providerFee.toFixed(2)}</td></tr>
-        <tr><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-weight: 500;">Total Fees:</td><td style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">$${(platformFee + providerFee).toFixed(2)}</td></tr>
-        <tr style="font-weight: 600;"><td style="padding: 0.5rem 0; font-weight: 600;">Net Amount:</td><td style="padding: 0.5rem 0;">$${finalAmount.toFixed(2)}</td></tr>
-        </table>
-        </div>
-        </div>
-
-        ${payment.method === 'create_task' && payment.details ? `
-            <div style="margin-top: 2rem;">
-            <h4 style="margin-bottom: 1rem;">Task Details</h4>
-            <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius);">
-            <div style="margin-bottom: 0.5rem;"><strong>URL:</strong> <a href="${payment.details.url}" target="_blank" style="color: var(--primary);">${payment.details.url}</a></div>
-            <div style="margin-bottom: 0.5rem;"><strong>Priority:</strong> ${payment.details.priority}</div>
-            <div style="margin-bottom: 0.5rem;"><strong>Keywords:</strong> ${payment.details.keywords ? payment.details.keywords.join(', ') : 'N/A'}</div>
-            <div><strong>HTML Locations:</strong> ${payment.details.html_locations ? payment.details.html_locations.length : 0} locations</div>
+        <div class="payment-receipt">
+            <div class="receipt-header">
+                <div class="amount">$${(payment.amount || 0).toFixed(2)} ${payment.currency.toUpperCase()}</div>
+                <div class="status-badge" style="background-color: ${statusInfo.color}; color: white;">
+                    <i class="${statusInfo.icon}"></i>
+                    <span>${statusInfo.text}</span>
+                </div>
             </div>
-            </div>
-            ` : ''}
 
-            ${payment.method === 'buy_package' && payment.details ? `
-                <div style="margin-top: 2rem;">
-                <h4 style="margin-bottom: 1rem;">Hosting Package Details</h4>
-                <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius);">
-                <div style="margin-bottom: 0.5rem;"><strong>Package:</strong> ${payment.details.package?.charAt(0).toUpperCase() + payment.details.package?.slice(1) || 'N/A'}</div>
-                <div><strong>Duration:</strong> ${payment.details.duration || 'N/A'}</div>
-                ${payment.subscription?.details ? `
-                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-                    <strong>Subscription Status:</strong> ${payment.subscription.details.status || 'N/A'}
-                    ${payment.subscription.details.current_period_end ? `<br><strong>Next Billing:</strong> ${new Date(payment.subscription.details.current_period_end).toLocaleDateString()}` : ''}
-                    </div>
-                    ` : ''}
-                    </div>
-                    </div>
-                    ` : ''}
+            <ul class="detail-list">
+                <li class="detail-item">
+                    <span class="label">Invoice Number</span>
+                    <span class="value"><code>${payment.invoice_number}</code> <i class="ri-file-copy-line" style="cursor: pointer;" onclick="copyToClipboard('${payment.invoice_number}')"></i></span>
+                </li>
+                <li class="detail-item">
+                    <span class="label">Transaction ID</span>
+                    <span class="value"><code>${payment.transaction_id}</code> <i class="ri-file-copy-line" style="cursor: pointer;" onclick="copyToClipboard('${payment.transaction_id}')"></i></span>
+                </li>
+                ${payment.task_id ? `
+                <li class="detail-item">
+                    <span class="label">Related Task ID</span>
+                    <span class="value"><code>${payment.task_id}</code> <i class="ri-file-copy-line" style="cursor: pointer;" onclick="copyToClipboard('${payment.task_id}')"></i></span>
+                </li>
+                ` : ''}
+                <li class="detail-item">
+                    <span class="label">Payment Type</span>
+                    <span class="value" style="text-transform: capitalize;">${type}</span>
+                </li>
+                <li class="detail-item">
+                    <span class="label">Payment Method</span>
+                    <span class="value" style="text-transform: capitalize;">${paymentMethod}</span>
+                </li>
+                <li class="detail-item">
+                    <span class="label">Billed To</span>
+                    <span class="value">${payment.customer_email}</span>
+                </li>
+                <li class="detail-item">
+                    <span class="label">Date Created</span>
+                    <span class="value">${new Date(payment.date_created).toLocaleString()}</span>
+                </li>
+                <li class="detail-item">
+                    <span class="label">Last Updated</span>
+                    <span class="value">${new Date(payment.date_updated).toLocaleString()}</span>
+                </li>
+            </ul>
+        </div>
+        `;
 
-                    ${payment.method === 'recharge' && payment.details?.task_ids ? `
-                        <div style="margin-top: 2rem;">
-                        <h4 style="margin-bottom: 1rem;">Recharge Details</h4>
-                        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius);">
-                        <div><strong>Recharged Tasks:</strong> ${payment.details.task_ids.length} task${payment.details.task_ids.length !== 1 ? 's' : ''}</div>
-                        </div>
-                        </div>
-                        ` : ''}
-
-                        <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: center;">
-                        ${payment.payment_url ? `
-                            <button class="btn btn-primary" onclick="window.open('${payment.payment_url}', '_blank')">
-                            <i class="ri-external-link-line"></i> View Payment
-                            </button>
-                            ` : ''}
-                            <button class="btn btn-secondary" onclick="closeModal()">Close</button>
-                            </div>
-                            </div>
-                            `);
+        // --- 3. Update the Swal Modal with the Final Content ---
+        Swal.update({
+            title: 'Payment Receipt',
+            html: modalHtml,
+            showLoading: false,
+            showConfirmButton: true,
+            confirmButtonText: 'Close',
+            customClass: {
+                popup: 'swal2-toast payment-details-custom'
+            },
+        });
 
     } catch (error) {
         console.error('Payment details error:', error);
-        showToast('Failed to load payment details', 'error');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load payment details. Please try again.',
+            customClass: { popup: 'swal2-toast' }
+        });
     }
 }
 

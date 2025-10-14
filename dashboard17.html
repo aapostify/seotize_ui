@@ -2415,7 +2415,7 @@ function showSessionsModal() {
         cancelButtonText: 'X Close this window',
         width: '95vw',
         customClass: {
-            popup: 'swal2-toast sessions-modal-custom',
+            popup: 'sessions-modal-custom',
             footer: 'swal2-footer'
         }
     });
@@ -5123,7 +5123,7 @@ async function rechargeTask(taskId) {
         confirmButtonColor: 'var(--primary)',
         // REMOVED width and maxWidth properties from here
         customClass: {
-            popup: 'swal2-toast recharge-modal-custom' // ADDED our new class here
+            popup: 'recharge-modal-custom' // ADDED our new class here
         },
         didOpen: () => {
             // --- Logic for the interactive modal ---

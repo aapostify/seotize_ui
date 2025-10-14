@@ -5977,101 +5977,117 @@ async function deleteArticle(articleId) {
         showToast('Failed to delete article: ' + error.message, 'error');
     }
 }
+// ADD THIS NEW, COMBINED FUNCTION
+async function showImageUploadModal() {
+    const swalHtml = `
+        <form id="imageUploadForm" enctype="multipart/form-data" style="text-align: left;">
+            <div class="form-group">
+                <label class="form-label">Select Images</label>
+                <input type="file" id="swal-file-input" class="form-input" name="file" multiple accept="image/*" required>
+                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                    Maximum 10 files, 5MB per file. Supported formats: JPG, PNG, GIF, WebP
+                </small>
+            </div>
+            <div id="uploadPreview" style="margin-top: 1rem; display: none;">
+                <h4 style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.75rem;">Preview:</h4>
+                <div id="previewContainer" style="display: flex; flex-wrap: wrap; gap: 0.75rem; background: var(--bg-tertiary); padding: 0.75rem; border-radius: var(--radius);"></div>
+            </div>
+        </form>
+    `;
 
-// Image Upload Modal
-function showImageUploadModal() {
-    showModal('Upload Images', `
-    <form id="imageUploadForm" enctype="multipart/form-data">
-    <div class="form-group">
-    <label class="form-label">Select Images</label>
-    <input type="file" class="form-input" name="file" multiple accept="image/*" required>
-    <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
-    Maximum 10 files, 5MB per file. Supported formats: JPG, PNG, GIF, WebP
-    </small>
-    </div>
+    Swal.fire({
+        title: 'Upload Images',
+        html: swalHtml,
+        showCloseButton: true, // This adds the 'X' button to the top-right
+        showCancelButton: true,
+        confirmButtonText: '<i class="ri-upload-2-line"></i> Upload',
+        confirmButtonColor: 'var(--primary)',
+        customClass: { popup: 'swal2-toast' }, // Re-use toast class for theming
+        didOpen: () => {
+            // Attach the preview logic after the modal opens
+            const fileInput = document.getElementById('swal-file-input');
+            const previewContainer = document.getElementById('previewContainer');
+            const uploadPreview = document.getElementById('uploadPreview');
 
-    <div id="uploadPreview" style="margin-top: 1rem; display: none;">
-    <h4>Preview:</h4>
-    <div id="previewContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;"></div>
-    </div>
-
-    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-    <button type="submit" class="btn btn-primary" style="flex: 1;">Upload Images</button>
-    </div>
-    </form>
-    `);
-
-    // Preview functionality
-    document.querySelector('input[name="file"]').addEventListener('change', function(e) {
-        const files = e.target.files;
-        const previewContainer = document.getElementById('previewContainer');
-        const uploadPreview = document.getElementById('uploadPreview');
-
-        if (files.length > 0) {
-            uploadPreview.style.display = 'block';
-            previewContainer.innerHTML = '';
-
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.style.width = '60px';
-                    img.style.height = '60px';
-                    img.style.objectFit = 'cover';
-                    img.style.borderRadius = '4px';
-                    img.style.border = '1px solid var(--border)';
-                    previewContainer.appendChild(img);
-                };
-                reader.readAsDataURL(file);
+            fileInput.addEventListener('change', function(e) {
+                const files = e.target.files;
+                if (files.length > 0) {
+                    uploadPreview.style.display = 'block';
+                    previewContainer.innerHTML = ''; // Clear previous previews
+                    Array.from(files).forEach(file => {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            const img = document.createElement('img');
+                            img.src = event.target.result;
+                            img.style.cssText = 'width: 60px; height: 60px; object-fit: cover; border-radius: var(--radius-sm); border: 2px solid var(--border);';
+                            previewContainer.appendChild(img);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                } else {
+                    uploadPreview.style.display = 'none';
+                }
             });
-        } else {
-            uploadPreview.style.display = 'none';
+        },
+        preConfirm: () => {
+            // This function runs when the confirm button is clicked, before the modal closes.
+            // It's used for validation.
+            const fileInput = document.getElementById('swal-file-input');
+            const files = fileInput.files;
+
+            if (files.length === 0) {
+                Swal.showValidationMessage('Please select at least one image to upload.');
+                return false; // Prevent closing
+            }
+            if (files.length > 10) {
+                Swal.showValidationMessage('You can upload a maximum of 10 images at a time.');
+                return false; // Prevent closing
+            }
+
+            // If validation passes, return the form data for the next step
+            const formData = new FormData(document.getElementById('imageUploadForm'));
+            return formData;
+        }
+    }).then(async (result) => {
+        // This block runs after preConfirm is successful and the user has confirmed
+        if (result.isConfirmed) {
+            const formData = result.value;
+
+            // Show a loading indicator
+            Swal.fire({
+                title: 'Uploading...',
+                text: 'Please wait while your images are being uploaded.',
+                didOpen: () => Swal.showLoading(),
+                allowOutsideClick: false,
+                customClass: { popup: 'swal2-toast' }
+            });
+
+            try {
+                const response = await fetch(`${API_BASE}/images/upload`, {
+                    method: 'POST',
+                    headers: { 'Session-Token': sessionToken },
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error?.message || data.message || 'Upload failed');
+                }
+
+                showToast(`Successfully uploaded ${data.data.uploaded_images.length} images!`, 'success');
+                loadImages(); // Refresh the images list
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Upload Failed',
+                    text: error.message,
+                    customClass: { popup: 'swal2-toast' }
+                });
+            }
         }
     });
-
-    document.getElementById('imageUploadForm').addEventListener('submit', uploadImages);
-}
-
-async function uploadImages(e) {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const files = formData.getAll('file');
-
-    if (files.length === 0) {
-        showToast('Please select at least one image', 'error');
-        return;
-    }
-
-    if (files.length > 10) {
-        showToast('Maximum 10 images allowed', 'error');
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE}/images/upload`, {
-            method: 'POST',
-            headers: {
-                'Session-Token': sessionToken
-            },
-            body: formData
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error?.message || data.message || 'Upload failed');
-        }
-
-        showToast(`Successfully uploaded ${data.data.uploaded_images.length} images`, 'success');
-        closeModal();
-        loadImages();
-
-    } catch (error) {
-        console.error('Upload error:', error);
-        showToast('Upload failed: ' + error.message, 'error');
-    }
 }
 
     

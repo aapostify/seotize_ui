@@ -2216,6 +2216,15 @@ div#modalBody {
 const API_BASE = 'https://api.seotize.net';
 let sessionToken = getCookie('session_token') || localStorage.getItem('authToken');
 
+// Add this right after your paginationState object
+let paginationHandlers = {};
+function callPaginationHandler(handlerId, page) {
+    if (paginationHandlers[handlerId]) {
+        paginationHandlers[handlerId](page);
+    }
+}
+
+    
 // Global State
 let currentData = {
     user: null,
@@ -3551,18 +3560,7 @@ async function loadBilling(page = 1, type = 'all') {
             </div>
         </div>
 
-        // REPLACE WITH THIS
-${(() => {
-    if (paginationState.billing.total > paginationState.billing.pageSize) {
-        // This helper function captures the current 'type' filter
-        // and has a name, which generatePagination needs.
-        function loadBillingWithFilter(page) {
-            loadBilling(page, type);
-        }
-        return generatePagination('billing', loadBillingWithFilter);
-    }
-    return '';
-})()}
+         ${paginationState.billing.total > paginationState.billing.pageSize ? generatePagination('billing', (page) => loadBilling(page, type)) : ''}
         `;
 
         // Initialize the interactive plan selection
@@ -6797,9 +6795,14 @@ function updateCharts() {
 }
 
 // Pagination
+// USE THIS REPLACEMENT FUNCTION
 function generatePagination(type, loadFunction) {
     const pagination = paginationState[type];
     if (!pagination) return '';
+
+    // Create a unique ID for this specific pagination instance and store the handler function
+    const handlerId = `${type}_${Date.now()}`;
+    paginationHandlers[handlerId] = loadFunction;
 
     const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize));
     const currentPage = pagination.page || 1;
@@ -6807,40 +6810,39 @@ function generatePagination(type, loadFunction) {
 
     let paginationHTML = '<div class="pagination">';
 
-    // Always show previous button (disabled if on first page)
-    paginationHTML += `<button class="pagination-btn" ${currentPage <= 1 ? 'disabled' : ''} onclick="${loadFunction.name}(${currentPage - 1})">
+    // Previous button
+    paginationHTML += `<button class="pagination-btn" ${currentPage <= 1 ? 'disabled' : ''} onclick="callPaginationHandler('${handlerId}', ${currentPage - 1})">
         <i class="ri-arrow-left-s-line"></i> Previous
     </button>`;
 
-    // Only show page numbers if there are multiple pages
+    // Page numbers
     if (hasMultiplePages) {
         const startPage = Math.max(1, currentPage - 2);
         const endPage = Math.min(totalPages, currentPage + 2);
 
         if (startPage > 1) {
-            paginationHTML += `<button class="pagination-btn" onclick="${loadFunction.name}(1)">1</button>`;
+            paginationHTML += `<button class="pagination-btn" onclick="callPaginationHandler('${handlerId}', 1)">1</button>`;
             if (startPage > 2) {
                 paginationHTML += '<span class="pagination-info">...</span>';
             }
         }
 
         for (let i = startPage; i <= endPage; i++) {
-            paginationHTML += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="${loadFunction.name}(${i})">${i}</button>`;
+            paginationHTML += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="callPaginationHandler('${handlerId}', ${i})">${i}</button>`;
         }
 
         if (endPage < totalPages) {
             if (endPage < totalPages - 1) {
                 paginationHTML += '<span class="pagination-info">...</span>';
             }
-            paginationHTML += `<button class="pagination-btn" onclick="${loadFunction.name}(${totalPages})">${totalPages}</button>`;
+            paginationHTML += `<button class="pagination-btn" onclick="callPaginationHandler('${handlerId}', ${totalPages})">${totalPages}</button>`;
         }
     } else {
-        // Single page - show page 1 as active
         paginationHTML += `<button class="pagination-btn active">1</button>`;
     }
 
-    // Always show next button (disabled if on last page)
-    paginationHTML += `<button class="pagination-btn" ${currentPage >= totalPages ? 'disabled' : ''} onclick="${loadFunction.name}(${currentPage + 1})">
+    // Next button
+    paginationHTML += `<button class="pagination-btn" ${currentPage >= totalPages ? 'disabled' : ''} onclick="callPaginationHandler('${handlerId}', ${currentPage + 1})">
         Next <i class="ri-arrow-right-s-line"></i>
     </button>`;
 

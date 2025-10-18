@@ -2215,12 +2215,41 @@ div#modalBody {
 <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
 <div class="mobile-menu" id="mobileMenu">
 <div class="mobile-menu-header">
-<div class="logo">
-<i class="ri-seo-line"></i>
-<span>SEOTIZE</span>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 0 1rem;">
+    <div class="logo">
+        <i class="ri-seo-line"></i>
+        <span>SEOTIZE</span>
+    </div>
+    <button onclick="closeMobileMenu()" style="background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; padding: 0.5rem;">
+        <i class="ri-close-line"></i>
+    </button>
 </div>
 </div>
 <div class="mobile-menu-content">
+    <!-- Profile Section -->
+    <div style="padding: 1.5rem 1rem; background: var(--bg-tertiary); border-radius: var(--radius); margin: 0 1rem 1rem 1rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+            <div class="user-avatar" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                <span id="mobileMenuUserInitial">U</span>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 1.125rem; color: var(--text); margin-bottom: 0.25rem;" id="mobileMenuUserName">User</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);" id="mobileMenuUserEmail">user@example.com</div>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
+            <div style="text-align: center;">
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--primary);" id="mobileMenuTaskCount">0</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">Tasks</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--secondary);" id="mobileMenuArticleCount">0</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">Articles</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Section -->
     <div class="nav-section">
         <div class="nav-section-title">Account</div>
         <a href="#" class="nav-item" onclick="showSessionsModal(); closeMobileMenu();">
@@ -2228,12 +2257,19 @@ div#modalBody {
             <span>Active Sessions</span>
             <span class="badge badge-primary" id="sessionCountMobile"></span>
         </a>
+        <a href="#" class="nav-item" data-page="profile" onclick="closeMobileMenu()">
+            <i class="ri-user-line"></i>
+            <span>Profile Settings</span>
+        </a>
         <a href="#" class="nav-item" data-page="billing" onclick="closeMobileMenu()">
             <i class="ri-bank-card-line"></i>
-            <span>Billing</span>
+            <span>Billing & Plans</span>
         </a>
     </div>
+    
     <div style="border-top: 1px solid var(--border); margin: 0.5rem 0;"></div>
+    
+    <!-- Logout Section -->
     <div class="nav-section">
         <a href="#" class="nav-item danger" style="color: var(--error);" onclick="logout()">
             <i class="ri-logout-box-line"></i>
@@ -2262,9 +2298,9 @@ div#modalBody {
 <i class="ri-article-line"></i>
 <span>Articles</span>
 </a>
-<a href="#" class="mobile-nav-item" onclick="openMobileMenu()">
-<i class="ri-menu-line"></i>
-<span>More</span>
+<a href="#" class="mobile-nav-item" data-page="billing">
+<i class="ri-bill-line"></i>
+<span>Billing</span>
 </a>
 </div>
 </nav>
@@ -2711,6 +2747,27 @@ function updateUserInfo() {
     // Update mobile profile avatar
     const mobileAvatar = document.getElementById('mobileUserAvatar');
     if (mobileAvatar) mobileAvatar.textContent = initial;
+    
+    // Update mobile menu profile section
+    const mobileMenuInitial = document.getElementById('mobileMenuUserInitial');
+    if (mobileMenuInitial) mobileMenuInitial.textContent = initial;
+    
+    const mobileMenuName = document.getElementById('mobileMenuUserName');
+    if (mobileMenuName) mobileMenuName.textContent = name;
+    
+    const mobileMenuEmail = document.getElementById('mobileMenuUserEmail');
+    if (mobileMenuEmail) mobileMenuEmail.textContent = email;
+    
+    // Update mobile menu task and article counts
+    const mobileMenuTaskCount = document.getElementById('mobileMenuTaskCount');
+    if (mobileMenuTaskCount && currentData.tasks) {
+        mobileMenuTaskCount.textContent = currentData.tasks.length;
+    }
+    
+    const mobileMenuArticleCount = document.getElementById('mobileMenuArticleCount');
+    if (mobileMenuArticleCount && currentData.articles) {
+        mobileMenuArticleCount.textContent = currentData.articles.length;
+    }
 
     // Update session count (excluding current session)
     const otherSessions = getOtherSessions();
@@ -3609,35 +3666,34 @@ async function loadBilling(page = 1, type = 'all') {
             <h2 style="font-size: 1.5rem; font-weight: 700;">Billing & Plans</h2>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; align-items: start; margin-bottom: 1.5rem;" class="billing-plan-grid">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Current Hosting Plan</h3>
-                    <span class="badge badge-primary" style="text-transform: capitalize;">${planName}</span>
-                </div>
-                <div class="card-body">
-                    ${expiryHTML}
-                    <div style="margin-top: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
-                            <span>Images Used</span>
-                            <span style="color: var(--text-secondary);">${planData.images_uploads} / ${planData.images_limit || 0}</span>
-                        </div>
-                        <div class="progress-bar"><div class="progress-fill" style="width:${imagesUsedPercent}%"></div></div>
-                    </div>
-                     <div style="margin-top: 1rem;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
-                            <span>Articles Published</span>
-                            <span style="color: var(--text-secondary);">${planData.article_uploads} / ${planData.articles_limit || 0}</span>
-                        </div>
-                        <div class="progress-bar"><div class="progress-fill" style="width:${articlesUsedPercent}%"></div></div>
-                    </div>
-                    ${isSubscribed ? '<button class="btn btn-secondary" style="width:100%; margin-top:1.5rem;" onclick="cancelSubscription()">Manage Subscription</button>' : ''}
-                </div>
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-header">
+                <h3 class="card-title">Current Hosting Plan</h3>
+                <span class="badge badge-primary" style="text-transform: capitalize;">${planName}</span>
             </div>
-
-            <div class="card">
-                <div class="card-header"><h3 class="card-title">Upgrade Hosting Plan</h3></div>
-                <div class="card-body">
+            <div class="card-body">
+                ${expiryHTML}
+                <div style="margin-top: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                        <span>Images Used</span>
+                        <span style="color: var(--text-secondary);">${planData.images_uploads} / ${planData.images_limit || 0}</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${imagesUsedPercent}%"></div></div>
+                </div>
+                 <div style="margin-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                        <span>Articles Published</span>
+                        <span style="color: var(--text-secondary);">${planData.article_uploads} / ${planData.articles_limit || 0}</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${articlesUsedPercent}%"></div></div>
+                </div>
+                ${isSubscribed ? '<button class="btn btn-secondary" style="width:100%; margin-top:1.5rem;" onclick="cancelSubscription()">Manage Subscription</button>' : ''}
+                
+                <!-- Upgrade Plan Section -->
+                <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                    <h4 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--text);">
+                        <i class="ri-arrow-up-circle-line" style="color: var(--primary);"></i> Upgrade Plan
+                    </h4>
                     <div class="plan-grid">
                         ${Object.keys(hostingConfig.packages).map(planKey => `
                             <div class="plan-card" id="plan-${planKey}" onclick="selectPlan('${planKey}')">
@@ -3664,7 +3720,7 @@ async function loadBilling(page = 1, type = 'all') {
                             <div id="price-display" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">$0.00</div>
                         </div>
                     </div>
-                    <button class="btn btn-primary" style="width:100%; margin-top: 1rem; padding: 0.75rem;    justify-content: center;" onclick="purchasePlan()">Purchase Plan</button>
+                    <button class="btn btn-primary" style="width:100%; margin-top: 1rem; padding: 0.75rem; justify-content: center;" onclick="purchasePlan()">Purchase Plan</button>
                 </div>
             </div>
         </div>
@@ -3716,7 +3772,7 @@ async function loadBilling(page = 1, type = 'all') {
                                     <td><span class="badge badge-${statusClass}">${statusText}</span></td>
                                     <td>
                                         ${payment.status?.toLowerCase() === 'paid' ? `<button class="btn btn-sm" onclick="viewPaymentDetails('${payment.billing_id}')"><i class="ri-eye-line"></i> Details</button>` : ''}
-                                        ${payment.payment_url ? `<button class="btn btn-sm btn-primary" onclick="window.open('${payment.payment_url}', '_blank')" style="margin-left: 0.25rem;"><i class="ri-external-link-line"></i> Pay</button>` : ''}
+                                        ${payment.status?.toLowerCase() === 'pending' && payment.payment_url ? `<button class="btn btn-sm btn-primary" onclick="window.open('${payment.payment_url}', '_blank')" style="margin-left: 0.25rem;"><i class="ri-external-link-line"></i> Pay</button>` : ''}
                                     </td>
                                 </tr>`;
                             }).join('')}
@@ -3769,10 +3825,10 @@ async function loadBilling(page = 1, type = 'all') {
                             </div>
                             
                             <!-- Actions -->
-                            ${payment.status?.toLowerCase() === 'paid' || payment.payment_url ? `
+                            ${payment.status?.toLowerCase() === 'paid' || (payment.status?.toLowerCase() === 'pending' && payment.payment_url) ? `
                             <div style="display: flex; gap: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
                                 ${payment.status?.toLowerCase() === 'paid' ? `<button class="btn btn-sm" onclick="viewPaymentDetails('${payment.billing_id}')" style="flex: 1; font-size: 0.75rem; padding: 0.4rem 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem;"><i class="ri-eye-line"></i> Details</button>` : ''}
-                                ${payment.payment_url ? `<button class="btn btn-sm btn-primary" onclick="window.open('${payment.payment_url}', '_blank')" style="flex: 1; font-size: 0.75rem; padding: 0.4rem 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem;"><i class="ri-external-link-line"></i> Pay Now</button>` : ''}
+                                ${payment.status?.toLowerCase() === 'pending' && payment.payment_url ? `<button class="btn btn-sm btn-primary" onclick="window.open('${payment.payment_url}', '_blank')" style="flex: 1; font-size: 0.75rem; padding: 0.4rem 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem;"><i class="ri-external-link-line"></i> Pay Now</button>` : ''}
                             </div>
                             ` : ''}
                         </div>
@@ -5044,13 +5100,20 @@ async function viewTaskDetails(taskId) {
                 <div class="task-modal-section">
                   <style>
                     .install-instructions {
-                      background-color: #f8f9fa;
-                      border: 1px solid #e0e0e0;
+                      background-color: var(--bg-tertiary);
+                      border: 1px solid var(--border);
                       border-radius: 8px;
                       padding: 1rem;
                       margin-top: 0.5rem;
                       font-size: 0.85rem;
                       line-height: 1.6;
+                      color: var(--text);
+                    }
+                    .install-instructions p {
+                      color: var(--text);
+                    }
+                    .install-instructions strong {
+                      color: var(--text);
                     }
                     .install-instructions code {
                       display: block;
@@ -5772,13 +5835,40 @@ async function showArticleModal(articleId = null) {
             <label class="form-label" style="font-size: 0.9rem;">Article Content (HTML)</label>
             <textarea class="form-textarea" id="swal-body" name="body" required rows="10" placeholder="<h1>Title</h1><p>Content...</p>" style="font-size: 0.85rem; line-height: 1.5;"></textarea>
         </div>
-        <div class="form-group" style="margin-bottom: 0.5rem;">
-            <label class="form-label" style="font-size: 0.9rem;">Upload New Images (Optional)</label>
-            <input type="file" class="form-input" name="image_data" multiple accept="image/*" style="font-size: 0.85rem;">
+        ${isEdit && articleData && articleData.images && articleData.images.length > 0 ? `
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label class="form-label" style="font-size: 0.9rem;">Current Images</label>
+            <div id="current-images-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.75rem; margin-top: 0.5rem;">
+                ${articleData.images.map((img, idx) => `
+                    <div class="image-preview-item" style="position: relative; border: 2px solid var(--border); border-radius: 8px; overflow: hidden; aspect-ratio: 1;">
+                        <img src="${img.url}" alt="Image ${idx + 1}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <label style="position: absolute; top: 4px; right: 4px; background: var(--error); color: white; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.7rem; display: flex; align-items: center; gap: 4px;">
+                            <input type="checkbox" name="delete_image_ids" value="${img.image_id}" style="margin: 0; cursor: pointer;">
+                            <i class="ri-delete-bin-line"></i>
+                        </label>
+                    </div>
+                `).join('')}
+            </div>
             <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem; font-size: 0.75rem;">
-                ${isEdit ? 'Uploading new images will replace all existing ones for this article.' : 'Max 10 files, 5MB per file.'}
+                Check images to delete them
             </small>
         </div>
+        ` : ''}
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label class="form-label" style="font-size: 0.9rem;">${isEdit ? 'Add New Images (Optional)' : 'Upload Images (Optional)'}</label>
+            <input type="file" id="new-images-input" class="form-input" name="image_data" multiple accept="image/*" style="font-size: 0.85rem;">
+            <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem; font-size: 0.75rem;">
+                Max 10 files, 5MB per file.
+            </small>
+        </div>
+        ${isEdit ? `
+        <div class="form-group" style="margin-bottom: 0.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.85rem;">
+                <input type="checkbox" id="replace-all-images" name="replace_all" value="true" style="cursor: pointer;">
+                <span>Replace all images with new uploads (deletes all current images)</span>
+            </label>
+        </div>
+        ` : ''}
     </form>
     `;
 
@@ -5818,24 +5908,30 @@ async function showArticleModal(articleId = null) {
     }).then(async (result) => {
         if (result.isConfirmed) {
             const formData = result.value;
-            const endpoint = isEdit ? `/edit-article` : '/add-article';
-            if (isEdit) {
-                formData.append('article_id', articleId);
-            }
-
+            
             Swal.fire({
                 title: isEdit ? 'Updating...' : 'Creating...',
                 didOpen: () => Swal.showLoading(),
                 allowOutsideClick: false,
-
             });
 
             try {
-                const response = await fetch(`${API_BASE}${endpoint}`, {
-                    method: 'POST', // Both create and edit use POST for FormData
-                    headers: { 'Session-Token': sessionToken },
-                    body: formData
-                });
+                let response;
+                if (isEdit) {
+                    // For edit, use PUT method with article_id in URL
+                    response = await fetch(`${API_BASE}/edit-article/${articleId}`, {
+                        method: 'PUT',
+                        headers: { 'Session-Token': sessionToken },
+                        body: formData
+                    });
+                } else {
+                    // For create, use POST method
+                    response = await fetch(`${API_BASE}/add-article`, {
+                        method: 'POST',
+                        headers: { 'Session-Token': sessionToken },
+                        body: formData
+                    });
+                }
 
                 const data = await response.json();
                 if (!response.ok) {
@@ -5851,7 +5947,6 @@ async function showArticleModal(articleId = null) {
                     icon: 'error',
                     title: 'Operation Failed',
                     text: error.message,
-
                 });
             }
         }

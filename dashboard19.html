@@ -1,0 +1,4080 @@
+<!DOCTYPE html>
+<!--
+Dashboard v18 - Complete Mobile Optimization & Enhanced Features
+1. Fixed dark/light mode for all article/task/billing modals
+2. Optimized mobile layouts - no scrolling in details views
+3. Enhanced billing with upgrade functionality
+4. Mobile profile dropdown for sessions/logout
+5. Stripe payment links in transaction details
+6. Responsive modal sizes for all screen sizes
+7. Improved mobile navigation UI
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEOTIZE Dashboard v18 - Fully Optimized</title>
+
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css" rel="stylesheet">
+
+<!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+<style>
+/* CSS Variables */
+:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-light: #818cf8;
+    --secondary: #10b981;
+    --secondary-dark: #059669;
+    --accent: #f59e0b;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --success: #10b981;
+    --info: #3b82f6;
+
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --gradient-accent: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+
+    --radius-sm: 8px;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Light Theme */
+[data-theme="light"] {
+    --bg: #f8f9fa;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e9ecef;
+    --sidebar: #ffffff;
+    --card: #ffffff;
+    --card-hover: #f8f9fa;
+    --text: #212529;
+    --text-secondary: #6c757d;
+    --text-tertiary: #adb5bd;
+    --border: #dee2e6;
+    --input-bg: #ffffff;
+    --overlay: rgba(255, 255, 255, 0.95);
+    --glass: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --modal-bg: #ffffff;
+    --modal-text: #212529;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --bg: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #2a2a2a;
+    --sidebar: #141414;
+    --card: #1f1f1f;
+    --card-hover: #2a2a2a;
+    --text: #ffffff;
+    --text-secondary: #a0a0a0;
+    --text-tertiary: #6b6b6b;
+    --border: rgba(255, 255, 255, 0.1);
+    --input-bg: #1a1a1a;
+    --overlay: rgba(0, 0, 0, 0.95);
+    --glass: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --modal-bg: #1a1a1a;
+    --modal-text: #ffffff;
+}
+
+/* Enhanced Dark Mode Support for Modals */
+[data-theme="dark"] .swal2-popup {
+    background: var(--modal-bg) !important;
+    color: var(--modal-text) !important;
+}
+
+[data-theme="dark"] .swal2-title,
+[data-theme="dark"] .swal2-content {
+    color: var(--modal-text) !important;
+}
+
+[data-theme="dark"] .swal2-html-container {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .form-textarea {
+    background: var(--card) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .modal-section,
+[data-theme="dark"] .task-modal-section {
+    background: var(--card) !important;
+}
+
+[data-theme="dark"] code {
+    background: var(--bg-tertiary) !important;
+    color: var(--text) !important;
+}
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: var(--transition);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Layout */
+.dashboard-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: var(--transition);
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.nav-section {
+    margin-bottom: 1.5rem;
+}
+
+.nav-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    padding: 0 0.75rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+    margin-bottom: 0.25rem;
+}
+
+.nav-item:hover {
+    background: var(--card);
+    color: var(--text);
+}
+
+.nav-item.active {
+    background: var(--primary);
+    color: white;
+}
+
+.nav-item i {
+    font-size: 1.25rem;
+    width: 1.5rem;
+    text-align: center;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header */
+.header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.theme-toggle {
+    padding: 0.5rem;
+    border-radius: var(--radius);
+    background: transparent;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 1.25rem;
+    transition: var(--transition);
+}
+
+.theme-toggle:hover {
+    background: var(--card);
+}
+
+/* Enhanced Mobile Profile Button */
+.mobile-profile-btn {
+    display: none;
+    position: relative;
+    padding: 0.5rem;
+    border-radius: var(--radius);
+    background: transparent;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 1.25rem;
+    transition: var(--transition);
+}
+
+.mobile-profile-btn:hover {
+    background: var(--card);
+}
+
+.mobile-profile-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 200px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-xl);
+    z-index: 1000;
+}
+
+.mobile-profile-dropdown.active {
+    display: block;
+}
+
+.mobile-profile-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--text);
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.mobile-profile-dropdown-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.mobile-profile-dropdown-item.danger {
+    color: var(--error);
+}
+
+/* User Menu */
+.user-menu-container {
+    position: relative;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    background: var(--card);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.user-menu:hover {
+    background: var(--card-hover);
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+}
+
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 220px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-xl);
+    display: none;
+    z-index: 1000;
+}
+
+.user-dropdown.active {
+    display: block;
+}
+
+.user-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--text);
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.user-dropdown-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.user-dropdown-item i {
+    width: 1.25rem;
+}
+
+.user-dropdown-item.danger {
+    color: var(--error);
+}
+
+/* Content Area */
+.content {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+/* Cards */
+.card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.card-header {
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-primary);
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.stat-icon.primary {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+}
+
+.stat-icon.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.stat-icon.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.stat-icon.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+.stat-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* Buttons */
+.btn {
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--radius);
+    font-weight: 500;
+    font-size: 0.875rem;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text);
+}
+
+.btn-secondary:hover {
+    background: var(--card);
+}
+
+.btn-danger {
+    background: var(--error);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.btn-success {
+    background: var(--success);
+    color: white;
+}
+
+.btn-success:hover {
+    background: var(--secondary-dark);
+}
+
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--input-bg);
+    color: var(--text);
+    font-size: 0.875rem;
+    transition: var(--transition);
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Tables */
+.table-container {
+    overflow-x: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: var(--bg-tertiary);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+}
+
+td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+
+tr:hover {
+    background: var(--card-hover);
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    padding: 1rem;
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    flex-wrap: wrap;
+}
+
+.pagination-btn {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    color: var(--text);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.875rem;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.pagination-info {
+    margin: 0 1rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+/* Progress Bar */
+.progress-bar {
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--gradient-primary);
+    transition: width 0.3s ease;
+}
+
+/* Badge */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-primary {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+}
+
+.badge-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.badge-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.badge-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    padding: 1rem 1.5rem;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-xl);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: slideInRight 0.3s;
+    z-index: 2000;
+}
+
+.toast.success {
+    border-left: 4px solid var(--success);
+}
+
+.toast.error {
+    border-left: 4px solid var(--error);
+}
+
+.toast.warning {
+    border-left: 4px solid var(--warning);
+}
+
+.toast.info {
+    border-left: 4px solid var(--info);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    color: var(--text-tertiary);
+    margin-bottom: 1rem;
+}
+
+.empty-state-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-description {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+/* Chart Container */
+.chart-container {
+    position: relative;
+    height: 280px !important;
+    width: 100%;
+    overflow: hidden;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* Map Container */
+.map-container {
+    height: 280px !important;
+    width: 100%;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+/* Task Grid */
+.task-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.task-card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.task-url {
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+    word-break: break-all;
+    font-size: 0.875rem;
+}
+
+.task-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.task-status.active {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.task-status.paused {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.task-status.completed {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+}
+
+.task-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.task-stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.task-stat-label {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin-bottom: 0.25rem;
+}
+
+.task-stat-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.task-progress {
+    margin: 1rem 0;
+}
+
+.task-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+/* Media Grid */
+.media-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.media-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.media-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.media-preview {
+    height: 140px;
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.media-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.media-info {
+    padding: 1rem;
+}
+
+.media-filename {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    word-break: break-all;
+    font-size: 0.875rem;
+}
+
+.media-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+}
+
+/* Loading Spinner */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Enhanced Billing Section Styles */
+.billing-plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.plan-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
+
+.plan-card:hover {
+    border-color: var(--primary-light);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.plan-card.selected {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.plan-card.current {
+    border-color: var(--success);
+}
+
+.plan-card.current::after {
+    content: 'Current Plan';
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    background: var(--success);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.plan-card.recommended::before {
+    content: 'Recommended';
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    background: var(--primary);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.plan-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.plan-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+}
+
+.plan-price {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.plan-price-period {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+.plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0;
+}
+
+.plan-features li {
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.plan-features li::before {
+    content: '✓';
+    color: var(--success);
+    font-weight: 600;
+}
+
+.duration-selector {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--bg-tertiary);
+    padding: 0.5rem;
+    border-radius: var(--radius);
+    margin-bottom: 1.5rem;
+    justify-content: center;
+}
+
+.duration-selector label {
+    flex: 1;
+    text-align: center;
+}
+
+.duration-selector input {
+    display: none;
+}
+
+.duration-selector span {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    display: block;
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.duration-selector input:checked + span {
+    background: var(--primary);
+    color: white;
+}
+
+/* Enhanced Transaction Table for Billing */
+.transaction-row {
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.transaction-row:hover {
+    background: var(--card-hover);
+}
+
+.transaction-amount {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.transaction-link {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.transaction-link:hover {
+    text-decoration: underline;
+}
+
+/* Mobile Bottom Navigation */
+.mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    z-index: 50;
+    padding: 0.5rem;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-nav-items {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.625rem;
+    transition: var(--transition);
+    border-radius: var(--radius);
+    flex: 1;
+}
+
+.mobile-nav-item:active {
+    transform: scale(0.95);
+}
+
+.mobile-nav-item.active {
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.mobile-nav-item i {
+    font-size: 1.25rem;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    /* Hide desktop sidebar */
+    .sidebar {
+        display: none;
+    }
+
+    /* Show mobile navigation */
+    .mobile-nav {
+        display: block;
+    }
+
+    /* Show mobile profile button */
+    .mobile-profile-btn {
+        display: block;
+    }
+
+    /* Hide desktop user menu */
+    .user-menu-container {
+        display: none;
+    }
+
+    /* Adjust main content for mobile nav */
+    .main-content {
+        padding-bottom: 60px;
+    }
+
+    /* Mobile header adjustments */
+    .header {
+        padding: 0.75rem;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--bg-secondary);
+    }
+
+    /* Stats grid mobile */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .stat-card {
+        padding: 0.875rem;
+    }
+
+    .stat-card .stat-icon {
+        display: none;
+    }
+
+    .stat-card .stat-value {
+        font-size: 1.25rem;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.7rem;
+    }
+
+    /* Task grid mobile */
+    .task-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Media grid mobile */
+    .media-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+
+    /* Content padding */
+    .content {
+        padding: 1rem;
+    }
+
+    /* Card adjustments */
+    .card-header {
+        padding: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    /* Chart containers mobile */
+    .chart-container {
+        height: 200px !important;
+    }
+
+    .map-container {
+        height: 250px !important;
+    }
+
+    /* Analytics grid mobile */
+    .analytics-grid,
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    /* Billing plans mobile */
+    .billing-plans-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* Pagination mobile */
+    .pagination {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .pagination-info {
+        display: none;
+    }
+
+    /* Table mobile */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 600px;
+    }
+
+    /* Modals mobile adjustments */
+    .swal2-popup {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        padding: 1rem !important;
+    }
+
+    .swal2-html-container {
+        max-height: 60vh !important;
+        overflow-y: auto !important;
+    }
+
+    /* Mobile-specific modal content */
+    .task-modal-stat-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .task-modal-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Button groups mobile */
+    .mobilearticle1,
+    .mobilearticle2 {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem !important;
+    }
+
+    /* Form groups mobile */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    /* Priority options mobile */
+    .priority-options {
+        grid-template-columns: 1fr;
+    }
+
+    /* Header logo mobile */
+    .header-left .logo {
+        font-size: 1.25rem;
+    }
+
+    /* Modal image preview mobile */
+    .modal-header-section {
+        grid-template-columns: 1fr !important;
+    }
+
+    .modal-image-preview {
+        max-height: 200px;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    .stats-grid {
+        gap: 0.5rem;
+    }
+
+    .stat-card {
+        padding: 0.75rem;
+    }
+
+    .stat-card .stat-value {
+        font-size: 1.125rem;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.625rem;
+    }
+
+    .mobile-nav-item {
+        font-size: 0.5625rem;
+    }
+
+    .mobile-nav-item i {
+        font-size: 1.125rem;
+    }
+
+    .btn {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.75rem;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.6875rem;
+    }
+}
+
+/* Desktop only / Mobile only visibility */
+.desktop-only {
+    display: block;
+}
+
+.mobile-only {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none;
+    }
+
+    .mobile-only {
+        display: block;
+    }
+}
+
+/* SweetAlert2 Custom Styles */
+.swal2-popup {
+    background: var(--modal-bg) !important;
+    color: var(--modal-text) !important;
+    border-radius: var(--radius-xl) !important;
+}
+
+.swal2-title {
+    color: var(--modal-text) !important;
+}
+
+.swal2-html-container {
+    color: var(--text-secondary) !important;
+}
+
+.swal2-footer {
+    border-top: 1px solid var(--border) !important;
+    margin-top: 1.5rem !important;
+    padding-top: 1.5rem !important;
+}
+
+/* Custom modal styles for better mobile experience */
+@media (max-width: 768px) {
+    .payment-details-custom {
+        width: 95vw !important;
+        max-height: 85vh !important;
+    }
+    
+    .sessions-modal-custom {
+        width: 95vw !important;
+        max-height: 85vh !important;
+    }
+    
+    .recharge-modal-custom {
+        width: 95vw !important;
+    }
+    
+    .task-details-modal-container,
+    .image-details-modal-container {
+        font-size: 0.875rem;
+    }
+    
+    .task-modal-stat-card .stat-value {
+        font-size: 1.25rem;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+</head>
+<body data-theme="light">
+
+<div class="dashboard-layout">
+    <!-- Sidebar (Desktop Only) -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="logo">
+                <i class="ri-seo-line"></i>
+                <span>SEOTIZE</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="ri-dashboard-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="tasks">
+                    <i class="ri-task-line"></i>
+                    <span>SEO Tasks</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Hosting</div>
+                <a href="#" class="nav-item" data-page="images">
+                    <i class="ri-image-line"></i>
+                    <span>Images</span>
+                </a>
+                <a href="#" class="nav-item" data-page="articles">
+                    <i class="ri-article-line"></i>
+                    <span>Articles</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <a href="#" class="nav-item" data-page="billing">
+                    <i class="ri-bank-card-line"></i>
+                    <span>Billing</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav" id="mobileNav">
+        <div class="mobile-nav-items">
+            <a href="#" class="mobile-nav-item active" data-page="dashboard">
+                <i class="ri-dashboard-line"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="mobile-nav-item" data-page="tasks">
+                <i class="ri-task-line"></i>
+                <span>Tasks</span>
+            </a>
+            <a href="#" class="mobile-nav-item" data-page="images">
+                <i class="ri-image-line"></i>
+                <span>Images</span>
+            </a>
+            <a href="#" class="mobile-nav-item" data-page="articles">
+                <i class="ri-article-line"></i>
+                <span>Articles</span>
+            </a>
+            <a href="#" class="mobile-nav-item" data-page="billing">
+                <i class="ri-bank-card-line"></i>
+                <span>Billing</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo mobile-only">
+                    <i class="ri-seo-line"></i>
+                    <span>SEOTIZE</span>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <i class="ri-moon-line" id="themeIcon"></i>
+                </button>
+
+                <!-- Mobile Profile Button -->
+                <button class="mobile-profile-btn" onclick="toggleMobileProfile()">
+                    <i class="ri-user-line"></i>
+                </button>
+                
+                <div class="mobile-profile-dropdown" id="mobileProfileDropdown">
+                    <div class="mobile-profile-dropdown-item">
+                        <i class="ri-user-line"></i>
+                        <span id="mobileUserEmail">user@example.com</span>
+                    </div>
+                    <div style="border-top: 1px solid var(--border); margin: 0.5rem 0;"></div>
+                    <a href="#" class="mobile-profile-dropdown-item" onclick="showSessionsModal()">
+                        <i class="ri-device-line"></i>
+                        <span>Active Sessions</span>
+                        <span class="badge badge-primary" id="mobileSessionCount">0</span>
+                    </a>
+                    <div style="border-top: 1px solid var(--border); margin: 0.5rem 0;"></div>
+                    <a href="#" class="mobile-profile-dropdown-item danger" onclick="logout()">
+                        <i class="ri-logout-box-line"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+
+                <!-- Desktop User Menu -->
+                <div class="user-menu-container">
+                    <div class="user-menu" onclick="toggleUserDropdown()">
+                        <div class="user-avatar">
+                            <span id="userInitial">U</span>
+                        </div>
+                        <div>
+                            <div style="font-weight: 500;" id="userName">User</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);" id="userEmail">user@example.com</div>
+                        </div>
+                    </div>
+
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="#" class="user-dropdown-item" onclick="showSessionsModal()">
+                            <i class="ri-device-line"></i>
+                            <span>Active Sessions</span>
+                            <span class="badge badge-primary" id="sessionCount">0</span>
+                        </a>
+                        <div style="border-top: 1px solid var(--border); margin: 0.5rem 0;"></div>
+                        <a href="#" class="user-dropdown-item danger" onclick="logout()">
+                            <i class="ri-logout-box-line"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="content" id="content">
+            <!-- Dynamic content will be loaded here -->
+        </div>
+    </main>
+</div>
+
+<!-- JavaScript -->
+<script>
+// API Configuration
+const API_BASE = 'https://api.seotize.net';
+let sessionToken = getCookie('session_token') || localStorage.getItem('authToken');
+
+// Global State
+let currentData = {
+    user: null,
+    tasks: [],
+    images: [],
+    articles: [],
+    domains: [],
+    billing: [],
+    selectedLocations: [],
+    currentStep: 1,
+    taskPriority: 'standard',
+    selectedKeywords: []
+};
+
+let charts = {};
+let globalMap = null;
+let paginationState = {
+    tasks: { page: 1, pageSize: 10, total: 0, hasNext: false },
+    images: { page: 1, pageSize: 20, total: 0, hasNext: false },
+    articles: { page: 1, pageSize: 10, total: 0, hasNext: false },
+    billing: { page: 1, pageSize: 10, total: 0, hasNext: false }
+};
+
+let paginationHandlers = {};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    if (!sessionToken) {
+        window.location.href = '/login.html';
+        return;
+    }
+
+    initializeEventListeners();
+    loadDashboard();
+    initializeTheme();
+
+    setTimeout(() => {
+        updateUserInfo();
+    }, 100);
+});
+
+// Event Listeners
+function initializeEventListeners() {
+    // Desktop navigation
+    document.querySelectorAll('.sidebar .nav-item[data-page]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateTo(item.dataset.page);
+        });
+    });
+
+    // Mobile navigation
+    document.querySelectorAll('.mobile-nav-item[data-page]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateTo(item.dataset.page);
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        const userMenuContainer = document.querySelector('.user-menu-container');
+        const userDropdown = document.getElementById('userDropdown');
+        const mobileProfileBtn = document.querySelector('.mobile-profile-btn');
+        const mobileProfileDropdown = document.getElementById('mobileProfileDropdown');
+
+        if (userMenuContainer && !userMenuContainer.contains(e.target)) {
+            userDropdown.classList.remove('active');
+        }
+
+        if (mobileProfileBtn && !mobileProfileBtn.contains(e.target) && 
+            !mobileProfileDropdown.contains(e.target)) {
+            mobileProfileDropdown.classList.remove('active');
+        }
+    });
+}
+
+// Mobile Profile Toggle
+function toggleMobileProfile() {
+    const dropdown = document.getElementById('mobileProfileDropdown');
+    dropdown.classList.toggle('active');
+}
+
+// User Dropdown Toggle
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('userDropdown');
+    dropdown.classList.toggle('active');
+}
+
+// Theme Management
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.body.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.body.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.body.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+
+    if (charts.traffic) {
+        setTimeout(updateCharts, 100);
+    }
+}
+
+function updateThemeIcon(theme) {
+    document.getElementById('themeIcon').className = theme === 'light' ? 'ri-moon-line' : 'ri-sun-line';
+}
+
+// Navigation
+function navigateTo(page) {
+    // Update desktop nav
+    document.querySelectorAll('.sidebar .nav-item').forEach(item => item.classList.remove('active'));
+    document.querySelector(`.sidebar .nav-item[data-page="${page}"]`)?.classList.add('active');
+
+    // Update mobile nav
+    document.querySelectorAll('.mobile-nav-item').forEach(item => item.classList.remove('active'));
+    document.querySelector(`.mobile-nav-item[data-page="${page}"]`)?.classList.add('active');
+
+    // Close mobile dropdown
+    document.getElementById('mobileProfileDropdown')?.classList.remove('active');
+
+    switch(page) {
+        case 'dashboard': loadDashboard(); break;
+        case 'tasks': loadTasks(); break;
+        case 'images': loadImages(); break;
+        case 'articles': loadArticles(); break;
+        case 'billing': loadBilling(); break;
+    }
+}
+
+// Update User Info
+function updateUserInfo() {
+    const user = currentData.user;
+    if (!user) return;
+
+    const email = user.email;
+    const name = email.split('@')[0];
+    const initial = email[0].toUpperCase();
+
+    // Update desktop display
+    document.getElementById('userInitial').textContent = initial;
+    document.getElementById('userName').textContent = name;
+    document.getElementById('userEmail').textContent = email;
+
+    // Update mobile display
+    document.getElementById('mobileUserEmail').textContent = email;
+
+    // Update session counts
+    const sessions = user.sessions || [];
+    const otherSessions = sessions.filter(s => s.token !== sessionToken);
+    const totalSessions = otherSessions.length + 1;
+
+    document.getElementById('sessionCount').textContent = totalSessions;
+    document.getElementById('mobileSessionCount').textContent = totalSessions;
+}
+
+// API Helper
+async function api(endpoint, options = {}) {
+    try {
+        const response = await fetch(`${API_BASE}${endpoint}`, {
+            ...options,
+            headers: {
+                'Session-Token': sessionToken,
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error?.message || data.message || 'API Error');
+        }
+
+        return data;
+    } catch (error) {
+        console.error('API Error:', error);
+        showToast(error.message, 'error');
+        throw error;
+    }
+}
+
+// Helper Functions
+function formatNumber(num) {
+    if (num < 1000) return num.toString();
+    else if (num < 1000000) return (num / 1000).toFixed(1).replace('.0', '') + 'k';
+    else if (num < 1000000000) return (num / 1000000).toFixed(1).replace('.0', '') + 'M';
+    else return (num / 1000000000).toFixed(1).replace('.0', '') + 'B';
+}
+
+// Dashboard
+async function loadDashboard(page = 1) {
+    try {
+        showSpinner();
+        const response = await api(`/users/dashboard?page=${page}&page_size=10`);
+        const { data, pagination } = response;
+        const user = data.user;
+        currentData.user = user;
+
+        paginationState.tasks = {
+            page: pagination.current,
+            pageSize: pagination.size,
+            total: pagination.total,
+            hasNext: pagination.has_next
+        };
+
+        const sortedTasks = (user.tasks || []).sort((a, b) =>
+            new Date(b.date_created) - new Date(a.date_created)
+        );
+
+        updateUserInfo();
+
+        const content = document.getElementById('content');
+        content.innerHTML = `
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class="ri-task-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">${user.usage_summary?.total_tasks || 0}</div>
+                        <div class="stat-label">Total Tasks</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon success">
+                        <i class="ri-eye-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">${formatNumber(user.usage_summary?.total_views || 0)}</div>
+                        <div class="stat-label">Total Views</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon warning">
+                        <i class="ri-key-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">${user.usage_summary?.total_keywords || 0}</div>
+                        <div class="stat-label">Keywords</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon error">
+                        <i class="ri-wallet-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">$${(user.task_statistics?.available_charge || 0).toFixed(2)}</div>
+                        <div class="stat-label">Available Budget</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analytics-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Task Performance</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="taskChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Views by Country</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="map-container" id="countryMap"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Tasks</h3>
+                    <button class="btn btn-primary btn-sm" onclick="navigateTo('tasks')">View All</button>
+                </div>
+                <div class="card-body">
+                    ${generateTasksTable(sortedTasks)}
+                    ${generatePagination('tasks', loadDashboard, pagination)}
+                </div>
+            </div>
+        `;
+
+        setTimeout(() => {
+            initializeCharts(user);
+            initializeCountryMap(user);
+        }, 100);
+
+    } catch (error) {
+        console.error('Dashboard error:', error);
+        showErrorState('Failed to load dashboard');
+        if (error.message === 'Invalid session. Please log in again.') logout();
+    }
+}
+
+function generateTasksTable(tasks) {
+    if (tasks.length === 0) {
+        return `
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="ri-task-line"></i></div>
+                <div class="empty-state-title">No Tasks Yet</div>
+                <div class="empty-state-description">Create your first SEO task to start optimizing</div>
+            </div>
+        `;
+    }
+
+    // Desktop table
+    let html = `
+        <div class="desktop-only">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>URL</th>
+                            <th>Created</th>
+                            <th>Keywords</th>
+                            <th>Views</th>
+                            <th>Budget Status</th>
+                            <th>Available</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+
+    tasks.forEach(task => {
+        const createdDate = new Date(task.date_created).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+
+        const totalCharge = task.total_charge || 0;
+        const availableCharge = task.available_charge || 0;
+        const usedPercent = totalCharge > 0 ? ((totalCharge - availableCharge) / totalCharge * 100) : 0;
+        const remainingPercent = 100 - usedPercent;
+
+        html += `
+            <tr>
+                <td>
+                    <a href="${task.url}" target="_blank" style="color: var(--primary); text-decoration: none;">
+                        ${task.url.length > 30 ? task.url.substring(0, 30) + '...' : task.url}
+                    </a>
+                </td>
+                <td>${createdDate}</td>
+                <td><span class="badge badge-primary">${task.keywords_count}</span></td>
+                <td><span class="badge badge-success">${formatNumber(task.views_count)}</span></td>
+                <td>
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem; min-width: 120px;">
+                        <div style="font-size: 0.75rem;">
+                            ${usedPercent.toFixed(0)}% used
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${remainingPercent}%; background: ${remainingPercent >= 50 ? 'var(--success)' : remainingPercent >= 20 ? 'var(--warning)' : 'var(--error)'}"></div>
+                        </div>
+                    </div>
+                </td>
+                <td style="font-weight: 600;">$${availableCharge.toFixed(2)}</td>
+                <td>
+                    <span class="badge badge-${availableCharge > 0 ? 'success' : 'warning'}">
+                        ${availableCharge > 0 ? 'Active' : 'Depleted'}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm" onclick="viewTaskDetails('${task._id}')">
+                        <i class="ri-eye-line"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    // Mobile cards
+    html += `
+        <div class="mobile-only">
+    `;
+
+    tasks.forEach(task => {
+        const createdDate = new Date(task.date_created).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+        });
+
+        const totalCharge = task.total_charge || 0;
+        const availableCharge = task.available_charge || 0;
+        const usedPercent = totalCharge > 0 ? ((totalCharge - availableCharge) / totalCharge * 100) : 0;
+        const remainingPercent = 100 - usedPercent;
+
+        html += `
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                    <div>
+                        <a href="${task.url}" target="_blank" style="color: var(--primary); text-decoration: none; font-size: 0.875rem; word-break: break-all;">
+                            ${task.url.length > 40 ? task.url.substring(0, 40) + '...' : task.url}
+                        </a>
+                        <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.25rem;">
+                            ${createdDate}
+                        </div>
+                    </div>
+                    <span class="badge badge-${availableCharge > 0 ? 'success' : 'warning'}">
+                        ${availableCharge > 0 ? 'Active' : 'Depleted'}
+                    </span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+                    <div style="background: var(--bg-tertiary); padding: 0.5rem; border-radius: var(--radius-sm);">
+                        <div style="font-size: 0.625rem; color: var(--text-secondary);">Keywords</div>
+                        <div style="font-weight: 600;">${task.keywords_count}</div>
+                    </div>
+                    <div style="background: var(--bg-tertiary); padding: 0.5rem; border-radius: var(--radius-sm);">
+                        <div style="font-size: 0.625rem; color: var(--text-secondary);">Views</div>
+                        <div style="font-weight: 600;">${formatNumber(task.views_count)}</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
+                        <span>Budget: $${availableCharge.toFixed(2)} left</span>
+                        <span>${usedPercent.toFixed(0)}% used</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${remainingPercent}%; background: ${remainingPercent >= 50 ? 'var(--success)' : remainingPercent >= 20 ? 'var(--warning)' : 'var(--error)'}"></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-sm" onclick="viewTaskDetails('${task._id}')" style="flex: 1;">
+                        <i class="ri-eye-line"></i> Details
+                    </button>
+                    <button class="btn btn-sm" onclick="rechargeTask('${task._id}')" style="flex: 1;">
+                        <i class="ri-wallet-line"></i> Recharge
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+
+    return html;
+}
+
+// Tasks Page
+async function loadTasks(page = 1) {
+    try {
+        showSpinner();
+        const response = await api(`/users/dashboard?page=${page}&page_size=10`);
+        const { data, pagination } = response;
+        const user = data.user;
+        currentData.tasks = user.tasks || [];
+
+        paginationState.tasks = {
+            page: pagination.current || 1,
+            pageSize: pagination.size || 10,
+            total: pagination.total || 0,
+            hasNext: pagination.has_next || false
+        };
+
+        const content = document.getElementById('content');
+        content.innerHTML = `
+            <div class="mobilearticle2" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700;">SEO Tasks</h2>
+                <button class="btn btn-primary" onclick="showTaskModal()">
+                    <i class="ri-add-line"></i> Create New Task
+                </button>
+            </div>
+
+            <div class="task-grid">
+                ${currentData.tasks.map(task => `
+                    <div class="task-card" onclick="viewTaskDetails('${task._id}')">
+                        <div class="task-header">
+                            <a href="${task.url}" target="_blank" class="task-url" onclick="event.stopPropagation()">${task.url}</a>
+                            <span class="task-status active">Active</span>
+                        </div>
+
+                        <div class="task-stats">
+                            <div class="task-stat">
+                                <div class="task-stat-label">Keywords</div>
+                                <div class="task-stat-value">${task.keywords_count}</div>
+                            </div>
+                            <div class="task-stat">
+                                <div class="task-stat-label">Views</div>
+                                <div class="task-stat-value">${task.views_count}</div>
+                            </div>
+                            <div class="task-stat">
+                                <div class="task-stat-label">Budget Used</div>
+                                <div class="task-stat-value">$${(task.total_charge - task.available_charge).toFixed(2)}</div>
+                            </div>
+                            <div class="task-stat">
+                                <div class="task-stat-label">Available</div>
+                                <div class="task-stat-value">$${task.available_charge.toFixed(2)}</div>
+                            </div>
+                        </div>
+
+                        <div class="task-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${task.remaining_percentage}%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="task-actions">
+                            <button class="btn btn-sm" onclick="event.stopPropagation(); viewTaskDetails('${task._id}')">
+                                <i class="ri-eye-line"></i> Details
+                            </button>
+                            <button class="btn btn-sm" onclick="event.stopPropagation(); rechargeTask('${task._id}')">
+                                <i class="ri-wallet-line"></i> Recharge
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            ${currentData.tasks.length === 0 ? `
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="ri-task-line"></i></div>
+                    <div class="empty-state-title">No Tasks Yet</div>
+                    <div class="empty-state-description">Create your first SEO task to start optimizing</div>
+                    <button class="btn btn-primary" onclick="showTaskModal()">Create First Task</button>
+                </div>
+            ` : generatePagination('tasks', loadTasks, paginationState.tasks)}
+        `;
+
+    } catch (error) {
+        console.error('Tasks error:', error);
+        showErrorState('Failed to load tasks');
+    }
+}
+
+// Images Page
+async function loadImages(page = 1) {
+    try {
+        showSpinner();
+        const response = await api(`/images/dashboard?page=${page}&page_size=20`);
+        const { data, pagination } = response;
+
+        currentData.images = data.images || [];
+        paginationState.images = {
+            page: pagination.current,
+            pageSize: pagination.size,
+            total: pagination.total,
+            hasNext: pagination.has_next
+        };
+
+        const content = document.getElementById('content');
+        content.innerHTML = `
+            <div class="mobilearticle2" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700;">Image Hosting</h2>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                        ${data.user?.uploaded || 0}/${(data.user?.uploaded || 0) + (data.user?.remaining || 0)} images used
+                    </div>
+                    <button class="btn btn-primary" onclick="showImageUploadModal()">
+                        <i class="ri-upload-line"></i> Upload
+                    </button>
+                </div>
+            </div>
+
+            <div class="media-grid">
+                ${currentData.images.map(image => `
+                    <div class="media-card">
+                        <div class="media-preview" onclick="window.open('${image.cdn_url}', '_blank')" style="cursor: pointer;">
+                            <img src="${image.cdn_url}" alt="${image.original_filename}" loading="lazy">
+                        </div>
+                        <div class="media-info">
+                            <div class="media-filename">${image.original_filename}</div>
+                            <div class="media-stats">
+                                <span>${image.total_views} views</span>
+                                <span>${new Date(image.upload_date).toLocaleDateString()}</span>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                                <button class="btn btn-sm" onclick="showImageDetails('${image.image_id}')">
+                                    <i class="ri-eye-line"></i> Details
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteImage('${image.image_id}')">
+                                    <i class="ri-delete-bin-line"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            ${currentData.images.length === 0 ? `
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="ri-image-line"></i></div>
+                    <div class="empty-state-title">No Images Uploaded</div>
+                    <div class="empty-state-description">Upload images to host them on our CDN</div>
+                    <button class="btn btn-primary" onclick="showImageUploadModal()">Upload First Image</button>
+                </div>
+            ` : ''}
+
+            ${paginationState.images.total > paginationState.images.pageSize ? 
+                generatePagination('images', loadImages, paginationState.images) : ''}
+        `;
+
+    } catch (error) {
+        console.error('Images error:', error);
+        showErrorState('Failed to load images');
+    }
+}
+
+// Articles Page
+async function loadArticles(page = 1) {
+    try {
+        showSpinner();
+        const response = await api(`/dashboard/articles?page=${page}&page_size=10`);
+        const { data, pagination } = response;
+
+        currentData.articles = data.articles || [];
+        currentData.domains = data.user?.domains || [];
+
+        paginationState.articles = {
+            page: pagination.current || page,
+            pageSize: pagination.size || 10,
+            total: pagination.total || 0,
+            hasNext: pagination.has_next || false
+        };
+
+        const content = document.getElementById('content');
+        content.innerHTML = `
+            <div class="mobilearticle2" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700;">Articles & Domains</h2>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-secondary" onclick="showDomainModal()">
+                        <i class="ri-global-line"></i> Add Domain
+                    </button>
+                    <button class="btn btn-primary" onclick="showArticleModal()">
+                        <i class="ri-add-line"></i> Create Article
+                    </button>
+                </div>
+            </div>
+
+            <!-- Domains Section -->
+            <div class="card" style="margin-bottom: 1.5rem">
+                <div class="card-header">
+                    <h3 class="card-title">Domain Verification</h3>
+                    <span class="badge badge-primary">${currentData.domains.length} domains</span>
+                </div>
+                <div class="card-body">
+                    ${currentData.domains.length > 0 ? currentData.domains.map(domain => `
+                        <div class="mobilearticle1" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span class="badge badge-${domain.verified ? 'success' : 'warning'}">
+                                    ${domain.verified ? '✓ Verified' : '⏳ Pending'}
+                                </span>
+                                <span>${domain.domain}</span>
+                            </div>
+                            ${!domain.verified ? `
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button class="btn btn-sm" onclick="showVerificationInstructions('${domain.domain}', '${domain.txt_record || ''}')">Instructions</button>
+                                    <button class="btn btn-sm btn-primary" onclick="verifyDomain('${domain.domain}')">Verify Now</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('') : `
+                        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                            No domains added yet. Add a domain to start publishing articles.
+                        </div>
+                    `}
+                </div>
+            </div>
+
+            <!-- Articles Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Published Articles</h3>
+                    <span class="badge badge-primary">${paginationState.articles.total} articles</span>
+                </div>
+                <div class="card-body">
+                    ${generateArticlesTable(currentData.articles)}
+                    ${currentData.articles.length === 0 ? `
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="ri-article-line"></i></div>
+                            <div class="empty-state-title">No Articles Published</div>
+                            <div class="empty-state-description">Create your first article</div>
+                            <button class="btn btn-primary" onclick="showArticleModal()">Create First Article</button>
+                        </div>
+                    ` : generatePagination('articles', loadArticles, paginationState.articles)}
+                </div>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Articles error:', error);
+        showErrorState('Failed to load articles');
+    }
+}
+
+function generateArticlesTable(articles) {
+    if (articles.length === 0) return '';
+
+    // Desktop table
+    let html = `
+        <div class="desktop-only">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Domain</th>
+                            <th>Published</th>
+                            <th>Views</th>
+                            <th>Images</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+
+    articles.forEach(article => {
+        html += `
+            <tr>
+                <td>
+                    <div style="font-weight: 600;">${article.subject}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">ID: ${article.article_id.substring(0, 8)}...</div>
+                </td>
+                <td>
+                    <a href="https://${article.url}" target="_blank" class="badge badge-primary">
+                        ${article.url}
+                    </a>
+                </td>
+                <td>${new Date(article.creation_date).toLocaleDateString()}</td>
+                <td><span class="badge badge-success">${article.total_views || 0}</span></td>
+                <td><span class="badge badge-warning">${(article.images || []).length}</span></td>
+                <td>
+                    <div style="display: flex; gap: 0.25rem;">
+                        <button class="btn btn-sm" onclick="viewArticle('${article.article_id}')">
+                            <i class="ri-eye-line"></i>
+                        </button>
+                        <button class="btn btn-sm" onclick="editArticle('${article.article_id}')">
+                            <i class="ri-edit-line"></i>
+                        </button>
+                        <button class="btn btn-sm" onclick="window.open('https://${article.url}', '_blank')">
+                            <i class="ri-external-link-line"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteArticle('${article.article_id}')">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    // Mobile cards
+    html += `
+        <div class="mobile-only">
+    `;
+
+    articles.forEach(article => {
+        html += `
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1rem;">
+                <div style="margin-bottom: 0.75rem;">
+                    <h4 style="margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 600;">${article.subject}</h4>
+                    <a href="https://${article.url}" target="_blank" style="color: var(--primary); text-decoration: none; font-size: 0.875rem;">
+                        <i class="ri-global-line"></i> ${article.url}
+                    </a>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.75rem;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.625rem; color: var(--text-secondary);">Views</div>
+                        <span class="badge badge-success">${article.total_views || 0}</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.625rem; color: var(--text-secondary);">Images</div>
+                        <span class="badge badge-warning">${(article.images || []).length}</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.625rem; color: var(--text-secondary);">Published</div>
+                        <div style="font-size: 0.75rem;">${new Date(article.creation_date).toLocaleDateString()}</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.25rem;">
+                    <button class="btn btn-sm" onclick="viewArticle('${article.article_id}')">
+                        <i class="ri-eye-line"></i>
+                    </button>
+                    <button class="btn btn-sm" onclick="editArticle('${article.article_id}')">
+                        <i class="ri-edit-line"></i>
+                    </button>
+                    <button class="btn btn-sm" onclick="window.open('https://${article.url}', '_blank')">
+                        <i class="ri-external-link-line"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteArticle('${article.article_id}')">
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+
+    return html;
+}
+
+// Enhanced Billing Page
+async function loadBilling(page = 1, type = 'all') {
+    try {
+        showSpinner();
+        const [planResponse, historyResponse] = await Promise.all([
+            api('/hosting/subscription-status'),
+            api(`/dashboard/billings?page=${page}&limit=10&type=${type}`)
+        ]);
+
+        const planData = planResponse.data;
+        const historyData = historyResponse.data;
+
+        const planName = planData.current_plan || 'free';
+        const isSubscribed = planData.is_subscription;
+        let expiryHTML = '';
+        if (planData.expiry_date) {
+            const expiry = new Date(planData.expiry_date);
+            const now = new Date();
+            const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+            expiryHTML = `<div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                ${isSubscribed ? 'Renews' : 'Expires'} in <strong>${daysLeft > 0 ? daysLeft : 0} days</strong> (${expiry.toLocaleDateString()})
+            </div>`;
+        }
+
+        const imagesUsedPercent = (planData.images_uploads / (planData.images_limit || 1)) * 100;
+        const articlesUsedPercent = (planData.article_uploads / (planData.articles_limit || 1)) * 100;
+
+        const allPayments = [...(historyData.tasks || []), ...(historyData.hosting || [])];
+        paginationState.billing = {
+            page: historyData.pagination.page,
+            pageSize: historyData.pagination.limit,
+            total: historyData.pagination.total,
+            hasNext: historyData.pagination.page < historyData.pagination.pages
+        };
+
+        const content = document.getElementById('content');
+        content.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700;">Billing & Plans</h2>
+            </div>
+
+            <!-- Current Plan Card -->
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div class="card-header">
+                    <h3 class="card-title">Current Hosting Plan</h3>
+                    <span class="badge badge-primary" style="text-transform: capitalize;">${planName}</span>
+                </div>
+                <div class="card-body">
+                    ${expiryHTML}
+                    <div style="margin-top: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                            <span>Images Used</span>
+                            <span>${planData.images_uploads} / ${planData.images_limit || 0}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${imagesUsedPercent}%;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                            <span>Articles Published</span>
+                            <span>${planData.article_uploads} / ${planData.articles_limit || 0}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${articlesUsedPercent}%;"></div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;" onclick="showUpgradePlans('${planName}')">
+                        <i class="ri-rocket-line"></i> Upgrade Plan
+                    </button>
+                    ${isSubscribed ? `
+                        <button class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;" onclick="cancelSubscription()">
+                            <i class="ri-close-circle-line"></i> Cancel Subscription
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Transaction History</h3>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <select class="form-select" style="width: auto; padding: 0.5rem;" onchange="loadBilling(1, this.value)">
+                            <option value="all" ${type === 'all' ? 'selected' : ''}>All</option>
+                            <option value="tasks" ${type === 'tasks' ? 'selected' : ''}>Tasks</option>
+                            <option value="hosting" ${type === 'hosting' ? 'selected' : ''}>Hosting</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    ${generateTransactionTable(allPayments)}
+                    ${allPayments.length === 0 ? `
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="ri-file-list-line"></i></div>
+                            <div class="empty-state-title">No Transactions</div>
+                        </div>
+                    ` : ''}
+                    ${paginationState.billing.total > paginationState.billing.pageSize ? 
+                        generatePagination('billing', (page) => loadBilling(page, type), paginationState.billing) : ''}
+                </div>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Billing error:', error);
+        showErrorState('Failed to load billing data');
+    }
+}
+
+function generateTransactionTable(payments) {
+    if (payments.length === 0) return '';
+
+    // Desktop table
+    let html = `
+        <div class="desktop-only">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+
+    payments.forEach(payment => {
+        let paymentType = '', description = '', badgeClass = '';
+        if (payment.method === 'create_task') {
+            paymentType = 'SEO Task';
+            badgeClass = 'primary';
+            description = payment.details?.url || 'Task Creation';
+        } else if (payment.method === 'recharge') {
+            paymentType = 'Recharge';
+            badgeClass = 'success';
+            description = 'Task Recharge';
+        } else if (payment.method === 'buy_package') {
+            paymentType = 'Hosting';
+            badgeClass = 'warning';
+            description = `${payment.details?.package || ''} Package`;
+        }
+
+        let statusClass = 'warning';
+        let statusText = payment.status || 'Unknown';
+        if (payment.status?.toLowerCase() === 'paid') {
+            statusClass = 'success';
+            statusText = 'Paid';
+        }
+
+        html += `
+            <tr class="transaction-row" onclick="viewPaymentDetails('${payment.billing_id}')">
+                <td>${new Date(payment.dates?.created || Date.now()).toLocaleDateString()}</td>
+                <td><span class="badge badge-${badgeClass}">${paymentType}</span></td>
+                <td>${description}</td>
+                <td class="transaction-amount">$${(payment.total_payment || 0).toFixed(2)}</td>
+                <td><span class="badge badge-${statusClass}">${statusText}</span></td>
+                <td>
+                    <button class="btn btn-sm" onclick="event.stopPropagation(); viewPaymentDetails('${payment.billing_id}')">
+                        <i class="ri-eye-line"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    // Mobile cards
+    html += `
+        <div class="mobile-only">
+    `;
+
+    payments.forEach(payment => {
+        let paymentType = '', description = '', badgeClass = '';
+        if (payment.method === 'create_task') {
+            paymentType = 'SEO Task';
+            badgeClass = 'primary';
+            description = payment.details?.url || 'Task Creation';
+        } else if (payment.method === 'recharge') {
+            paymentType = 'Recharge';
+            badgeClass = 'success';
+            description = 'Task Recharge';
+        } else if (payment.method === 'buy_package') {
+            paymentType = 'Hosting';
+            badgeClass = 'warning';
+            description = `${payment.details?.package || ''} Package`;
+        }
+
+        let statusClass = 'warning';
+        let statusText = payment.status || 'Unknown';
+        if (payment.status?.toLowerCase() === 'paid') {
+            statusClass = 'success';
+            statusText = 'Paid';
+        }
+
+        html += `
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1rem;" onclick="viewPaymentDetails('${payment.billing_id}')">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                    <div>
+                        <span class="badge badge-${badgeClass}">${paymentType}</span>
+                        <span class="badge badge-${statusClass}" style="margin-left: 0.25rem;">${statusText}</span>
+                    </div>
+                    <div style="font-weight: 600; color: var(--text);">$${(payment.total_payment || 0).toFixed(2)}</div>
+                </div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    ${description}
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-tertiary);">
+                    ${new Date(payment.dates?.created || Date.now()).toLocaleDateString()}
+                </div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    return html;
+}
+
+// Show Upgrade Plans Modal
+function showUpgradePlans(currentPlan) {
+    const plans = {
+        basic: {
+            name: 'Basic',
+            images: 1000,
+            articles: 200,
+            price: { '3month': 10, '6month': 18, '12month': 32 }
+        },
+        professional: {
+            name: 'Professional',
+            images: 4000,
+            articles: 600,
+            price: { '3month': 25, '6month': 45, '12month': 80 }
+        },
+        enterprise: {
+            name: 'Enterprise',
+            images: 20000,
+            articles: 2000,
+            price: { '3month': 50, '6month': 90, '12month': 160 }
+        }
+    };
+
+    let selectedPlan = currentPlan === 'basic' ? 'professional' : 'enterprise';
+    let selectedDuration = '3month';
+
+    const updatePrice = () => {
+        const price = plans[selectedPlan].price[selectedDuration];
+        document.getElementById('upgrade-price')?.innerText = `$${price}`;
+    };
+
+    const modalHtml = `
+        <div style="text-align: left;">
+            <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+                Current plan: <strong style="text-transform: capitalize;">${currentPlan}</strong>
+            </p>
+            
+            <div class="billing-plans-grid">
+                ${Object.entries(plans).map(([key, plan]) => {
+                    const isCurrent = key === currentPlan;
+                    const isDisabled = isCurrent || (currentPlan === 'enterprise' && key !== 'enterprise');
+                    const isRecommended = key === 'professional' && currentPlan === 'basic';
+                    
+                    return `
+                        <div class="plan-card ${isCurrent ? 'current' : ''} ${isRecommended ? 'recommended' : ''} ${key === selectedPlan ? 'selected' : ''}" 
+                             onclick="${!isDisabled ? `selectUpgradePlan('${key}')` : ''}" 
+                             style="${isDisabled ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                            <div class="plan-header">
+                                <div class="plan-name">${plan.name}</div>
+                                <div class="plan-price">
+                                    $${plan.price['3month']}
+                                    <span class="plan-price-period">/3 months</span>
+                                </div>
+                            </div>
+                            <ul class="plan-features">
+                                <li>${plan.images.toLocaleString()} Images</li>
+                                <li>${plan.articles.toLocaleString()} Articles</li>
+                                <li>${key === 'enterprise' ? 'Priority' : key === 'professional' ? 'Standard' : 'Email'} Support</li>
+                            </ul>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+
+            <div class="duration-selector">
+                <label><input type="radio" name="upgrade-duration" value="3month" checked onchange="selectUpgradeDuration('3month')"><span>3 Months</span></label>
+                <label><input type="radio" name="upgrade-duration" value="6month" onchange="selectUpgradeDuration('6month')"><span>6 Months</span></label>
+                <label><input type="radio" name="upgrade-duration" value="12month" onchange="selectUpgradeDuration('12month')"><span>12 Months</span></label>
+            </div>
+
+            <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); margin-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Total Price:</span>
+                    <span id="upgrade-price" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">$25</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 1rem;">
+                <label class="form-label">Payment Method</label>
+                <select id="upgrade-payment-method" class="form-select">
+                    <option value="stripe">Card (Stripe)</option>
+                    <option value="oxapay">Crypto (OxaPay)</option>
+                </select>
+            </div>
+        </div>
+    `;
+
+    window.selectedUpgradePlan = selectedPlan;
+    window.selectedUpgradeDuration = selectedDuration;
+    window.selectUpgradePlan = (plan) => {
+        window.selectedUpgradePlan = plan;
+        document.querySelectorAll('.plan-card').forEach(card => card.classList.remove('selected'));
+        event.currentTarget.classList.add('selected');
+        updatePrice();
+    };
+    window.selectUpgradeDuration = (duration) => {
+        window.selectedUpgradeDuration = duration;
+        updatePrice();
+    };
+
+    Swal.fire({
+        title: 'Upgrade Hosting Plan',
+        html: modalHtml,
+        width: '95vw',
+        maxWidth: '900px',
+        showCloseButton: true,
+        showCancelButton: true,
+        confirmButtonText: '<i class="ri-rocket-line"></i> Upgrade Now',
+        confirmButtonColor: 'var(--primary)',
+        customClass: {
+            popup: 'swal2-toast'
+        },
+        didOpen: updatePrice,
+        preConfirm: async () => {
+            const paymentMethod = document.getElementById('upgrade-payment-method').value;
+            
+            try {
+                const response = await api('/hosting/buy-package', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        package: window.selectedUpgradePlan,
+                        duration: window.selectedUpgradeDuration,
+                        provider: paymentMethod,
+                        subscription: false,
+                        cancel_previous: true
+                    })
+                });
+                
+                if (response.data?.payment_url) {
+                    window.open(response.data.payment_url, '_blank');
+                    return { success: true };
+                }
+            } catch (error) {
+                Swal.showValidationMessage(`Error: ${error.message}`);
+                return false;
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed && result.value?.success) {
+            showToast('Redirecting to payment...', 'success');
+            loadBilling();
+        }
+    });
+}
+
+// View Payment Details with Enhanced Information
+async function viewPaymentDetails(billingId) {
+    try {
+        Swal.fire({
+            title: 'Loading...',
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false
+        });
+
+        const response = await api(`/get-payment-status?payment_id=${billingId}`);
+        const payment = response.data;
+
+        if (!payment) {
+            throw new Error('Payment details not found');
+        }
+
+        const status = (payment.payment_status || 'unknown').toLowerCase();
+        let statusInfo = {
+            text: 'Unknown',
+            color: 'var(--text-secondary)',
+            icon: 'ri-question-mark'
+        };
+        
+        if (status === 'paid' || status === 'succeeded') {
+            statusInfo = { text: 'Paid', color: 'var(--success)', icon: 'ri-checkbox-circle-fill' };
+        } else if (status === 'pending') {
+            statusInfo = { text: 'Pending', color: 'var(--warning)', icon: 'ri-time-line' };
+        } else if (status === 'failed' || status === 'cancelled') {
+            statusInfo = { text: 'Failed', color: 'var(--error)', icon: 'ri-close-circle-fill' };
+        }
+
+        // Build Stripe payment URL if transaction_id exists
+        let stripeUrl = '';
+        if (payment.transaction_id && payment.payment_method === 'stripe') {
+            stripeUrl = `https://checkout.stripe.com/c/pay/${payment.transaction_id}`;
+        }
+
+        const modalHtml = `
+            <div style="text-align: left;">
+                <div style="text-align: center; padding-bottom: 1.5rem; border-bottom: 2px dashed var(--border); margin-bottom: 1.5rem;">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--text);">
+                        $${(payment.amount || 0).toFixed(2)} ${(payment.currency || 'USD').toUpperCase()}
+                    </div>
+                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: var(--radius-lg); font-weight: 600; margin-top: 1rem; background: ${statusInfo.color}; color: white;">
+                        <i class="${statusInfo.icon}"></i>
+                        <span>${statusInfo.text}</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius);">
+                        <span style="color: var(--text-secondary);">Invoice Number</span>
+                        <span style="font-weight: 600; word-break: break-all;">
+                            ${payment.invoice_number}
+                            <i class="ri-file-copy-line" style="cursor: pointer; margin-left: 0.5rem;" onclick="copyToClipboard('${payment.invoice_number}')"></i>
+                        </span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius);">
+                        <span style="color: var(--text-secondary);">Transaction ID</span>
+                        <span style="font-weight: 600; word-break: break-all;">
+                            ${payment.transaction_id}
+                            <i class="ri-file-copy-line" style="cursor: pointer; margin-left: 0.5rem;" onclick="copyToClipboard('${payment.transaction_id}')"></i>
+                        </span>
+                    </div>
+
+                    ${stripeUrl ? `
+                        <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius);">
+                            <span style="color: var(--text-secondary);">Payment Link</span>
+                            <a href="${stripeUrl}" target="_blank" class="btn btn-sm btn-primary">
+                                <i class="ri-external-link-line"></i> View on Stripe
+                            </a>
+                        </div>
+                    ` : ''}
+
+                    ${payment.task_id ? `
+                        <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius);">
+                            <span style="color: var(--text-secondary);">Related Task</span>
+                            <span style="font-weight: 600;">${payment.task_id}</span>
+                        </div>
+                    ` : ''}
+
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius);">
+                        <span style="color: var(--text-secondary);">Type</span>
+                        <span style="font-weight: 600; text-transform: capitalize;">${payment.type || 'Payment'}</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius);">
+                        <span style="color: var(--text-secondary);">Method</span>
+                        <span style="font-weight: 600; text-transform: capitalize;">${payment.payment_method || 'N/A'}</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius);">
+                        <span style="color: var(--text-secondary);">Email</span>
+                        <span style="font-weight: 600;">${payment.customer_email || 'N/A'}</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius);">
+                        <span style="color: var(--text-secondary);">Created</span>
+                        <span style="font-weight: 600;">${new Date(payment.date_created).toLocaleString()}</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--bg-tertiary); border-radius: var(--radius);">
+                        <span style="color: var(--text-secondary);">Updated</span>
+                        <span style="font-weight: 600;">${new Date(payment.date_updated).toLocaleString()}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        Swal.fire({
+            title: 'Payment Receipt',
+            html: modalHtml,
+            width: '95vw',
+            maxWidth: '600px',
+            showCloseButton: true,
+            showConfirmButton: false,
+            customClass: {
+                popup: 'swal2-toast'
+            }
+        });
+
+    } catch (error) {
+        Swal.fire('Error', 'Failed to load payment details', 'error');
+    }
+}
+
+// Modal Functions
+async function showTaskModal() {
+    currentData.currentStep = 1;
+    currentData.selectedLocations = [];
+    currentData.selectedKeywords = [];
+    currentData.taskPriority = 'standard';
+
+    const modalHtml = `
+        <div style="text-align: left;">
+            <div class="form-group">
+                <label class="form-label">Website URL</label>
+                <input type="url" class="form-input" id="taskUrl" required placeholder="https://example.com">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Task Priority</label>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                    ${['basic', 'standard', 'premium'].map(priority => {
+                        const prices = { basic: 0.10, standard: 0.12, premium: 0.15 };
+                        const locations = { basic: 1, standard: 3, premium: 5 };
+                        return `
+                            <div class="plan-card ${priority === 'standard' ? 'selected' : ''}" onclick="selectTaskPriority('${priority}')">
+                                <div style="text-align: center;">
+                                    <div style="font-weight: 600; text-transform: capitalize;">${priority}</div>
+                                    <div style="color: var(--primary); font-weight: 700; margin: 0.5rem 0;">$${prices[priority]}/click</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${locations[priority]} locations</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Keywords</label>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="text" class="form-input" id="keywordsInput" placeholder="Enter keywords separated by commas">
+                    <button class="btn btn-secondary" onclick="generateAIKeywords()">
+                        <i class="ri-magic-line"></i> AI
+                    </button>
+                </div>
+                <div id="selectedKeywordsDisplay" style="margin-top: 1rem;"></div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Budget ($)</label>
+                    <input type="number" class="form-input" id="taskBudget" min="10" value="150" onchange="updateTaskSummary()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Payment Method</label>
+                    <select class="form-select" id="paymentMethod">
+                        <option value="stripe">Stripe</option>
+                        <option value="oxapay">Crypto</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h4 style="margin-bottom: 1rem;">Order Summary</h4>
+                    <div id="taskSummary"></div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    window.selectTaskPriority = (priority) => {
+        currentData.taskPriority = priority;
+        document.querySelectorAll('.plan-card').forEach(card => card.classList.remove('selected'));
+        event.currentTarget.classList.add('selected');
+        updateTaskSummary();
+    };
+
+    window.generateAIKeywords = async () => {
+        const url = document.getElementById('taskUrl').value;
+        if (!url) {
+            showToast('Please enter a URL first', 'error');
+            return;
+        }
+        // Simulated AI keyword generation
+        const keywords = ['seo', 'optimization', 'website', 'traffic', 'ranking'];
+        document.getElementById('keywordsInput').value = keywords.join(', ');
+        currentData.selectedKeywords = keywords;
+        updateTaskSummary();
+    };
+
+    window.updateTaskSummary = () => {
+        const budget = parseFloat(document.getElementById('taskBudget')?.value || 150);
+        const rates = { basic: 0.10, standard: 0.12, premium: 0.15 };
+        const locations = { basic: 1, standard: 3, premium: 5 };
+        const rate = rates[currentData.taskPriority];
+        const estimatedClicks = Math.floor(budget / rate);
+        
+        const keywords = document.getElementById('keywordsInput')?.value.split(',').filter(k => k.trim()).length || 0;
+        currentData.selectedKeywords = document.getElementById('keywordsInput')?.value.split(',').filter(k => k.trim()) || [];
+
+        document.getElementById('taskSummary').innerHTML = `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Budget:</span><strong>$${budget.toFixed(2)}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Priority:</span><strong style="text-transform: capitalize;">${currentData.taskPriority}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Keywords:</span><strong>${keywords}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Locations:</span><strong>${locations[currentData.taskPriority]}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-top: 0.75rem; border-top: 1px solid var(--border); font-weight: 700;">
+                <span>Est. Clicks:</span><span>${estimatedClicks.toLocaleString()}</span>
+            </div>
+        `;
+    };
+
+    Swal.fire({
+        title: 'Create SEO Task',
+        html: modalHtml,
+        width: '95vw',
+        maxWidth: '700px',
+        showCloseButton: true,
+        showCancelButton: true,
+        confirmButtonText: '<i class="ri-wallet-line"></i> Create & Pay',
+        confirmButtonColor: 'var(--primary)',
+        customClass: {
+            popup: 'swal2-toast'
+        },
+        didOpen: () => {
+            updateTaskSummary();
+            document.getElementById('keywordsInput').addEventListener('input', updateTaskSummary);
+        },
+        preConfirm: async () => {
+            const url = document.getElementById('taskUrl').value.trim();
+            const keywords = currentData.selectedKeywords;
+            const budget = parseFloat(document.getElementById('taskBudget').value);
+            const paymentMethod = document.getElementById('paymentMethod').value;
+
+            if (!url) {
+                Swal.showValidationMessage('Please enter a URL');
+                return false;
+            }
+            if (!keywords.length) {
+                Swal.showValidationMessage('Please add keywords');
+                return false;
+            }
+            if (!budget || budget < 10) {
+                Swal.showValidationMessage('Minimum budget is $10');
+                return false;
+            }
+
+            const locations = { basic: 1, standard: 3, premium: 5 };
+            const taskData = {
+                task_details: {
+                    url: url.startsWith('http') ? url : `https://${url}`,
+                    keywords: keywords,
+                    html_locations: Array(locations[currentData.taskPriority]).fill('-')
+                },
+                task_priority: currentData.taskPriority,
+                total_charge: budget,
+                payment_method: paymentMethod
+            };
+
+            try {
+                const response = await api('/add-task', {
+                    method: 'POST',
+                    body: JSON.stringify(taskData)
+                });
+                
+                if (response.data?.payment_url) {
+                    window.open(response.data.payment_url, '_blank');
+                }
+                
+                return { success: true };
+            } catch (error) {
+                Swal.showValidationMessage(`Error: ${error.message}`);
+                return false;
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed && result.value?.success) {
+            showToast('Task created successfully!', 'success');
+            loadTasks();
+        }
+    });
+}
+
+// View Task Details
+async function viewTaskDetails(taskId) {
+    try {
+        const response = await api('/get-task-details', {
+            method: 'POST',
+            body: JSON.stringify({ task_id: taskId })
+        });
+        const task = response.data;
+
+        const totalCharge = task.total_charge || 0;
+        const availableCharge = task.available_charge || 0;
+        const usedCharge = Math.max(0, totalCharge - availableCharge);
+        const remainingPercentage = totalCharge > 0 ? (availableCharge / totalCharge) * 100 : 0;
+
+        const modalHtml = `
+            <div style="text-align: left;">
+                <div style="padding: 1rem; background: var(--bg-tertiary); border-radius: var(--radius); margin-bottom: 1rem;">
+                    <h3 style="margin: 0 0 0.5rem 0; color: var(--primary);">${task.url}</h3>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                        Created: ${new Date(task.date_created).toLocaleString()}
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="text-align: center; padding: 1rem; background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">$${totalCharge.toFixed(2)}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Total Budget</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">$${availableCharge.toFixed(2)}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Available</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning);">$${usedCharge.toFixed(2)}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Used</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--info);">${formatNumber(task.views_count || 0)}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Views</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Budget Remaining</span>
+                        <span>${remainingPercentage.toFixed(1)}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${remainingPercentage}%;"></div>
+                    </div>
+                </div>
+
+                <div style="background: var(--card); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                    <h4 style="margin-bottom: 1rem;">Keywords</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        ${(task.keywords || []).map(k => `<span class="badge badge-primary">${k}</span>`).join('')}
+                    </div>
+                </div>
+
+                ${task.sitekey ? `
+                    <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-tertiary); border-radius: var(--radius);">
+                        <h4 style="margin-bottom: 0.5rem;">Installation Code</h4>
+                        <code style="display: block; padding: 0.75rem; background: var(--bg); border-radius: var(--radius-sm); font-size: 0.75rem; word-break: break-all;">
+                            &lt;script src="https://seotize.net/seotize-engine.js?id=${task.sitekey}"&gt;&lt;/script&gt;
+                        </code>
+                        <button class="btn btn-sm" style="margin-top: 0.5rem;" onclick="copyToClipboard('&lt;script src=&quot;https://seotize.net/seotize-engine.js?id=${task.sitekey}&quot;&gt;&lt;/script&gt;')">
+                            <i class="ri-file-copy-line"></i> Copy Code
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+
+        Swal.fire({
+            title: 'Task Details',
+            html: modalHtml,
+            width: '95vw',
+            maxWidth: '800px',
+            showCloseButton: true,
+            showDenyButton: true,
+            showCancelButton: false,
+            confirmButtonText: '<i class="ri-wallet-line"></i> Recharge',
+            denyButtonText: '<i class="ri-external-link-line"></i> Visit Site',
+            confirmButtonColor: 'var(--primary)',
+            customClass: {
+                popup: 'swal2-toast'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                rechargeTask(taskId);
+            } else if (result.isDenied) {
+                window.open(task.url, '_blank');
+            }
+        });
+
+    } catch (error) {
+        showToast('Failed to load task details', 'error');
+    }
+}
+
+// Recharge Task
+async function rechargeTask(taskId) {
+    const task = currentData.tasks.find(t => t._id === taskId);
+    
+    Swal.fire({
+        title: 'Recharge Task',
+        html: `
+            <div style="text-align: left;">
+                <p style="margin-bottom: 1rem;">Task: ${task?.url || taskId}</p>
+                <div class="form-group">
+                    <label class="form-label">Amount ($)</label>
+                    <input type="number" id="rechargeAmount" class="form-input" min="10" value="50">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Payment Method</label>
+                    <select id="rechargeMethod" class="form-select">
+                        <option value="stripe">Stripe</option>
+                        <option value="oxapay">Crypto</option>
+                    </select>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Proceed to Payment',
+        confirmButtonColor: 'var(--primary)',
+        customClass: {
+            popup: 'swal2-toast'
+        },
+        preConfirm: async () => {
+            const amount = parseFloat(document.getElementById('rechargeAmount').value);
+            const method = document.getElementById('rechargeMethod').value;
+            
+            if (!amount || amount < 10) {
+                Swal.showValidationMessage('Minimum amount is $10');
+                return false;
+            }
+            
+            try {
+                const response = await api('/recharge', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        task_id: taskId,
+                        amount: amount,
+                        payment_method: method
+                    })
+                });
+                
+                if (response.data.payment_url) {
+                    window.open(response.data.payment_url, '_blank');
+                }
+                
+                return { success: true };
+            } catch (error) {
+                Swal.showValidationMessage(`Error: ${error.message}`);
+                return false;
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed && result.value?.success) {
+            showToast('Recharge initiated!', 'success');
+            loadTasks();
+        }
+    });
+}
+
+// Domain Management Functions
+function showDomainModal() {
+    Swal.fire({
+        title: 'Add Domain',
+        html: `
+            <div style="text-align: left;">
+                <div class="form-group">
+                    <label class="form-label">Domain URL</label>
+                    <input type="text" id="domainUrl" class="form-input" placeholder="example.com">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-secondary);">
+                        Enter your domain where articles will be published
+                    </small>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Add Domain',
+        confirmButtonColor: 'var(--primary)',
+        customClass: {
+            popup: 'swal2-toast'
+        },
+        preConfirm: async () => {
+            const url = document.getElementById('domainUrl').value;
+            if (!url) {
+                Swal.showValidationMessage('Please enter a domain');
+                return false;
+            }
+            
+            try {
+                const response = await api('/add-domain', {
+                    method: 'POST',
+                    body: JSON.stringify({ url })
+                });
+                
+                if (response.data.txt_record) {
+                    return { url, txtRecord: response.data.txt_record };
+                }
+                return { url };
+            } catch (error) {
+                Swal.showValidationMessage(`Error: ${error.message}`);
+                return false;
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            if (result.value?.txtRecord) {
+                showVerificationInstructions(result.value.url, result.value.txtRecord);
+            } else {
+                showToast('Domain added!', 'success');
+                loadArticles();
+            }
+        }
+    });
+}
+
+function showVerificationInstructions(domain, txtRecord) {
+    Swal.fire({
+        title: 'Domain Verification',
+        html: `
+            <div style="text-align: left;">
+                <p>Add this TXT record to verify ownership of <strong>${domain}</strong>:</p>
+                <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); margin: 1rem 0;">
+                    <code style="word-break: break-all;">${txtRecord}</code>
+                </div>
+                <ol style="padding-left: 1.5rem;">
+                    <li>Access your DNS provider</li>
+                    <li>Add a new TXT record</li>
+                    <li>Set name to @ or your domain</li>
+                    <li>Paste the TXT record value</li>
+                    <li>Save and wait for propagation</li>
+                </ol>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Verify Now',
+        cancelButtonText: 'Copy Record',
+        confirmButtonColor: 'var(--primary)',
+        customClass: {
+            popup: 'swal2-toast'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            verifyDomain(domain);
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            copyToClipboard(txtRecord);
+        }
+    });
+}
+
+async function verifyDomain(url) {
+    try {
+        await api('/verify-domain', {
+            method: 'POST',
+            body: JSON.stringify({ url })
+        });
+        showToast('Domain verified!', 'success');
+        loadArticles();
+    } catch (error) {
+        showToast('Verification failed', 'error');
+    }
+}
+
+// Article Management
+async function showArticleModal(articleId = null) {
+    const isEdit = !!articleId;
+    let articleData = null;
+
+    if (isEdit) {
+        Swal.fire({
+            title: 'Loading...',
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false
+        });
+        
+        try {
+            const response = await api(`/dashboard/articles?article_id=${articleId}`);
+            articleData = response.data.article;
+            Swal.close();
+        } catch (error) {
+            Swal.fire('Error', 'Failed to load article', 'error');
+            return;
+        }
+    }
+
+    const modalHtml = `
+        <form id="articleForm" style="text-align: left;">
+            <div class="form-group">
+                <label class="form-label">Domain</label>
+                <select class="form-select" name="url" required>
+                    <option value="">Select domain...</option>
+                    ${currentData.domains.filter(d => d.verified).map(domain => `
+                        <option value="${domain.domain}" ${articleData?.url === domain.domain ? 'selected' : ''}>${domain.domain}</option>
+                    `).join('')}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Title</label>
+                <input type="text" class="form-input" name="subject" value="${articleData?.subject || ''}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Content (HTML)</label>
+                <textarea class="form-textarea" name="body" rows="10" required>${articleData?.body || ''}</textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Images (Optional)</label>
+                <input type="file" class="form-input" name="image_data" multiple accept="image/*">
+            </div>
+        </form>
+    `;
+
+    Swal.fire({
+        title: isEdit ? 'Edit Article' : 'Create Article',
+        html: modalHtml,
+        width: '95vw',
+        maxWidth: '800px',
+        showCancelButton: true,
+        confirmButtonText: isEdit ? 'Update' : 'Create',
+        confirmButtonColor: 'var(--primary)',
+        customClass: {
+            popup: 'swal2-toast'
+        },
+        preConfirm: async () => {
+            const form = document.getElementById('articleForm');
+            const formData = new FormData(form);
+            
+            if (isEdit) {
+                formData.append('article_id', articleId);
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}${isEdit ? '/edit-article' : '/add-article'}`, {
+                    method: 'POST',
+                    headers: { 'Session-Token': sessionToken },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error?.message || 'Operation failed');
+                }
+                
+                return { success: true };
+            } catch (error) {
+                Swal.showValidationMessage(`Error: ${error.message}`);
+                return false;
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed && result.value?.success) {
+            showToast(`Article ${isEdit ? 'updated' : 'created'}!`, 'success');
+            loadArticles();
+        }
+    });
+}
+
+async function viewArticle(articleId) {
+    try {
+        const response = await api(`/dashboard/articles?article_id=${articleId}`);
+        const article = response.data.article;
+
+        const modalHtml = `
+            <div style="text-align: left;">
+                <div style="margin-bottom: 1rem;">
+                    <a href="https://${article.url}" target="_blank" class="btn btn-primary btn-sm">
+                        <i class="ri-external-link-line"></i> View Live
+                    </a>
+                </div>
+                
+                <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); margin-bottom: 1rem;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; text-align: center;">
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Views</div>
+                            <div style="font-size: 1.25rem; font-weight: 700;">${article.total_views || 0}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Images</div>
+                            <div style="font-size: 1.25rem; font-weight: 700;">${(article.images || []).length}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Published</div>
+                            <div style="font-size: 0.875rem;">${new Date(article.creation_date).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                </div>
+
+                ${article.images && article.images.length > 0 ? `
+                    <div style="margin-bottom: 1rem;">
+                        <h4>Images</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.5rem;">
+                            ${article.images.map(img => `
+                                <img src="${img}" style="width: 100%; height: 80px; object-fit: cover; border-radius: var(--radius-sm); cursor: pointer;" onclick="window.open('${img}', '_blank')">
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                <div>
+                    <h4>Content Preview</h4>
+                    <div style="max-height: 300px; overflow-y: auto; padding: 1rem; background: var(--bg-tertiary); border-radius: var(--radius);">
+                        ${article.body}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        Swal.fire({
+            title: article.subject,
+            html: modalHtml,
+            width: '95vw',
+            maxWidth: '900px',
+            showCloseButton: true,
+            showDenyButton: true,
+            confirmButtonText: '<i class="ri-edit-line"></i> Edit',
+            denyButtonText: '<i class="ri-delete-bin-line"></i> Delete',
+            confirmButtonColor: 'var(--primary)',
+            denyButtonColor: 'var(--error)',
+            customClass: {
+                popup: 'swal2-toast'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                editArticle(articleId);
+            } else if (result.isDenied) {
+                deleteArticle(articleId);
+            }
+        });
+
+    } catch (error) {
+        showToast('Failed to load article', 'error');
+    }
+}
+
+function editArticle(articleId) {
+    Swal.close();
+    showArticleModal(articleId);
+}
+
+async function deleteArticle(articleId) {
+    const result = await Swal.fire({
+        title: 'Delete Article?',
+        text: "This action cannot be undone!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--error)',
+        confirmButtonText: 'Delete'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            await api(`/delete-article/${articleId}`, { method: 'DELETE' });
+            showToast('Article deleted', 'success');
+            loadArticles();
+        } catch (error) {
+            showToast('Failed to delete article', 'error');
+        }
+    }
+}
+
+// Image Management
+async function showImageUploadModal() {
+    Swal.fire({
+        title: 'Upload Images',
+        html: `
+            <form id="uploadForm" style="text-align: left;">
+                <div class="form-group">
+                    <label class="form-label">Select Images</label>
+                    <input type="file" id="imageFiles" class="form-input" name="file" multiple accept="image/*" required>
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-secondary);">
+                        Max 10 files, 5MB per file
+                    </small>
+                </div>
+                <div id="imagePreview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 0.5rem; margin-top: 1rem;"></div>
+            </form>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Upload',
+        confirmButtonColor: 'var(--primary)',
+        customClass: {
+            popup: 'swal2-toast'
+        },
+        didOpen: () => {
+            document.getElementById('imageFiles').addEventListener('change', (e) => {
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = '';
+                Array.from(e.target.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.style.cssText = 'width: 60px; height: 60px; object-fit: cover; border-radius: var(--radius-sm);';
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+        },
+        preConfirm: async () => {
+            const form = document.getElementById('uploadForm');
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch(`${API_BASE}/images/upload`, {
+                    method: 'POST',
+                    headers: { 'Session-Token': sessionToken },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error?.message || 'Upload failed');
+                }
+                
+                return { success: true, count: data.data.uploaded_images.length };
+            } catch (error) {
+                Swal.showValidationMessage(`Error: ${error.message}`);
+                return false;
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed && result.value?.success) {
+            showToast(`Uploaded ${result.value.count} images!`, 'success');
+            loadImages();
+        }
+    });
+}
+
+async function showImageDetails(imageId) {
+    const image = currentData.images.find(img => img.image_id === imageId);
+    if (!image) return;
+
+    const modalHtml = `
+        <div style="text-align: left;">
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <img src="${image.cdn_url}" style="max-width: 100%; max-height: 300px; border-radius: var(--radius);" onclick="window.open('${image.cdn_url}', '_blank')">
+            </div>
+            
+            <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); margin-bottom: 1rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Filename</div>
+                        <div style="font-weight: 600; word-break: break-all;">${image.original_filename}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Views</div>
+                        <div style="font-weight: 600;">${image.total_views}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="font-size: 0.875rem; color: var(--text-secondary);">CDN URL</label>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                    <input type="text" class="form-input" value="${image.cdn_url}" readonly style="font-size: 0.75rem;">
+                    <button class="btn btn-sm" onclick="copyToClipboard('${image.cdn_url}')">
+                        <i class="ri-file-copy-line"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                Uploaded: ${new Date(image.upload_date).toLocaleString()}
+            </div>
+        </div>
+    `;
+
+    Swal.fire({
+        title: 'Image Details',
+        html: modalHtml,
+        width: '95vw',
+        maxWidth: '600px',
+        showCloseButton: true,
+        showCancelButton: false,
+        confirmButtonText: '<i class="ri-delete-bin-line"></i> Delete',
+        confirmButtonColor: 'var(--error)',
+        customClass: {
+            popup: 'swal2-toast'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            deleteImage(imageId);
+        }
+    });
+}
+
+async function deleteImage(imageId) {
+    const result = await Swal.fire({
+        title: 'Delete Image?',
+        text: "This action cannot be undone!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--error)',
+        confirmButtonText: 'Delete'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            await api('/images', {
+                method: 'DELETE',
+                body: JSON.stringify({ image_ids: [imageId] })
+            });
+            showToast('Image deleted', 'success');
+            loadImages();
+        } catch (error) {
+            showToast('Failed to delete image', 'error');
+        }
+    }
+}
+
+// Sessions Management
+async function showSessionsModal() {
+    const sessions = currentData.user?.sessions || [];
+    const currentSession = sessions.find(s => s.token === sessionToken);
+    const otherSessions = sessions.filter(s => s.token !== sessionToken);
+
+    const modalHtml = `
+        <div style="text-align: left;">
+            ${currentSession ? `
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">Current Session</h4>
+                    <div style="padding: 1rem; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); border-radius: var(--radius);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>${currentSession.country_code} - ${currentSession.ip_address}</span>
+                            <span class="badge badge-success">This Device</span>
+                        </div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                            Created: ${new Date(currentSession.timestamp).toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
+
+            ${otherSessions.length > 0 ? `
+                <div>
+                    <h4 style="margin-bottom: 1rem;">Other Active Sessions</h4>
+                    ${otherSessions.map(session => `
+                        <div style="padding: 1rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>${session.country_code} - ${session.ip_address}</span>
+                                <button class="btn btn-sm btn-danger" onclick="revokeSession('${session.token}')">
+                                    Revoke
+                                </button>
+                            </div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                                Created: ${new Date(session.timestamp).toLocaleString()}
+                            </div>
+                        </div>
+                    `).join('')}
+                    
+                    <button class="btn btn-danger" style="width: 100%; margin-top: 1rem;" onclick="revokeAllSessions()">
+                        <i class="ri-logout-box-r-line"></i> Revoke All Other Sessions
+                    </button>
+                </div>
+            ` : `
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="ri-shield-star-line"></i></div>
+                    <div class="empty-state-title">Only This Device</div>
+                    <div class="empty-state-description">No other active sessions</div>
+                </div>
+            `}
+        </div>
+    `;
+
+    window.revokeSession = async (token) => {
+        try {
+            await fetch(`${API_BASE}/logout`, {
+                method: 'GET',
+                headers: { 'Session-Token': token }
+            });
+            currentData.user.sessions = currentData.user.sessions.filter(s => s.token !== token);
+            showToast('Session revoked', 'success');
+            showSessionsModal();
+        } catch (error) {
+            showToast('Failed to revoke session', 'error');
+        }
+    };
+
+    window.revokeAllSessions = async () => {
+        try {
+            await api('/sessions/revoke-all', { method: 'POST' });
+            currentData.user.sessions = currentData.user.sessions.filter(s => s.token === sessionToken);
+            showToast('All sessions revoked', 'success');
+            showSessionsModal();
+        } catch (error) {
+            showToast('Failed to revoke sessions', 'error');
+        }
+    };
+
+    Swal.fire({
+        title: 'Active Sessions',
+        html: modalHtml,
+        width: '95vw',
+        maxWidth: '600px',
+        showCloseButton: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal2-toast'
+        }
+    });
+}
+
+// Charts Initialization
+function initializeCharts(user) {
+    const taskCtx = document.getElementById('taskChart');
+    if (!taskCtx) return;
+
+    const data = generateTaskChartData(user);
+    
+    new Chart(taskCtx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Views',
+                data: data.views,
+                borderColor: 'var(--primary)',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+function generateTaskChartData(user) {
+    const analytics = user.analytics || {};
+    const monthlyStats = analytics.monthly_stats || {};
+    const dateViews = [];
+
+    Object.entries(monthlyStats).forEach(([monthKey, stats]) => {
+        if (stats.daily) {
+            Object.entries(stats.daily).forEach(([day, views]) => {
+                const fullDate = `${monthKey}-${day.padStart(2, '0')}`;
+                dateViews.push({
+                    date: new Date(fullDate),
+                    views: views || 0
+                });
+            });
+        }
+    });
+
+    dateViews.sort((a, b) => a.date - b.date);
+    const recentData = dateViews.slice(-7);
+
+    if (recentData.length === 0) {
+        return {
+            labels: ['No Data'],
+            views: [0]
+        };
+    }
+
+    return {
+        labels: recentData.map(item => item.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+        views: recentData.map(item => item.views)
+    };
+}
+
+function initializeCountryMap(user) {
+    const container = document.getElementById('countryMap');
+    if (!container) return;
+
+    // Simple placeholder for map
+    container.innerHTML = `
+        <div style="height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg-tertiary); border-radius: var(--radius);">
+            <div style="text-align: center;">
+                <i class="ri-global-line" style="font-size: 3rem; color: var(--text-tertiary);"></i>
+                <div style="margin-top: 1rem; color: var(--text-secondary);">Country Analytics</div>
+            </div>
+        </div>
+    `;
+}
+
+function updateCharts() {
+    if (currentData.user) {
+        setTimeout(() => {
+            initializeCharts(currentData.user);
+            initializeCountryMap(currentData.user);
+        }, 100);
+    }
+}
+
+// Pagination
+function generatePagination(type, loadFunction, paginationData) {
+    const pagination = paginationData || paginationState[type];
+    if (!pagination || pagination.total <= pagination.pageSize) return '';
+
+    const totalPages = Math.ceil(pagination.total / pagination.pageSize);
+    const currentPage = pagination.page || 1;
+
+    let html = '<div class="pagination">';
+    
+    html += `<button class="pagination-btn" ${currentPage <= 1 ? 'disabled' : ''} onclick="(${loadFunction})(${currentPage - 1})">
+        <i class="ri-arrow-left-s-line"></i> Previous
+    </button>`;
+
+    for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+        html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="(${loadFunction})(${i})">${i}</button>`;
+    }
+
+    html += `<button class="pagination-btn" ${currentPage >= totalPages ? 'disabled' : ''} onclick="(${loadFunction})(${currentPage + 1})">
+        Next <i class="ri-arrow-right-s-line"></i>
+    </button>`;
+
+    html += '<div class="pagination-info">';
+    html += `Page ${currentPage} of ${totalPages}`;
+    html += '</div></div>';
+
+    return html;
+}
+
+function callPaginationHandler(handlerId, page) {
+    if (paginationHandlers[handlerId]) {
+        paginationHandlers[handlerId](page);
+    }
+}
+
+// Utility Functions
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard', 'success');
+    }).catch(() => {
+        showToast('Failed to copy', 'error');
+    });
+}
+
+function showToast(message, type = 'info') {
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <i class="ri-${type === 'success' ? 'check' : type === 'error' ? 'close' : type === 'warning' ? 'alert' : 'information'}-circle-line"></i>
+        <span>${message}</span>
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.remove();
+    }, 4000);
+}
+
+function showSpinner() {
+    document.getElementById('content').innerHTML = `
+        <div style="display: flex; justify-content: center; align-items: center; height: 300px;">
+            <div class="spinner"></div>
+        </div>
+    `;
+}
+
+function showErrorState(message) {
+    document.getElementById('content').innerHTML = `
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="ri-error-warning-line"></i>
+            </div>
+            <div class="empty-state-title">Error Loading Data</div>
+            <div class="empty-state-description">${message}</div>
+            <button class="btn btn-primary" onclick="location.reload()">
+                <i class="ri-refresh-line"></i> Retry
+            </button>
+        </div>
+    `;
+}
+
+async function logout() {
+    try {
+        await api('/logout');
+    } catch (error) {
+        console.error('Logout error:', error);
+    } finally {
+        document.cookie = 'session_token=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        localStorage.removeItem('authToken');
+        window.location.href = '/login.html';
+    }
+}
+
+async function cancelSubscription() {
+    const result = await Swal.fire({
+        title: 'Cancel Subscription?',
+        text: "Your plan will remain active until the end of the current period",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--error)',
+        confirmButtonText: 'Cancel Subscription'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            await api('/hosting/cancel-subscription');
+            showToast('Subscription cancelled', 'success');
+            loadBilling();
+        } catch (error) {
+            showToast('Failed to cancel subscription', 'error');
+        }
+    }
+}
+</script>
+
+</body>
+</html>

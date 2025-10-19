@@ -2262,12 +2262,25 @@ div#modalBody {
         max-height: 85vh !important;
         width: 95vw !important;
         padding: 1rem !important;
+        padding-top: 3rem !important;
     }
     
     .swal2-html-container {
         max-height: 60vh !important;
         overflow-y: auto !important;
         padding: 0.5rem !important;
+        padding-bottom: 2rem !important;
+    }
+    
+    /* Fix close button positioning on mobile for swal2-toast modals */
+    .swal2-toast button:where(.swal2-close) {
+        position: absolute !important;
+        top: 0.5rem !important;
+        right: 0.5rem !important;
+        grid-column: unset !important;
+        grid-row: unset !important;
+        font-size: 2em !important;
+        z-index: 2 !important;
     }
     
     .swal2-html-container .card-body {
@@ -3372,8 +3385,7 @@ async function loadDashboard(page = 1) {
         </div>
 
         <!-- Fixed pagination with proper structure -->
-        <div class="pagination" style="flex-direction: column;">
-        <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+        <div class="pagination">
         <button class="pagination-btn" ${pagination.current <= 1 ? 'disabled' : ''} onclick="loadDashboard(${pagination.current - 1})">
         <i class="ri-arrow-left-s-line"></i> Previous
         </button>
@@ -3418,7 +3430,6 @@ async function loadDashboard(page = 1) {
         <button class="pagination-btn" ${!pagination.has_next ? 'disabled' : ''} onclick="loadDashboard(${pagination.current + 1})">
         Next <i class="ri-arrow-right-s-line"></i>
         </button>
-        </div>
 
         <div class="pagination-info">
         Page ${pagination.current} of ${Math.max(1, pagination.pages)} | Showing ${sortedTasks.length} of ${pagination.total} tasks

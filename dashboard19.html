@@ -2419,18 +2419,10 @@ div#modalBody {
         </div>
     </div>
     <div style="padding: 0.5rem 0;">
-        <a href="#" class="nav-item" data-page="sessions" onclick="closeMobileProfileDropdown()" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem;">
+        <a href="#" class="nav-item" onclick="showSessionsModal(); closeMobileProfileDropdown()" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem;">
             <i class="ri-device-line"></i>
             <span>Active Sessions</span>
             <span class="badge badge-primary" id="mobileDropdownSessionCount" style="margin-left: auto;"></span>
-        </a>
-        <a href="#" class="nav-item" data-page="profile" onclick="closeMobileProfileDropdown()" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem;">
-            <i class="ri-user-settings-line"></i>
-            <span>Profile Settings</span>
-        </a>
-        <a href="#" class="nav-item" data-page="billing" onclick="closeMobileProfileDropdown()" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem;">
-            <i class="ri-bank-card-line"></i>
-            <span>Billing & Plans</span>
         </a>
         <div style="border-top: 1px solid var(--border); margin: 0.5rem 0;"></div>
         <a href="#" class="nav-item" onclick="logout(); closeMobileProfileDropdown()" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; color: var(--error);">

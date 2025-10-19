@@ -1866,6 +1866,82 @@ div#modalBody {
 .views-by-date-list .list-item:nth-child(odd) {
     background: var(--bg-tertiary);
 }
+
+/* Mobile responsive styles for task details modal */
+@media (max-width: 768px) {
+    .task-modal-header h3 {
+        font-size: 1rem !important;
+        word-break: break-all;
+        line-height: 1.3;
+    }
+    
+    .task-modal-header .header-meta {
+        font-size: 0.7rem !important;
+        flex-direction: column;
+        gap: 0.25rem !important;
+    }
+    
+    .task-modal-stat-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .task-modal-stat-card {
+        padding: 0.75rem !important;
+    }
+    
+    .task-modal-stat-card .stat-value {
+        font-size: 1.25rem !important;
+    }
+    
+    .task-modal-stat-card .stat-label {
+        font-size: 0.7rem !important;
+    }
+    
+    .task-modal-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .task-modal-section {
+        padding: 0.875rem !important;
+    }
+    
+    .task-modal-section-title {
+        font-size: 0.95rem !important;
+        margin-bottom: 0.75rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+    
+    .task-modal-section canvas {
+        max-height: 180px !important;
+    }
+    
+    .views-by-date-list {
+        max-height: 200px !important;
+    }
+    
+    .views-by-date-list .list-item {
+        padding: 0.5rem !important;
+        font-size: 0.85rem;
+    }
+    
+    .install-instructions {
+        padding: 0.75rem !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .install-instructions code {
+        padding: 0.5rem !important;
+        font-size: 0.7rem !important;
+    }
+    
+    .copy-btn {
+        padding: 0.35rem 0.6rem !important;
+        font-size: 0.75rem !important;
+    }
+}
 .task-modal-header {
     background: transparent!important;
 }
@@ -2645,13 +2721,16 @@ function toggleMobileProfileDropdown(event) {
             // Update user info when opening
             const user = currentData.user;
             if (user) {
-                const initial = (user.name || user.email || 'U').charAt(0).toUpperCase();
+                const initial = (user.email || 'U').charAt(0).toUpperCase();
                 document.getElementById('mobileDropdownUserInitial').textContent = initial;
-                document.getElementById('mobileDropdownUserName').textContent = user.name || 'User';
+                // Hide the name element and show only email
+                const nameEl = document.getElementById('mobileDropdownUserName');
+                if (nameEl) nameEl.style.display = 'none';
                 document.getElementById('mobileDropdownUserEmail').textContent = user.email || '';
                 
-                // Update session count
-                const sessionCount = currentData.sessions?.length || 0;
+                // Update session count (include current session)
+                const otherSessions = getOtherSessions();
+                const sessionCount = otherSessions.length + 1;
                 document.getElementById('mobileDropdownSessionCount').textContent = sessionCount;
             }
         }
@@ -2762,7 +2841,7 @@ function showSessionsModal() {
         html: modalHtml,
         showConfirmButton: false,
         showCancelButton: true,
-        cancelButtonText: 'X Close this window',
+        cancelButtonText: 'Close',
         width: '95vw',
         customClass: {
             popup: 'sessions-modal-custom',

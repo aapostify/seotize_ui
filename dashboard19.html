@@ -1,6 +1,32 @@
 <!DOCTYPE html>
 <!--
-Dashboard v18 Changes:
+Dashboard v19 Changes:
+1. Fixed mobile profile dropdown to match desktop functionality - Active Sessions now shows modal
+2. Backend edit-article error fix required - see notes below
+
+BACKEND FIX REQUIRED for /edit-article/<article_id> endpoint:
+=============================================================
+The error "User not found" with code 500 is caused by inconsistent error response formats.
+
+ISSUES TO FIX:
+1. Inconsistent error response formats:
+   - Current mixed formats: 
+     {"status": "error", "code": 401, "data": {"message": "..."}}
+     {"status": "error", "error": {"code": 500, "message": "..."}}
+   - Should be standardized to: {"status": "error", "error": {"code": xxx, "message": "..."}}
+
+2. Missing session token validation before database query
+3. No error handling for database update failures  
+4. Inconsistent error codes and messages
+
+FIXES NEEDED:
+- Line where user lookup happens: Add check if session_token is empty before query
+- All error returns: Change format from "code" and "data" to use "error" object
+- Add try-catch around articles.update_one() with proper error handling
+- Check result.modified_count after update to ensure it succeeded
+- Standardize all error responses to use: {"status": "error", "error": {"code": xxx, "message": "..."}}
+
+Previous Dashboard v18 Changes:
 1. Fixed dark/light mode for all modals (article details, edit, payment details)
 2. Optimized mobile version - proper sizing, no scrolling in details modals
 3. Improved billing design with full API data (amount, currency, dates, invoice, transaction, task_id, etc.)

@@ -1,6 +1,32 @@
 <!DOCTYPE html>
 <!--
-Dashboard v18 Changes:
+Dashboard v19 Changes:
+1. Fixed mobile profile dropdown to match desktop functionality - Active Sessions now shows modal
+2. Backend edit-article error fix required - see notes below
+
+BACKEND FIX REQUIRED for /edit-article/<article_id> endpoint:
+=============================================================
+The error "User not found" with code 500 is caused by inconsistent error response formats.
+
+ISSUES TO FIX:
+1. Inconsistent error response formats:
+   - Current mixed formats: 
+     {"status": "error", "code": 401, "data": {"message": "..."}}
+     {"status": "error", "error": {"code": 500, "message": "..."}}
+   - Should be standardized to: {"status": "error", "error": {"code": xxx, "message": "..."}}
+
+2. Missing session token validation before database query
+3. No error handling for database update failures  
+4. Inconsistent error codes and messages
+
+FIXES NEEDED:
+- Line where user lookup happens: Add check if session_token is empty before query
+- All error returns: Change format from "code" and "data" to use "error" object
+- Add try-catch around articles.update_one() with proper error handling
+- Check result.modified_count after update to ensure it succeeded
+- Standardize all error responses to use: {"status": "error", "error": {"code": xxx, "message": "..."}}
+
+Previous Dashboard v18 Changes:
 1. Fixed dark/light mode for all modals (article details, edit, payment details)
 2. Optimized mobile version - proper sizing, no scrolling in details modals
 3. Improved billing design with full API data (amount, currency, dates, invoice, transaction, task_id, etc.)
@@ -2419,18 +2445,10 @@ div#modalBody {
         </div>
     </div>
     <div style="padding: 0.5rem 0;">
-        <a href="#" class="nav-item" data-page="sessions" onclick="closeMobileProfileDropdown()" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem;">
+        <a href="#" class="nav-item" onclick="showSessionsModal(); closeMobileProfileDropdown()" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem;">
             <i class="ri-device-line"></i>
             <span>Active Sessions</span>
             <span class="badge badge-primary" id="mobileDropdownSessionCount" style="margin-left: auto;"></span>
-        </a>
-        <a href="#" class="nav-item" data-page="profile" onclick="closeMobileProfileDropdown()" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem;">
-            <i class="ri-user-settings-line"></i>
-            <span>Profile Settings</span>
-        </a>
-        <a href="#" class="nav-item" data-page="billing" onclick="closeMobileProfileDropdown()" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem;">
-            <i class="ri-bank-card-line"></i>
-            <span>Billing & Plans</span>
         </a>
         <div style="border-top: 1px solid var(--border); margin: 0.5rem 0;"></div>
         <a href="#" class="nav-item" onclick="logout(); closeMobileProfileDropdown()" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; color: var(--error);">

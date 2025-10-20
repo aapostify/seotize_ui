@@ -366,7 +366,7 @@
         /* Features Grid */
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
         }
 
@@ -408,12 +408,17 @@
             color: var(--text-light);
         }
 
-        /* Pricing Section */
+        /* Pricing Section - REDESIGNED */
+        #pricing {
+            background: var(--bg-secondary);
+        }
+
         .pricing-tabs {
             display: flex;
             justify-content: center;
             gap: 1rem;
             margin-bottom: 3rem;
+            flex-wrap: wrap;
         }
 
         .pricing-tab {
@@ -425,6 +430,14 @@
             cursor: pointer;
             transition: all 0.3s ease;
             color: var(--text);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pricing-tab i {
+            font-size: 1.1rem;
         }
 
         .pricing-tab.active {
@@ -440,6 +453,12 @@
 
         .pricing-content.active {
             display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Hosting Plans */
@@ -448,6 +467,7 @@
             justify-content: center;
             gap: 0.5rem;
             margin-bottom: 3rem;
+            flex-wrap: wrap;
         }
 
         .duration-btn {
@@ -470,18 +490,21 @@
 
         .pricing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 2rem;
-            margin-bottom: 3rem;
+            max-width: 1200px;
+            margin: 0 auto 3rem;
         }
 
         .pricing-card {
             background: var(--bg-secondary);
-            padding: 2.5rem 2rem;
+            padding: 2rem 1.75rem;
             border-radius: 16px;
             border: 2px solid var(--border);
             transition: all 0.3s ease;
             position: relative;
+            display: flex;
+            flex-direction: column;
         }
 
         .pricing-card:hover {
@@ -493,38 +516,46 @@
         .pricing-card.featured {
             border-color: var(--primary);
             box-shadow: 0 8px 24px var(--primary-glow);
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured:hover {
+            transform: scale(1.05) translateY(-8px);
         }
 
         .pricing-badge {
             position: absolute;
             top: -12px;
-            right: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             padding: 0.375rem 1rem;
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .pricing-header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .pricing-name {
             font-size: 1.5rem;
             font-weight: 800;
             color: var(--text);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
         }
 
         .pricing-price {
-            font-size: 2.5rem;
+            font-size: 2.75rem;
             font-weight: 800;
             color: var(--primary);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
+            line-height: 1;
         }
 
         .pricing-price span {
@@ -541,20 +572,24 @@
         .pricing-features {
             list-style: none;
             margin-bottom: 2rem;
+            flex-grow: 1;
         }
 
         .pricing-features li {
-            padding: 0.75rem 0;
+            padding: 0.625rem 0;
             color: var(--text-light);
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 0.95rem;
+            align-items: flex-start;
+            gap: 0.625rem;
+            font-size: 0.9rem;
+            line-height: 1.4;
         }
 
         .pricing-features li i {
             color: var(--success);
-            font-size: 1.1rem;
+            font-size: 1rem;
+            margin-top: 0.125rem;
+            flex-shrink: 0;
         }
 
         .pricing-btn {
@@ -591,17 +626,21 @@
         /* Task Pricing */
         .task-pricing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
         .task-card {
             background: var(--bg-secondary);
-            padding: 2.5rem 2rem;
+            padding: 2rem 1.75rem;
             border-radius: 16px;
             border: 2px solid var(--border);
             transition: all 0.3s ease;
             text-align: center;
+            display: flex;
+            flex-direction: column;
         }
 
         .task-card:hover {
@@ -620,7 +659,7 @@
             justify-content: center;
             font-size: 2rem;
             color: white;
-            margin: 0 auto 1.5rem;
+            margin: 0 auto 1.25rem;
         }
 
         .task-name {
@@ -631,40 +670,72 @@
         }
 
         .task-price {
-            font-size: 3rem;
+            font-size: 2.75rem;
             font-weight: 800;
             color: var(--primary);
             margin-bottom: 0.5rem;
+            line-height: 1;
         }
 
         .task-price span {
-            font-size: 1.25rem;
+            font-size: 1.125rem;
             color: var(--text-light);
         }
 
         .task-description {
             color: var(--text-light);
             margin-bottom: 1.5rem;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .task-benefits {
             list-style: none;
             margin-bottom: 2rem;
             text-align: left;
+            flex-grow: 1;
         }
 
         .task-benefits li {
-            padding: 0.625rem 0;
+            padding: 0.5rem 0;
             color: var(--text-light);
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 0.9rem;
+            align-items: flex-start;
+            gap: 0.625rem;
+            font-size: 0.875rem;
+            line-height: 1.4;
         }
 
         .task-benefits li i {
             color: var(--success);
+            margin-top: 0.125rem;
+            flex-shrink: 0;
+        }
+
+        .task-info-box {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary-glow), transparent);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .task-info-box h3 {
+            color: var(--text);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .task-info-box p {
+            color: var(--text-light);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+            font-size: 0.95rem;
         }
 
         /* Blog Section */
@@ -899,8 +970,17 @@
                 gap: 2rem;
             }
 
-            .pricing-grid {
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            .pricing-grid,
+            .task-pricing-grid {
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+
+            .pricing-card.featured:hover {
+                transform: translateY(-8px);
             }
         }
 
@@ -941,13 +1021,70 @@
                 padding: 4rem 1.5rem;
             }
 
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .section-subtitle {
+                font-size: 1rem;
+                margin-bottom: 3rem;
+            }
+
             .features-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .pricing-tabs {
+                gap: 0.75rem;
+            }
+
+            .pricing-tab {
+                padding: 0.75rem 1.5rem;
+                font-size: 0.875rem;
+            }
+
+            .pricing-duration {
+                gap: 0.5rem;
+            }
+
+            .duration-btn {
+                padding: 0.5rem 1.25rem;
+                font-size: 0.85rem;
             }
 
             .pricing-grid,
             .task-pricing-grid {
                 grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .pricing-card {
+                padding: 1.75rem 1.5rem;
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+
+            .pricing-name {
+                font-size: 1.375rem;
+            }
+
+            .pricing-price {
+                font-size: 2.5rem;
+            }
+
+            .task-card {
+                padding: 1.75rem 1.5rem;
+            }
+
+            .task-info-box {
+                padding: 1.5rem;
+                margin-top: 2rem;
+            }
+
+            .task-info-box h3 {
+                font-size: 1.25rem;
             }
 
             .blog-item {
@@ -1060,6 +1197,21 @@
             .mobile-item i {
                 font-size: 1.2rem;
             }
+
+            .pricing-card,
+            .task-card {
+                padding: 1.5rem 1.25rem;
+            }
+
+            .pricing-name,
+            .task-name {
+                font-size: 1.25rem;
+            }
+
+            .pricing-price,
+            .task-price {
+                font-size: 2.25rem;
+            }
         }
     </style>
 </head>
@@ -1074,7 +1226,7 @@
                 <li><a href="blogs.html">Blog</a></li>
             </ul>
             <div class="nav-actions">
-                <a href="register.html" class="nav-btn primary">Get Started</a>
+                <a href="connect.html" class="nav-btn primary">Get Started</a>
                 <button class="theme-btn" onclick="toggleTheme()">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -1100,10 +1252,10 @@
             <!-- Pricing Tabs -->
             <div class="pricing-tabs">
                 <button class="pricing-tab active" onclick="switchPricingTab('hosting')">
-                    <i class="ri-server-line"></i> Hosting Plans
+                    <i class="ri-server-line"></i> <span>Hosting Plans</span>
                 </button>
                 <button class="pricing-tab" onclick="switchPricingTab('tasks')">
-                    <i class="ri-cursor-line"></i> Task-Based Pricing
+                    <i class="ri-cursor-line"></i> <span>Task Pricing</span>
                 </button>
             </div>
 
@@ -1127,47 +1279,47 @@
                         <div class="task-price">$0.10<span>/click</span></div>
                         <p class="task-description">Standard user engagement with basic interaction</p>
                         <ul class="task-benefits">
-                            <li><i class="ri-check-line"></i> 1 concurrent task limit</li>
-                            <li><i class="ri-check-line"></i> Real user traffic</li>
-                            <li><i class="ri-check-line"></i> Basic engagement metrics</li>
-                            <li><i class="ri-check-line"></i> Standard priority queue</li>
+                            <li><i class="ri-check-line"></i> <span>1 concurrent task limit</span></li>
+                            <li><i class="ri-check-line"></i> <span>Real user traffic</span></li>
+                            <li><i class="ri-check-line"></i> <span>Basic engagement</span></li>
+                            <li><i class="ri-check-line"></i> <span>Standard priority</span></li>
                         </ul>
-                        <button class="pricing-btn" onclick="window.location.href='register.html'">Start Now</button>
+                        <button class="pricing-btn" onclick="window.location.href='connect.html'">Start Now</button>
                     </div>
 
                     <div class="task-card">
                         <div class="task-icon">⚡</div>
                         <h3 class="task-name">Standard</h3>
                         <div class="task-price">$0.12<span>/click</span></div>
-                        <p class="task-description">Enhanced engagement with better user interaction</p>
+                        <p class="task-description">Enhanced engagement with better interaction</p>
                         <ul class="task-benefits">
-                            <li><i class="ri-check-line"></i> 3 concurrent tasks limit</li>
-                            <li><i class="ri-check-line"></i> Higher engagement time</li>
-                            <li><i class="ri-check-line"></i> More page interactions</li>
-                            <li><i class="ri-check-line"></i> Medium priority queue</li>
+                            <li><i class="ri-check-line"></i> <span>3 concurrent tasks</span></li>
+                            <li><i class="ri-check-line"></i> <span>Higher engagement</span></li>
+                            <li><i class="ri-check-line"></i> <span>More interactions</span></li>
+                            <li><i class="ri-check-line"></i> <span>Medium priority</span></li>
                         </ul>
-                        <button class="pricing-btn" onclick="window.location.href='register.html'">Start Now</button>
+                        <button class="pricing-btn" onclick="window.location.href='connect.html'">Start Now</button>
                     </div>
 
                     <div class="task-card">
                         <div class="task-icon">🚀</div>
                         <h3 class="task-name">Premium</h3>
                         <div class="task-price">$0.15<span>/click</span></div>
-                        <p class="task-description">Maximum engagement with deep user interaction</p>
+                        <p class="task-description">Maximum engagement with deep interaction</p>
                         <ul class="task-benefits">
-                            <li><i class="ri-check-line"></i> 5 concurrent tasks limit</li>
-                            <li><i class="ri-check-line"></i> Maximum engagement time</li>
-                            <li><i class="ri-check-line"></i> Deep page exploration</li>
-                            <li><i class="ri-check-line"></i> Highest priority queue</li>
-                            <li><i class="ri-check-line"></i> More partner interest</li>
+                            <li><i class="ri-check-line"></i> <span>5 concurrent tasks</span></li>
+                            <li><i class="ri-check-line"></i> <span>Max engagement time</span></li>
+                            <li><i class="ri-check-line"></i> <span>Deep exploration</span></li>
+                            <li><i class="ri-check-line"></i> <span>Highest priority</span></li>
+                            <li><i class="ri-check-line"></i> <span>Partner interest</span></li>
                         </ul>
-                        <button class="pricing-btn" onclick="window.location.href='register.html'">Start Now</button>
+                        <button class="pricing-btn" onclick="window.location.href='connect.html'">Start Now</button>
                     </div>
                 </div>
 
-                <div style="text-align: center; margin-top: 3rem; padding: 2rem; background: var(--bg); border-radius: 16px; border: 1px solid var(--border);">
-                    <h3 style="color: var(--text); margin-bottom: 1rem; font-size: 1.5rem;">💎 How Task Pricing Works</h3>
-                    <p style="color: var(--text-light); max-width: 800px; margin: 0 auto; line-height: 1.8;">
+                <div class="task-info-box">
+                    <h3><i class="ri-lightbulb-line"></i> How Task Pricing Works</h3>
+                    <p>
                         Higher priority tasks get more user engagement, longer visit duration, and more clicks. 
                         Users collect gems from your website, making premium tasks more attractive to partners. 
                         You only pay for actual clicks, and you can select any amount you want!
@@ -1232,9 +1384,9 @@
                 <i class="ri-article-line"></i>
                 <span>Blog</span>
             </a>
-            <a href="register.html" class="mobile-item">
+            <a href="connect.html" class="mobile-item">
                 <i class="ri-user-add-line"></i>
-                <span>Sign Up</span>
+                <span>Join</span>
             </a>
         </div>
     </div>
@@ -1248,19 +1400,19 @@
                     {
                         title: "AI-Powered SEO Platform",
                         description: "Boost search rankings with intelligent automation and real user engagement from 150+ countries.",
-                        cta: { text: "Start Free Trial", link: "register.html" },
+                        cta: { text: "Start Free Trial", link: "connect.html" },
                         image: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif"
                     },
                     {
                         title: "Real User Engagement",
                         description: "Get authentic traffic from real users who search and interact with your content naturally.",
-                        cta: { text: "Get Real Traffic", link: "register.html" },
+                        cta: { text: "Get Real Traffic", link: "connect.html" },
                         image: "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif"
                     },
                     {
                         title: "AI Content Generation",
                         description: "Create unlimited SEO-optimized content with advanced AI technology that ranks higher.",
-                        cta: { text: "Generate Content", link: "register.html" },
+                        cta: { text: "Generate Content", link: "connect.html" },
                         image: "https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif"
                     }
                 ]
@@ -1283,10 +1435,10 @@
             },
             blog: [],
             footer: [
-                { title: "Platform", links: [["AI Content Generator", "register.html"], ["Analytics Dashboard", "register.html"], ["Global CDN", "register.html"], ["User Engagement", "register.html"]] },
-                { title: "Solutions", links: [["For Enterprise", "register.html"], ["For Startups", "register.html"], ["For Agencies", "register.html"], ["For Bloggers", "register.html"]] },
-                { title: "Resources", links: [["Documentation", "blogs.html"], ["Blog & Insights", "blogs.html"], ["Case Studies", "blogs.html"], ["Support Center", "register.html"]] },
-                { title: "Company", links: [["About Us", "#about"], ["Contact", "register.html"], ["Privacy Policy", "register.html"], ["Terms of Service", "register.html"]] }
+                { title: "Platform", links: [["AI Content Generator", "connect.html"], ["Analytics Dashboard", "connect.html"], ["Global CDN", "connect.html"], ["User Engagement", "connect.html"]] },
+                { title: "Solutions", links: [["For Enterprise", "connect.html"], ["For Startups", "connect.html"], ["For Agencies", "connect.html"], ["For Bloggers", "connect.html"]] },
+                { title: "Resources", links: [["Documentation", "blogs.html"], ["Blog & Insights", "blogs.html"], ["Case Studies", "blogs.html"], ["Support Center", "connect.html"]] },
+                { title: "Company", links: [["About Us", "#about"], ["Contact", "connect.html"], ["Privacy Policy", "connect.html"], ["Terms of Service", "connect.html"]] }
             ]
         };
 
@@ -1412,14 +1564,14 @@
                         ${isFree ? '<p class="pricing-period">Forever Free</p>' : ''}
                     </div>
                     <ul class="pricing-features">
-                        <li><i class="ri-check-line"></i> ${plan.articles} Articles</li>
-                        <li><i class="ri-check-line"></i> ${plan.images.toLocaleString()} Images</li>
-                        <li><i class="ri-check-line"></i> Global CDN</li>
-                        <li><i class="ri-check-line"></i> Auto Optimization</li>
-                        <li><i class="ri-check-line"></i> ${isFree ? 'Community' : 'Priority'} Support</li>
-                        ${!isFree ? '<li><i class="ri-check-line"></i> Advanced Analytics</li>' : ''}
+                        <li><i class="ri-check-line"></i> <span>${plan.articles} Articles</span></li>
+                        <li><i class="ri-check-line"></i> <span>${plan.images.toLocaleString()} Images</span></li>
+                        <li><i class="ri-check-line"></i> <span>Global CDN</span></li>
+                        <li><i class="ri-check-line"></i> <span>Auto Optimization</span></li>
+                        <li><i class="ri-check-line"></i> <span>${isFree ? 'Community' : 'Priority'} Support</span></li>
+                        ${!isFree ? '<li><i class="ri-check-line"></i> <span>Advanced Analytics</span></li>' : ''}
                     </ul>
-                    <button class="pricing-btn ${isFree ? 'secondary' : ''}" onclick="window.location.href='register.html'">
+                    <button class="pricing-btn ${isFree ? 'secondary' : ''}" onclick="window.location.href='connect.html'">
                         ${isFree ? 'Start Free' : 'Get Started'}
                     </button>
                 `;
@@ -1436,7 +1588,7 @@
 
         function switchPricingTab(tab) {
             document.querySelectorAll('.pricing-tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            event.target.closest('.pricing-tab').classList.add('active');
 
             document.querySelectorAll('.pricing-content').forEach(c => c.classList.remove('active'));
             document.getElementById(tab === 'hosting' ? 'hostingPricing' : 'taskPricing').classList.add('active');

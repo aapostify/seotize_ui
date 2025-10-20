@@ -190,34 +190,48 @@
 
         .hero-content {
             text-align: center;
-            max-width: 420px;
+            max-width: 480px;
             position: relative;
             z-index: 1;
+            padding: 2rem;
         }
 
         .hero-image {
-            width: 240px;
-            height: 240px;
-            border-radius: 20px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 20px 40px rgba(37, 99, 235, 0.2);
+            width: 280px;
+            height: 280px;
+            border-radius: 24px;
+            margin-bottom: 2rem;
+            box-shadow: 0 25px 50px rgba(37, 99, 235, 0.25);
             object-fit: cover;
+            border: 3px solid var(--border);
         }
 
         .hero-title {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 800;
-            margin-bottom: 0.875rem;
+            margin-bottom: 1rem;
             line-height: 1.2;
+            background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
         }
 
         .hero-text {
             font-size: 1rem;
-            color: var(--text-light);
+            color: var(--primary);
             min-height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-weight: 500;
         }
 
         .cursor {
@@ -261,8 +275,12 @@
         .form-header h1 {
             font-size: 1.75rem;
             font-weight: 800;
-            margin-bottom: 0.375rem;
+            margin-bottom: 0.5rem;
             letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .form-header p {
@@ -323,26 +341,30 @@
             color: var(--error);
         }
 
-        /* Enhanced Captcha Styling */
+        /* Fixed Captcha Styling - Perfectly Centered */
         .captcha-wrap {
             margin: 1.25rem 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 65px;
+            width: 100%;
         }
 
-        .captcha-wrap iframe {
-            width: 100% !important;
-            max-width: 300px !important;
-            height: 65px !important;
+        .captcha-wrap > div {
+            display: flex;
+            justify-content: center;
+            width: 100%;
         }
 
-        /* Override Cloudflare Turnstile default styles */
         .cf-turnstile {
-            width: 100% !important;
-            max-width: 300px !important;
-            height: 65px !important;
+            margin: 0 auto !important;
+            display: block !important;
+        }
+
+        .cf-turnstile iframe {
+            margin: 0 auto !important;
+            display: block !important;
         }
 
         .form-row {
@@ -391,10 +413,12 @@
             color: var(--primary);
             text-decoration: none;
             font-weight: 500;
+            transition: all 0.2s ease;
         }
 
         .forgot:hover {
             text-decoration: underline;
+            color: var(--primary-dark);
         }
 
         .submit-btn {
@@ -548,6 +572,25 @@
             display: none;
         }
 
+        @media (max-width: 968px) {
+            .hero-section {
+                flex: 0.8;
+            }
+            
+            .hero-content {
+                max-width: 400px;
+            }
+            
+            .hero-image {
+                width: 220px;
+                height: 220px;
+            }
+            
+            .hero-title {
+                font-size: 2rem;
+            }
+        }
+
         @media (max-width: 768px) {
             nav { height: 58px; }
 
@@ -587,14 +630,6 @@
 
             .captcha-wrap {
                 margin: 1rem 0;
-            }
-
-            .captcha-wrap iframe {
-                max-width: 280px !important;
-            }
-
-            .cf-turnstile {
-                max-width: 280px !important;
             }
 
             .nav-container { padding: 0 1rem; }
@@ -647,20 +682,17 @@
             .mobile-item:active { transform: scale(0.95); }
             .mobile-item.active { color: var(--primary); background: var(--primary-glow); }
             .mobile-item i { font-size: 1.375rem; }
+            
+            /* Disable mobile sign in button */
+            .mobile-item.mobile-signin {
+                pointer-events: none;
+            }
         }
 
         @media (max-width: 480px) {
             .form-card { padding: 1.25rem 1rem; }
             .form-header h1 { font-size: 1.375rem; }
             .input-group { margin-bottom: 0.875rem; }
-            
-            .captcha-wrap iframe {
-                max-width: 260px !important;
-            }
-
-            .cf-turnstile {
-                max-width: 260px !important;
-            }
 
             .mobile-items {
                 grid-template-columns: repeat(5, 1fr);
@@ -697,17 +729,18 @@
     <div class="page-wrapper">
         <section class="hero-section">
             <div class="hero-content">
-                <img class="hero-image" src="https://image-worker.cranko.cloud/placeholder/240/240?text=Welcome&color=2563eb" alt="Welcome">
-                <h1 class="hero-title">Welcome to <span style="color:var(--primary)">SEOTIZE</span></h1>
-                <div class="hero-text" id="typeText">Your SEO dashboard awaits<span class="cursor"></span></div>
+                <img class="hero-image" src="https://image-worker.cranko.cloud/placeholder/280/280?text=SEOTIZE&color=2563eb" alt="SEOTIZE Platform">
+                <h1 class="hero-title">Welcome Back to SEOTIZE</h1>
+                <p class="hero-subtitle">Access your powerful SEO dashboard and take control of your rankings</p>
+                <div class="hero-text" id="typeText">Your success starts here<span class="cursor"></span></div>
             </div>
         </section>
 
         <section class="form-section">
             <div class="form-card">
                 <div class="form-header">
-                    <h1>Welcome Back</h1>
-                    <p>Sign in to your account</p>
+                    <h1>Sign In to Your Account</h1>
+                    <p>Continue your SEO journey</p>
                 </div>
                 <form id="loginForm">
                     <div class="input-group">
@@ -728,7 +761,7 @@
                             <div class="check" id="check"></div>
                             <span>Remember me</span>
                         </label>
-                        <a href="forgot-password.html" class="forgot">Forgot?</a>
+                        <a href="forgot-password.html" class="forgot">Forgot Password?</a>
                     </div>
                     <button type="submit" class="submit-btn" id="submitBtn">Sign In</button>
                 </form>
@@ -767,10 +800,10 @@
                 <i class="ri-article-line"></i>
                 <span>Blog</span>
             </a>
-            <button type="submit" form="loginForm" class="mobile-item active">
+            <div class="mobile-item active mobile-signin">
                 <i class="ri-login-box-line"></i>
                 <span>Sign In</span>
-            </button>
+            </div>
         </div>
     </div>
 
@@ -779,7 +812,13 @@
     <script>
         gsap.registerPlugin(TextPlugin);
         const API = 'https://api.seotize.net';
-        const texts = ['Your SEO dashboard awaits', 'Track rankings & boost traffic', 'AI-powered SEO tools'];
+        const texts = [
+            'Your success starts here',
+            'Track rankings & boost traffic',
+            'AI-powered SEO automation',
+            'Real user engagement tools',
+            'Lightning-fast CDN hosting'
+        ];
         let idx = 0, remember = false, token = null;
 
         function onCaptcha(t) { token = t; }
@@ -825,7 +864,7 @@
         document.getElementById('loginForm').addEventListener('submit', login);
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (getCookie('session_token')) { window.location.href = '/dashboard17'; return; }
+            if (getCookie('session_token')) { window.location.href = '/dashboard19'; return; }
             loadTheme();
             if (window.innerWidth > 768) { type(); setInterval(() => { idx = (idx + 1) % texts.length; type(); }, 4000); }
         });

@@ -121,11 +121,13 @@
             transition: width 0.3s ease;
         }
 
-        .nav-menu a:hover {
+        .nav-menu a:hover,
+        .nav-menu a.active {
             color: var(--primary);
         }
 
-        .nav-menu a:hover::after {
+        .nav-menu a:hover::after,
+        .nav-menu a.active::after {
             width: 100%;
         }
 
@@ -408,9 +410,105 @@
             color: var(--text-light);
         }
 
-        /* Pricing Section - REDESIGNED */
+        /* Story Sections */
+        .story-section {
+            padding: 6rem 2rem;
+        }
+
+        .story-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .story-content h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .story-subtitle {
+            font-size: 1.2rem;
+            color: var(--success);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .story-text {
+            font-size: 1.125rem;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+
+        .story-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .story-features li {
+            padding: 0.5rem 0;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .story-features li::before {
+            content: '✅';
+            font-size: 1.1rem;
+        }
+
+        .story-visual {
+            position: relative;
+        }
+
+        .story-image {
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .story-image:hover {
+            transform: scale(1.02);
+        }
+
+        /* Pricing Section - CREATIVE DESIGN */
         #pricing {
-            background: var(--bg-secondary);
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #pricing::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+            top: -200px;
+            left: -200px;
+            animation: float 15s ease-in-out infinite;
+        }
+
+        #pricing::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+            bottom: -150px;
+            right: -150px;
+            animation: float 12s ease-in-out infinite reverse;
         }
 
         .pricing-tabs {
@@ -419,11 +517,88 @@
             gap: 1rem;
             margin-bottom: 3rem;
             flex-wrap: wrap;
+            position: relative;
+            z-index: 2;
         }
 
         .pricing-tab {
-            padding: 0.875rem 2rem;
-            background: var(--bg);
+            padding: 1rem 2.5rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .pricing-tab:hover::before {
+            left: 100%;
+        }
+
+        .pricing-tab i {
+            font-size: 1.25rem;
+        }
+
+        .pricing-tab.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 8px 24px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+
+        .pricing-content {
+            display: none;
+            position: relative;
+            z-index: 2;
+        }
+
+        .pricing-content.active {
+            display: block;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Hosting Plans - Creative Cards */
+        .pricing-duration {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .duration-btn {
+            padding: 0.75rem 2rem;
+            background: var(--bg-secondary);
             border: 2px solid var(--border);
             border-radius: 10px;
             font-weight: 600;
@@ -431,66 +606,24 @@
             transition: all 0.3s ease;
             color: var(--text);
             font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            position: relative;
         }
 
-        .pricing-tab i {
-            font-size: 1.1rem;
-        }
-
-        .pricing-tab.active {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
+        .duration-btn:hover {
             border-color: var(--primary);
-            box-shadow: 0 4px 16px var(--primary-glow);
-        }
-
-        .pricing-content {
-            display: none;
-        }
-
-        .pricing-content.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Hosting Plans */
-        .pricing-duration {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-bottom: 3rem;
-            flex-wrap: wrap;
-        }
-
-        .duration-btn {
-            padding: 0.625rem 1.5rem;
-            background: var(--bg);
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: var(--text);
-            font-size: 0.9rem;
+            transform: translateY(-2px);
         }
 
         .duration-btn.active {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
+            box-shadow: 0 4px 16px var(--primary-glow);
         }
 
         .pricing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 2rem;
             max-width: 1200px;
             margin: 0 auto 3rem;
@@ -498,75 +631,99 @@
 
         .pricing-card {
             background: var(--bg-secondary);
-            padding: 2rem 1.75rem;
-            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            border-radius: 20px;
             border: 2px solid var(--border);
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+        }
+
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .pricing-card:hover::before {
+            transform: scaleX(1);
         }
 
         .pricing-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
             border-color: var(--primary);
         }
 
         .pricing-card.featured {
             border-color: var(--primary);
-            box-shadow: 0 8px 24px var(--primary-glow);
+            box-shadow: 0 12px 32px var(--primary-glow);
             transform: scale(1.05);
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%);
         }
 
         .pricing-card.featured:hover {
-            transform: scale(1.05) translateY(-8px);
+            transform: scale(1.05) translateY(-12px);
         }
 
         .pricing-badge {
             position: absolute;
-            top: -12px;
+            top: -14px;
             left: 50%;
             transform: translateX(-50%);
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
             color: white;
-            padding: 0.375rem 1rem;
+            padding: 0.5rem 1.5rem;
             border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 700;
+            font-size: 0.75rem;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px var(--primary-glow);
         }
 
         .pricing-header {
             text-align: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .pricing-name {
-            font-size: 1.5rem;
+            font-size: 1.75rem;
             font-weight: 800;
             color: var(--text);
-            margin-bottom: 0.75rem;
+            margin-bottom: 1rem;
         }
 
         .pricing-price {
-            font-size: 2.75rem;
+            font-size: 3.5rem;
             font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 0.25rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
             line-height: 1;
         }
 
         .pricing-price span {
-            font-size: 1rem;
+            font-size: 1.125rem;
             color: var(--text-light);
             font-weight: 500;
         }
 
         .pricing-period {
             color: var(--text-muted);
-            font-size: 0.875rem;
+            font-size: 0.9rem;
+            font-weight: 500;
         }
 
         .pricing-features {
@@ -576,39 +733,64 @@
         }
 
         .pricing-features li {
-            padding: 0.625rem 0;
+            padding: 0.75rem 0;
             color: var(--text-light);
             display: flex;
             align-items: flex-start;
-            gap: 0.625rem;
-            font-size: 0.9rem;
-            line-height: 1.4;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .pricing-features li:last-child {
+            border-bottom: none;
         }
 
         .pricing-features li i {
             color: var(--success);
-            font-size: 1rem;
+            font-size: 1.125rem;
             margin-top: 0.125rem;
             flex-shrink: 0;
         }
 
         .pricing-btn {
             width: 100%;
-            padding: 1rem;
+            padding: 1.125rem;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 0.9375rem;
-            font-weight: 600;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 16px var(--primary-glow);
+            box-shadow: 0 6px 20px var(--primary-glow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .pricing-btn:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
         .pricing-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px var(--primary-glow);
+            box-shadow: 0 10px 30px var(--primary-glow);
         }
 
         .pricing-btn.secondary {
@@ -621,71 +803,107 @@
         .pricing-btn.secondary:hover {
             background: var(--bg-secondary);
             border-color: var(--primary);
+            color: var(--primary);
         }
 
-        /* Task Pricing */
+        /* Task Pricing - Creative Design */
         .task-pricing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            max-width: 1000px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+            max-width: 1100px;
             margin: 0 auto;
         }
 
         .task-card {
             background: var(--bg-secondary);
-            padding: 2rem 1.75rem;
-            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            border-radius: 20px;
             border: 2px solid var(--border);
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-align: center;
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .task-card:hover::after {
+            opacity: 1;
         }
 
         .task-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--card-shadow);
+            transform: translateY(-12px) rotateY(5deg);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
             border-color: var(--primary);
         }
 
         .task-icon {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border-radius: 16px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 2.5rem;
             color: white;
-            margin: 0 auto 1.25rem;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 8px 24px var(--primary-glow);
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .task-card:hover .task-icon {
+            transform: rotateY(360deg) scale(1.1);
         }
 
         .task-name {
-            font-size: 1.5rem;
+            font-size: 1.75rem;
             font-weight: 800;
             color: var(--text);
             margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
         }
 
         .task-price {
-            font-size: 2.75rem;
+            font-size: 3.25rem;
             font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.75rem;
             line-height: 1;
+            position: relative;
+            z-index: 2;
         }
 
         .task-price span {
-            font-size: 1.125rem;
+            font-size: 1.25rem;
             color: var(--text-light);
         }
 
         .task-description {
             color: var(--text-light);
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 2;
         }
 
         .task-benefits {
@@ -693,41 +911,63 @@
             margin-bottom: 2rem;
             text-align: left;
             flex-grow: 1;
+            position: relative;
+            z-index: 2;
         }
 
         .task-benefits li {
-            padding: 0.5rem 0;
+            padding: 0.625rem 0;
             color: var(--text-light);
             display: flex;
             align-items: flex-start;
-            gap: 0.625rem;
-            font-size: 0.875rem;
-            line-height: 1.4;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
 
         .task-benefits li i {
             color: var(--success);
             margin-top: 0.125rem;
             flex-shrink: 0;
+            font-size: 1rem;
         }
 
         .task-info-box {
             margin-top: 3rem;
-            padding: 2rem;
-            background: linear-gradient(135deg, var(--primary-glow), transparent);
-            border: 1px solid var(--border);
-            border-radius: 16px;
+            padding: 2.5rem;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+            border: 2px solid var(--border);
+            border-radius: 20px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-info-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
 
         .task-info-box h3 {
             color: var(--text);
-            margin-bottom: 1rem;
-            font-size: 1.5rem;
+            margin-bottom: 1.25rem;
+            font-size: 1.75rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
+            position: relative;
         }
 
         .task-info-box p {
@@ -735,13 +975,14 @@
             max-width: 800px;
             margin: 0 auto;
             line-height: 1.8;
-            font-size: 0.95rem;
+            font-size: 1rem;
+            position: relative;
         }
 
         /* Blog Section */
         .blog {
             padding: 6rem 2rem;
-            background: var(--bg-secondary);
+            background: var(--bg);
         }
 
         .carousel-container {
@@ -965,14 +1206,15 @@
 
         /* Responsive */
         @media (max-width: 968px) {
-            .hero-container {
+            .hero-container,
+            .story-container {
                 grid-template-columns: 1fr;
                 gap: 2rem;
             }
 
             .pricing-grid,
             .task-pricing-grid {
-                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             }
 
             .pricing-card.featured {
@@ -980,7 +1222,7 @@
             }
 
             .pricing-card.featured:hover {
-                transform: translateY(-8px);
+                transform: translateY(-12px);
             }
         }
 
@@ -1012,11 +1254,6 @@
                 min-height: calc(100vh - 58px - 68px);
             }
 
-            .hero-container {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-
             section {
                 padding: 4rem 1.5rem;
             }
@@ -1034,13 +1271,25 @@
                 grid-template-columns: 1fr;
             }
 
+            .story-content h2 {
+                font-size: 2rem;
+            }
+
+            .story-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .story-text {
+                font-size: 1rem;
+            }
+
             .pricing-tabs {
                 gap: 0.75rem;
             }
 
             .pricing-tab {
-                padding: 0.75rem 1.5rem;
-                font-size: 0.875rem;
+                padding: 0.875rem 1.75rem;
+                font-size: 0.9rem;
             }
 
             .pricing-duration {
@@ -1048,43 +1297,51 @@
             }
 
             .duration-btn {
-                padding: 0.5rem 1.25rem;
-                font-size: 0.85rem;
+                padding: 0.625rem 1.5rem;
+                font-size: 0.875rem;
             }
 
             .pricing-grid,
             .task-pricing-grid {
                 grid-template-columns: 1fr;
-                gap: 1.5rem;
+                gap: 2rem;
             }
 
             .pricing-card {
-                padding: 1.75rem 1.5rem;
+                padding: 2rem 1.5rem;
             }
 
             .pricing-card.featured {
                 transform: scale(1);
             }
 
-            .pricing-name {
-                font-size: 1.375rem;
+            .pricing-name,
+            .task-name {
+                font-size: 1.5rem;
             }
 
-            .pricing-price {
-                font-size: 2.5rem;
+            .pricing-price,
+            .task-price {
+                font-size: 2.75rem;
             }
 
             .task-card {
-                padding: 1.75rem 1.5rem;
+                padding: 2rem 1.5rem;
+            }
+
+            .task-icon {
+                width: 70px;
+                height: 70px;
+                font-size: 2.25rem;
             }
 
             .task-info-box {
-                padding: 1.5rem;
+                padding: 2rem 1.5rem;
                 margin-top: 2rem;
             }
 
             .task-info-box h3 {
-                font-size: 1.25rem;
+                font-size: 1.5rem;
             }
 
             .blog-item {
@@ -1200,17 +1457,23 @@
 
             .pricing-card,
             .task-card {
-                padding: 1.5rem 1.25rem;
+                padding: 1.75rem 1.25rem;
             }
 
             .pricing-name,
             .task-name {
-                font-size: 1.25rem;
+                font-size: 1.375rem;
             }
 
             .pricing-price,
             .task-price {
-                font-size: 2.25rem;
+                font-size: 2.5rem;
+            }
+
+            .task-icon {
+                width: 64px;
+                height: 64px;
+                font-size: 2rem;
             }
         }
     </style>
@@ -1220,9 +1483,9 @@
         <div class="nav-container">
             <a href="index.html" class="logo">SEOTIZE</a>
             <ul class="nav-menu">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#features">Features</a></li>
-                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#home" class="nav-link">Home</a></li>
+                <li><a href="#features" class="nav-link">Features</a></li>
+                <li><a href="#pricing" class="nav-link">Pricing</a></li>
                 <li><a href="blogs.html">Blog</a></li>
             </ul>
             <div class="nav-actions">
@@ -1241,6 +1504,87 @@
             <h2 class="section-title">Powerful SEO Features</h2>
             <p class="section-subtitle">Everything you need to dominate search rankings</p>
             <div class="features-grid" id="features-grid"></div>
+        </div>
+    </section>
+
+    <section class="story-section">
+        <div class="story-container">
+            <div class="story-content">
+                <h2>🚀 Real User Engagement</h2>
+                <p class="story-subtitle">The SEO Game Changer</p>
+                <p class="story-text">Take control of your SEO with real user-driven growth! Seotize ensures that every click, visit, and interaction comes from actual users, not bots—boosting your website's credibility and ranking.</p>
+                <ul class="story-features">
+                    <li>Users search for your target keywords</li>
+                    <li>They visit and interact with your website</li>
+                    <li>Your rankings naturally improve over time</li>
+                    <li>Higher trust from search engines = more traffic!</li>
+                </ul>
+                <a href="connect.html" class="hero-cta">Start Growing Now</a>
+            </div>
+            <div class="story-visual">
+                <img src="https://image-api.seotize.net/image-cdn/5d93bcdd-8834-442f-8e88-390594c781a7" alt="Real User Engagement Dashboard" class="story-image">
+            </div>
+        </div>
+    </section>
+
+    <section class="story-section">
+        <div class="story-container">
+            <div class="story-visual">
+                <img src="https://image-api.seotize.net/image-cdn/97cd3337-ae40-4239-8d26-bf17f34721cc" alt="Lightning Fast CDN Network" class="story-image">
+            </div>
+            <div class="story-content">
+                <h2>🌍 Lightning-Fast Image Hosting & CDN</h2>
+                <p class="story-subtitle">Global Speed Revolution</p>
+                <p class="story-text">Say goodbye to slow-loading images! Seotize provides an almost-free image hosting service that ensures your visuals load instantly, anywhere in the world.</p>
+                <ul class="story-features">
+                    <li>Ultra-Fast CDN – Images stored worldwide</li>
+                    <li>Automatic Optimization – Best format for speed & SEO</li>
+                    <li>On-the-Fly Processing – Resize, compress, rotate</li>
+                    <li>Advanced Analytics – Track views and performance</li>
+                </ul>
+                <a href="connect.html" class="hero-cta">Try CDN Free</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="story-section">
+        <div class="story-container">
+            <div class="story-content">
+                <h2>🆓 Lifetime Free Hosting & Flexible Services</h2>
+                <p class="story-subtitle">Supporting Small Businesses</p>
+                <p class="story-text">At Seotize, we believe in supporting small businesses. Enjoy our lifetime free trial with up to 100 images or articles hosted completely free. No hidden fees, no surprises.</p>
+                <ul class="story-features">
+                    <li>Lifetime Free Tools – SVG placeholders, image hosting</li>
+                    <li>Task-Based Pricing – You choose how much to pay!</li>
+                    <li>Scalable & Cost-Friendly – Grows with your business</li>
+                    <li>No Credit Card Required – Start today</li>
+                    <li>Flexible Payment Options – Cards, PayPal, crypto</li>
+                </ul>
+                <a href="connect.html" class="hero-cta">Start Free Trial</a>
+            </div>
+            <div class="story-visual">
+                <img src="https://image-api.seotize.net/image-cdn/a1515beb-2812-47e4-b3a0-07910bf76f04" alt="Free Hosting Services" class="story-image">
+            </div>
+        </div>
+    </section>
+
+    <section class="story-section">
+        <div class="story-container">
+            <div class="story-visual">
+                <img src="https://image-api.seotize.net/image-cdn/1b8c38a1-4c4d-451c-ac6c-7c8220858621" alt="AI Analytics Dashboard" class="story-image">
+            </div>
+            <div class="story-content">
+                <h2>📊 AI-Driven Analytics & Automated Content</h2>
+                <p class="story-subtitle">Intelligent Automation</p>
+                <p class="story-text">Seotize transforms the way you grow your website with AI-powered analytics, fully automated content generation, and smart scheduling tools.</p>
+                <ul class="story-features">
+                    <li>Real-Time SEO Analytics – Deep insights and recommendations</li>
+                    <li>AI-Generated Content – Fully optimized articles with images</li>
+                    <li>Automated Weekly Scheduler – Hands-free content flow</li>
+                    <li>Set & Forget Optimization – Consistent quality content</li>
+                </ul>
+                <a href="connect.html" class="hero-cta">Try AI Tools</a>
+            </div>
         </div>
     </section>
 
@@ -1368,15 +1712,15 @@
 
     <div class="mobile-nav">
         <div class="mobile-items">
-            <a href="#home" class="mobile-item active">
+            <a href="#home" class="mobile-item active" data-section="home">
                 <i class="ri-home-5-line"></i>
                 <span>Home</span>
             </a>
-            <a href="#features" class="mobile-item">
+            <a href="#features" class="mobile-item" data-section="features">
                 <i class="ri-flashlight-line"></i>
                 <span>Features</span>
             </a>
-            <a href="#pricing" class="mobile-item">
+            <a href="#pricing" class="mobile-item" data-section="pricing">
                 <i class="ri-price-tag-3-line"></i>
                 <span>Pricing</span>
             </a>
@@ -1386,7 +1730,7 @@
             </a>
             <a href="connect.html" class="mobile-item">
                 <i class="ri-user-add-line"></i>
-                <span>Join</span>
+                <span>Connect</span>
             </a>
         </div>
     </div>
@@ -1445,6 +1789,46 @@
         let currentHero = 0;
         let currentBlog = 0;
         let currentDuration = '3month';
+
+        // Active Navigation Highlighting
+        function updateActiveNav() {
+            const sections = ['home', 'features', 'pricing'];
+            const navLinks = document.querySelectorAll('.nav-link');
+            const mobileItems = document.querySelectorAll('.mobile-item[data-section]');
+            
+            let currentSection = 'home';
+            
+            sections.forEach(section => {
+                const element = document.getElementById(section);
+                if (element) {
+                    const rect = element.getBoundingClientRect();
+                    if (rect.top <= 150 && rect.bottom >= 150) {
+                        currentSection = section;
+                    }
+                }
+            });
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === `#${currentSection}`) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            
+            mobileItems.forEach(item => {
+                const section = item.getAttribute('data-section');
+                if (section === currentSection) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', updateActiveNav);
+        window.addEventListener('load', updateActiveNav);
 
         async function fetchBlogData() {
             try {
@@ -1679,9 +2063,10 @@
             setInterval(nextHero, 5000);
             setInterval(nextBlog, 8000);
 
-            // Smooth scroll for mobile nav
-            document.querySelectorAll('.mobile-item[href^="#"]').forEach(link => {
+            // Smooth scroll for all nav items
+            document.querySelectorAll('a[href^="#"]').forEach(link => {
                 link.addEventListener('click', (e) => {
+                    e.preventDefault();
                     const target = document.querySelector(link.getAttribute('href'));
                     if (target) {
                         target.scrollIntoView({ behavior: 'smooth' });

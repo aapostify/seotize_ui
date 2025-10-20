@@ -394,32 +394,27 @@
             color: var(--error);
         }
 
-        /* Perfect Captcha Centering */
+        /* FIXED Captcha Styling - Desktop */
         .captcha-wrap {
             margin: 1.25rem 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 65px;
             width: 100%;
-            overflow: hidden;
+            min-height: 65px;
         }
 
         .cf-turnstile {
-            margin: 0 auto !important;
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-            width: 100% !important;
-        }
-
-        .cf-turnstile > div {
+            width: 300px !important;
+            height: 65px !important;
             margin: 0 auto !important;
         }
 
+        .cf-turnstile > div,
         .cf-turnstile iframe {
+            width: 300px !important;
+            height: 65px !important;
             margin: 0 auto !important;
-            display: block !important;
         }
 
         .password-requirements {
@@ -570,7 +565,6 @@
             padding: 0 0.875rem;
         }
 
-        /* Enhanced Social Button */
         .social-btn {
             width: 100%;
             padding: 1rem 1.25rem;
@@ -720,6 +714,27 @@
                 justify-content: center;
             }
 
+            /* Mobile Captcha - Match Input Width Exactly */
+            .captcha-wrap {
+                margin: 1.5rem 0;
+                min-height: 65px;
+                width: 100%;
+                padding: 0;
+            }
+
+            .cf-turnstile {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 65px !important;
+            }
+
+            .cf-turnstile > div,
+            .cf-turnstile iframe {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 65px !important;
+            }
+
             .form-header {
                 margin-bottom: 1.5rem;
             }
@@ -738,18 +753,6 @@
 
             .input-group {
                 margin-bottom: 1.25rem;
-            }
-
-            /* Mobile Captcha Fix */
-            .captcha-wrap {
-                margin: 1.5rem 0;
-                min-height: 70px;
-                padding: 0;
-            }
-
-            .cf-turnstile {
-                transform: scale(0.95);
-                transform-origin: center;
             }
 
             .otp-input {
@@ -882,16 +885,6 @@
             input {
                 padding: 0.8rem 2.5rem 0.8rem 0.9rem;
                 font-size: 0.9rem;
-            }
-
-            /* Extra Small Mobile Captcha */
-            .captcha-wrap {
-                margin: 1.25rem 0;
-                min-height: 65px;
-            }
-
-            .cf-turnstile {
-                transform: scale(0.88);
             }
 
             .otp-input {
@@ -1044,7 +1037,12 @@
                             <div class="input-icon" id="emailIcon"></div>
                         </div>
                         <div class="captcha-wrap">
-                            <div class="cf-turnstile" data-sitekey="0x4AAAAAABi0oSEk-fxks-xg" data-callback="onCaptchaSuccess" data-theme="auto"></div>
+                            <div class="cf-turnstile" 
+                                 data-sitekey="0x4AAAAAABi0oSEk-fxks-xg" 
+                                 data-callback="onCaptchaSuccess"
+                                 data-error-callback="onCaptchaError" 
+                                 data-theme="auto"
+                                 data-size="flexible"></div>
                         </div>
                         <button type="submit" class="submit-btn" id="emailBtn" disabled>Send Verification Code</button>
                         <div class="divider"><span>or continue with</span></div>
@@ -1157,6 +1155,7 @@
             'Real user engagement tools'
         ];
         let idx = 0, captchaToken = '', timerInterval, currentStep = 1, userEmail = '', notificationTimeout;
+        let turnstileWidgetId = null;
 
         function setCookie(name, value, days) {
             let expires = "";
@@ -1207,7 +1206,15 @@
         }
 
         function onCaptchaSuccess(token) {
+            console.log('Captcha success:', token);
             captchaToken = token;
+            validateEmail();
+        }
+
+        function onCaptchaError(error) {
+            console.error('Captcha error:', error);
+            showToast('Captcha verification failed. Please try again.', 'error');
+            captchaToken = '';
             validateEmail();
         }
 

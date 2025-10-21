@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SEOTIZE - AI SEO Platform | Boost Rankings with Real User Engagement</title>
-    <meta name="description" content="Transform your SEO with AI-powered tools, real user engagement from 150+ countries, lightning-fast CDN, and automated content generation. Start free trial today.">
+    <meta name="description" content="Transform your SEO with AI-powered tools, real user engagement from 150+ countries, lightning-fast CDN, and automated content generation.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -29,7 +28,6 @@
             --primary-dark: #1e40af;
             --primary-glow: rgba(37, 99, 235, 0.2);
             --success: #10b981;
-            --error: #ef4444;
             --nav-bg: rgba(255, 255, 255, 0.85);
             --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
         }
@@ -49,7 +47,10 @@
         }
 
         html {
+            scroll-snap-type: y mandatory;
             scroll-behavior: smooth;
+            overflow-y: scroll;
+            height: 100%;
         }
 
         body {
@@ -58,6 +59,7 @@
             color: var(--text);
             transition: background 0.3s ease, color 0.3s ease;
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
 
         /* Navigation */
@@ -138,25 +140,22 @@
         }
 
         .nav-btn {
-            padding: 0.625rem 1.25rem;
+            padding: 0.5rem 1rem;
             border-radius: 8px;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             text-decoration: none;
             transition: all 0.3s ease;
             border: none;
             cursor: pointer;
-        }
-
-        .nav-btn.primary {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
-            box-shadow: 0 4px 16px var(--primary-glow);
+            box-shadow: 0 4px 12px var(--primary-glow);
         }
 
-        .nav-btn.primary:hover {
+        .nav-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px var(--primary-glow);
+            box-shadow: 0 6px 16px var(--primary-glow);
         }
 
         .theme-btn {
@@ -180,64 +179,40 @@
             border-color: var(--primary);
         }
 
-        /* Hero Section */
-        .hero {
-            margin-top: 65px;
-            min-height: calc(100vh - 65px);
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%);
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
-            top: -150px;
-            right: -150px;
-            animation: float 10s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(-25px, 25px); }
-        }
-
-        .hero-slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        /* Fullpage Sections */
+        .section {
+            min-height: 100vh;
             display: flex;
             align-items: center;
-            padding: 2rem;
-            opacity: 0;
-            transform: translateX(50px);
-            transition: all 0.6s ease;
-            z-index: 1;
-        }
-
-        .hero-slide.active {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .hero-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
+            justify-content: center;
+            scroll-snap-align: start;
             position: relative;
-            z-index: 2;
+            padding: 80px 2rem 2rem;
         }
 
-        .hero h1 {
-            font-size: clamp(2.5rem, 5vw, 3.5rem);
+        .section:nth-child(even) {
+            background: var(--bg);
+        }
+
+        .section:nth-child(odd) {
+            background: var(--bg-secondary);
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Hero Section */
+        .hero-content {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero-content h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
             font-weight: 800;
             margin-bottom: 1.5rem;
             line-height: 1.2;
@@ -247,8 +222,8 @@
             background-clip: text;
         }
 
-        .hero p {
-            font-size: 1.125rem;
+        .hero-content p {
+            font-size: clamp(1rem, 2vw, 1.25rem);
             color: var(--text-light);
             margin-bottom: 2rem;
             line-height: 1.6;
@@ -256,907 +231,201 @@
 
         .hero-cta {
             display: inline-block;
-            padding: 1rem 2rem;
+            padding: 1rem 2.5rem;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             text-decoration: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 600;
-            box-shadow: 0 4px 16px var(--primary-glow);
+            font-size: 1.125rem;
+            box-shadow: 0 6px 20px var(--primary-glow);
             transition: all 0.3s ease;
         }
 
         .hero-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px var(--primary-glow);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px var(--primary-glow);
         }
 
-        .hero img {
-            width: 100%;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(37, 99, 235, 0.25);
-            border: 3px solid var(--border);
-        }
-
-        .hero-controls {
-            position: absolute;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            background: var(--bg-secondary);
-            padding: 0.75rem 1.5rem;
-            border-radius: 50px;
-            box-shadow: var(--card-shadow);
-            border: 1px solid var(--border);
-            z-index: 10;
-        }
-
-        .hero-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--border);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .hero-dot.active {
-            background: var(--primary);
-            transform: scale(1.25);
-        }
-
-        .hero-arrow {
-            width: 32px;
-            height: 32px;
-            border: none;
-            border-radius: 50%;
-            background: var(--bg);
-            cursor: pointer;
-            font-size: 0.875rem;
-            color: var(--text);
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .hero-arrow:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        /* Section Styles */
-        section {
-            padding: 6rem 2rem;
-            transition: background 0.3s ease;
-        }
-
-        section:nth-of-type(even) {
-            background: var(--bg);
-        }
-
-        section:nth-of-type(odd) {
-            background: var(--bg-secondary);
-        }
-
-        .container {
-            max-width: 1200px;
+        /* Features Carousel */
+        .features-carousel {
+            position: relative;
+            max-width: 900px;
             margin: 0 auto;
+            overflow: hidden;
         }
 
-        .section-title {
+        .features-track {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .feature-slide {
+            min-width: 100%;
+            padding: 3rem 2rem;
             text-align: center;
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .section-subtitle {
-            text-align: center;
-            font-size: 1.125rem;
-            color: var(--text-light);
-            margin-bottom: 4rem;
-        }
-
-        /* Features Grid */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        .feature-card {
-            background: var(--bg-secondary);
-            padding: 2rem;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            transition: all 0.3s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--card-shadow);
-            border-color: var(--primary);
         }
 
         .feature-icon {
-            width: 48px;
-            height: 48px;
+            width: 80px;
+            height: 80px;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border-radius: 8px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            margin-bottom: 1.5rem;
+            font-size: 2.5rem;
+            margin: 0 auto 2rem;
+            box-shadow: 0 8px 24px var(--primary-glow);
         }
 
-        .feature-card h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
+        .feature-slide h3 {
+            font-size: 1.75rem;
+            font-weight: 800;
             margin-bottom: 1rem;
             color: var(--text);
         }
 
-        .feature-card p {
-            color: var(--text-light);
-        }
-
-        /* Story Sections */
-        .story-section {
-            padding: 6rem 2rem;
-        }
-
-        .story-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-        }
-
-        .story-content h2 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .story-subtitle {
-            font-size: 1.2rem;
-            color: var(--success);
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-        }
-
-        .story-text {
+        .feature-slide p {
             font-size: 1.125rem;
             color: var(--text-light);
-            margin-bottom: 2rem;
             line-height: 1.7;
         }
 
-        .story-features {
-            list-style: none;
-            margin-bottom: 2rem;
-        }
-
-        .story-features li {
-            padding: 0.5rem 0;
-            color: var(--text-light);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.1rem;
-        }
-
-        .story-features li::before {
-            content: '✅';
-            font-size: 1.1rem;
-        }
-
-        .story-visual {
-            position: relative;
-        }
-
-        .story-image {
-            width: 100%;
-            border-radius: 16px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .story-image:hover {
-            transform: scale(1.02);
-        }
-
-        /* Pricing Section - CREATIVE DESIGN */
-        #pricing {
-            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        #pricing::before {
-            content: '';
-            position: absolute;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
-            top: -200px;
-            left: -200px;
-            animation: float 15s ease-in-out infinite;
-        }
-
-        #pricing::after {
-            content: '';
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
-            bottom: -150px;
-            right: -150px;
-            animation: float 12s ease-in-out infinite reverse;
-        }
-
-        .pricing-tabs {
+        .carousel-dots {
             display: flex;
             justify-content: center;
-            gap: 1rem;
-            margin-bottom: 3rem;
-            flex-wrap: wrap;
-            position: relative;
-            z-index: 2;
+            gap: 0.75rem;
+            margin-top: 2rem;
         }
 
-        .pricing-tab {
-            padding: 1rem 2.5rem;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            font-weight: 600;
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border);
             cursor: pointer;
             transition: all 0.3s ease;
-            color: var(--text);
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            position: relative;
-            overflow: hidden;
         }
 
-        .pricing-tab::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
-            transition: left 0.5s ease;
+        .dot.active {
+            background: var(--primary);
+            transform: scale(1.3);
         }
 
-        .pricing-tab:hover::before {
-            left: 100%;
+        /* Compact Pricing */
+        .pricing-compact {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            max-width: 900px;
+            margin: 0 auto;
         }
 
-        .pricing-tab i {
-            font-size: 1.25rem;
+        .price-card {
+            background: var(--bg-secondary);
+            padding: 2rem 1.5rem;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+            text-align: center;
         }
 
-        .pricing-tab.active {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
+        .price-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .price-card.featured {
             border-color: var(--primary);
             box-shadow: 0 8px 24px var(--primary-glow);
-            transform: translateY(-2px);
         }
 
-        .pricing-content {
-            display: none;
-            position: relative;
-            z-index: 2;
+        .price-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text);
         }
 
-        .pricing-content.active {
-            display: block;
-            animation: fadeInUp 0.6s ease;
+        .price-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 1rem;
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .price-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
         }
 
-        /* Hosting Plans - Creative Cards */
-        .pricing-duration {
-            display: flex;
-            justify-content: center;
-            gap: 0.75rem;
-            margin-bottom: 3rem;
-            flex-wrap: wrap;
+        .price-features li {
+            padding: 0.4rem 0;
+            color: var(--text-light);
         }
 
-        .duration-btn {
-            padding: 0.75rem 2rem;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border);
+        .price-btn {
+            width: 100%;
+            padding: 0.875rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
             border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            color: var(--text);
-            font-size: 0.95rem;
-            position: relative;
         }
 
-        .duration-btn:hover {
-            border-color: var(--primary);
+        .price-btn:hover {
             transform: translateY(-2px);
         }
 
-        .duration-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-            box-shadow: 0 4px 16px var(--primary-glow);
-        }
-
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto 3rem;
-        }
-
-        .pricing-card {
-            background: var(--bg-secondary);
-            padding: 2.5rem 2rem;
-            border-radius: 20px;
-            border: 2px solid var(--border);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .pricing-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--success));
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.4s ease;
-        }
-
-        .pricing-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .pricing-card:hover {
-            transform: translateY(-12px) scale(1.02);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-            border-color: var(--primary);
-        }
-
-        .pricing-card.featured {
-            border-color: var(--primary);
-            box-shadow: 0 12px 32px var(--primary-glow);
-            transform: scale(1.05);
-            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%);
-        }
-
-        .pricing-card.featured:hover {
-            transform: scale(1.05) translateY(-12px);
-        }
-
-        .pricing-badge {
-            position: absolute;
-            top: -14px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
-            color: white;
-            padding: 0.5rem 1.5rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 12px var(--primary-glow);
-        }
-
-        .pricing-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .pricing-name {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: var(--text);
-            margin-bottom: 1rem;
-        }
-
-        .pricing-price {
-            font-size: 3.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-            line-height: 1;
-        }
-
-        .pricing-price span {
-            font-size: 1.125rem;
-            color: var(--text-light);
-            font-weight: 500;
-        }
-
-        .pricing-period {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .pricing-features {
-            list-style: none;
-            margin-bottom: 2rem;
-            flex-grow: 1;
-        }
-
-        .pricing-features li {
-            padding: 0.75rem 0;
-            color: var(--text-light);
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .pricing-features li:last-child {
-            border-bottom: none;
-        }
-
-        .pricing-features li i {
-            color: var(--success);
-            font-size: 1.125rem;
-            margin-top: 0.125rem;
-            flex-shrink: 0;
-        }
-
-        .pricing-btn {
-            width: 100%;
-            padding: 1.125rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 20px var(--primary-glow);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .pricing-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .pricing-btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .pricing-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px var(--primary-glow);
-        }
-
-        .pricing-btn.secondary {
-            background: var(--bg);
-            color: var(--text);
-            border: 2px solid var(--border);
-            box-shadow: none;
-        }
-
-        .pricing-btn.secondary:hover {
-            background: var(--bg-secondary);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        /* Task Pricing - Creative Design */
-        .task-pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2.5rem;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .task-card {
-            background: var(--bg-secondary);
-            padding: 2.5rem 2rem;
-            border-radius: 20px;
-            border: 2px solid var(--border);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .task-card::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-
-        .task-card:hover::after {
-            opacity: 1;
-        }
-
-        .task-card:hover {
-            transform: translateY(-12px) rotateY(5deg);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-            border-color: var(--primary);
-        }
-
-        .task-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: white;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 8px 24px var(--primary-glow);
-            position: relative;
-            z-index: 2;
-            transition: all 0.3s ease;
-        }
-
-        .task-card:hover .task-icon {
-            transform: rotateY(360deg) scale(1.1);
-        }
-
-        .task-name {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: var(--text);
-            margin-bottom: 1rem;
-            position: relative;
-            z-index: 2;
-        }
-
-        .task-price {
-            font-size: 3.25rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.75rem;
-            line-height: 1;
-            position: relative;
-            z-index: 2;
-        }
-
-        .task-price span {
-            font-size: 1.25rem;
-            color: var(--text-light);
-        }
-
-        .task-description {
-            color: var(--text-light);
-            margin-bottom: 2rem;
-            font-size: 0.95rem;
-            position: relative;
-            z-index: 2;
-        }
-
-        .task-benefits {
-            list-style: none;
-            margin-bottom: 2rem;
-            text-align: left;
-            flex-grow: 1;
-            position: relative;
-            z-index: 2;
-        }
-
-        .task-benefits li {
-            padding: 0.625rem 0;
-            color: var(--text-light);
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-
-        .task-benefits li i {
-            color: var(--success);
-            margin-top: 0.125rem;
-            flex-shrink: 0;
-            font-size: 1rem;
-        }
-
-        .task-info-box {
-            margin-top: 3rem;
-            padding: 2.5rem;
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
-            border: 2px solid var(--border);
-            border-radius: 20px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .task-info-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        .task-info-box h3 {
-            color: var(--text);
-            margin-bottom: 1.25rem;
-            font-size: 1.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            position: relative;
-        }
-
-        .task-info-box p {
-            color: var(--text-light);
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.8;
-            font-size: 1rem;
-            position: relative;
-        }
-
-        /* Blog Section */
-        .blog {
-            padding: 6rem 2rem;
-            background: var(--bg);
-        }
-
-        .carousel-container {
-            position: relative;
-            max-width: 1200px;
-            margin: 0 auto;
-            height: 400px;
-            overflow: hidden;
-            perspective: 1000px;
-        }
-
-        .carousel {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .blog-item {
-            position: absolute;
-            width: 400px;
-            height: 300px;
-            border-radius: 16px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            box-shadow: var(--card-shadow);
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-        }
-
-        .blog-item img {
-            width: 100%;
-            height: 70%;
-            object-fit: cover;
-        }
-
-        .blog-info {
-            padding: 1rem;
-            background: var(--bg-secondary);
-            height: 30%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .blog-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            line-height: 1.3;
-            color: var(--text);
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .blog-date {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-
-        .nav-btn-blog {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 60px;
-            height: 60px;
-            border: none;
-            border-radius: 50%;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 1.5rem;
-            transition: all 0.3s ease;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .nav-btn-blog:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .prev-btn { left: 2rem; }
-        .next-btn { right: 2rem; }
-
-        .blog-item.active {
-            transform: translateX(0) translateZ(0) scale(1);
-            opacity: 1;
-            z-index: 3;
-        }
-
-        .blog-item.prev {
-            transform: translateX(-450px) translateZ(-200px) rotateY(35deg) scale(0.8);
-            opacity: 0.6;
-            z-index: 2;
-        }
-
-        .blog-item.next {
-            transform: translateX(450px) translateZ(-200px) rotateY(-35deg) scale(0.8);
-            opacity: 0.6;
-            z-index: 2;
-        }
-
-        .blog-item.hidden {
-            transform: translateX(0) translateZ(-400px) scale(0.5);
-            opacity: 0;
-            z-index: 1;
-        }
-
-        .blog-cta {
-            text-align: center;
-            margin-top: 3rem;
-        }
-
-        /* Footer */
+        /* Compact Footer */
         .footer {
-            padding: 4rem 2rem 2rem;
             background: var(--bg-secondary);
+            padding: 3rem 2rem 2rem;
             border-top: 1px solid var(--border);
         }
 
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 3rem;
-            margin-bottom: 3rem;
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
         }
 
-        .footer h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--text);
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
         }
 
-        .footer ul {
-            list-style: none;
-        }
-
-        .footer li {
-            margin: 0.5rem 0;
-        }
-
-        .footer a {
+        .footer-links a {
             color: var(--text-light);
             text-decoration: none;
             font-size: 0.9rem;
             transition: color 0.3s ease;
         }
 
-        .footer a:hover {
+        .footer-links a:hover {
             color: var(--primary);
         }
 
         .footer-bottom {
-            padding-top: 2rem;
-            border-top: 1px solid var(--border);
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
         }
 
         .social-links {
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
         }
 
         .social-links a {
@@ -1168,7 +437,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            text-decoration: none;
             transition: all 0.3s ease;
         }
 
@@ -1183,50 +451,24 @@
             display: none;
         }
 
-        /* Loading */
-        .blog-loading {
+        /* Section Titles */
+        .section-title {
             text-align: center;
-            padding: 3rem 0;
-            color: var(--text-light);
-        }
-
-        .blog-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--border);
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         /* Responsive */
-        @media (max-width: 968px) {
-            .hero-container,
-            .story-container {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-
-            .pricing-grid,
-            .task-pricing-grid {
-                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            }
-
-            .pricing-card.featured {
-                transform: scale(1);
-            }
-
-            .pricing-card.featured:hover {
-                transform: translateY(-12px);
-            }
-        }
-
         @media (max-width: 768px) {
+            html {
+                scroll-snap-type: none;
+            }
+
             nav {
                 height: 58px;
             }
@@ -1243,143 +485,87 @@
                 font-size: 1.25rem;
             }
 
+            .nav-btn {
+                padding: 0.4rem 0.875rem;
+                font-size: 0.8rem;
+            }
+
             .theme-btn {
                 width: 38px;
                 height: 38px;
                 font-size: 1.1rem;
             }
 
-            .hero {
-                margin-top: 58px;
+            .section {
                 min-height: calc(100vh - 58px - 68px);
-            }
-
-            section {
-                padding: 4rem 1.5rem;
+                padding: 70px 1.5rem 1.5rem;
             }
 
             .section-title {
+                font-size: 1.75rem;
+                margin-bottom: 2rem;
+            }
+
+            .hero-content h1 {
                 font-size: 2rem;
             }
 
-            .section-subtitle {
+            .hero-content p {
                 font-size: 1rem;
-                margin-bottom: 3rem;
             }
 
-            .features-grid {
-                grid-template-columns: 1fr;
+            .hero-cta {
+                padding: 0.875rem 2rem;
+                font-size: 1rem;
             }
 
-            .story-content h2 {
+            .feature-slide {
+                padding: 2rem 1rem;
+            }
+
+            .feature-icon {
+                width: 64px;
+                height: 64px;
                 font-size: 2rem;
             }
 
-            .story-subtitle {
-                font-size: 1.1rem;
-            }
-
-            .story-text {
-                font-size: 1rem;
-            }
-
-            .pricing-tabs {
-                gap: 0.75rem;
-            }
-
-            .pricing-tab {
-                padding: 0.875rem 1.75rem;
-                font-size: 0.9rem;
-            }
-
-            .pricing-duration {
-                gap: 0.5rem;
-            }
-
-            .duration-btn {
-                padding: 0.625rem 1.5rem;
-                font-size: 0.875rem;
-            }
-
-            .pricing-grid,
-            .task-pricing-grid {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-
-            .pricing-card {
-                padding: 2rem 1.5rem;
-            }
-
-            .pricing-card.featured {
-                transform: scale(1);
-            }
-
-            .pricing-name,
-            .task-name {
+            .feature-slide h3 {
                 font-size: 1.5rem;
             }
 
-            .pricing-price,
-            .task-price {
-                font-size: 2.75rem;
+            .feature-slide p {
+                font-size: 1rem;
             }
 
-            .task-card {
-                padding: 2rem 1.5rem;
+            .pricing-compact {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
             }
 
-            .task-icon {
-                width: 70px;
-                height: 70px;
+            .price-card {
+                padding: 1.75rem 1.25rem;
+            }
+
+            .price-name {
+                font-size: 1.125rem;
+            }
+
+            .price-amount {
                 font-size: 2.25rem;
             }
 
-            .task-info-box {
-                padding: 2rem 1.5rem;
-                margin-top: 2rem;
+            .footer {
+                padding: 2rem 1.5rem 1.5rem;
             }
 
-            .task-info-box h3 {
-                font-size: 1.5rem;
-            }
-
-            .blog-item {
-                width: 300px;
-                height: 300px;
-            }
-
-            .blog-item.prev {
-                transform: translateX(-350px) translateZ(-200px) rotateY(35deg) scale(0.7);
-            }
-
-            .blog-item.next {
-                transform: translateX(350px) translateZ(-200px) rotateY(-35deg) scale(0.7);
-            }
-
-            .nav-btn-blog {
-                width: 50px;
-                height: 50px;
-                font-size: 1.2rem;
-            }
-
-            .prev-btn {
-                left: 1rem;
-            }
-
-            .next-btn {
-                right: 1rem;
-            }
-
-            .footer-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 2rem;
+            .footer-links {
+                flex-direction: column;
+                gap: 0.75rem;
             }
 
             .footer-bottom {
                 flex-direction: column;
                 gap: 1rem;
-                text-align: center;
             }
 
             .mobile-nav {
@@ -1437,8 +623,9 @@
         }
 
         @media (max-width: 480px) {
-            .footer-grid {
-                grid-template-columns: 1fr;
+            .nav-btn {
+                padding: 0.375rem 0.75rem;
+                font-size: 0.75rem;
             }
 
             .mobile-items {
@@ -1454,27 +641,6 @@
             .mobile-item i {
                 font-size: 1.2rem;
             }
-
-            .pricing-card,
-            .task-card {
-                padding: 1.75rem 1.25rem;
-            }
-
-            .pricing-name,
-            .task-name {
-                font-size: 1.375rem;
-            }
-
-            .pricing-price,
-            .task-price {
-                font-size: 2.5rem;
-            }
-
-            .task-icon {
-                width: 64px;
-                height: 64px;
-                font-size: 2rem;
-            }
         }
     </style>
 </head>
@@ -1483,13 +649,13 @@
         <div class="nav-container">
             <a href="index.html" class="logo">SEOTIZE</a>
             <ul class="nav-menu">
-                <li><a href="#home" class="nav-link">Home</a></li>
-                <li><a href="#features" class="nav-link">Features</a></li>
-                <li><a href="#pricing" class="nav-link">Pricing</a></li>
+                <li><a href="#home" class="nav-link" data-section="0">Home</a></li>
+                <li><a href="#features" class="nav-link" data-section="1">Features</a></li>
+                <li><a href="#pricing" class="nav-link" data-section="2">Pricing</a></li>
                 <li><a href="blogs.html">Blog</a></li>
             </ul>
             <div class="nav-actions">
-                <a href="connect.html" class="nav-btn primary">Get Started</a>
+                <a href="connect.html" class="nav-btn">Get Started</a>
                 <button class="theme-btn" onclick="toggleTheme()">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -1497,214 +663,132 @@
         </div>
     </nav>
 
-    <section id="home" class="hero"></section>
-
-    <section id="features">
+    <!-- Hero Section -->
+    <section id="home" class="section">
         <div class="container">
-            <h2 class="section-title">Powerful SEO Features</h2>
-            <p class="section-subtitle">Everything you need to dominate search rankings</p>
-            <div class="features-grid" id="features-grid"></div>
-        </div>
-    </section>
-
-    <section class="story-section">
-        <div class="story-container">
-            <div class="story-content">
-                <h2>🚀 Real User Engagement</h2>
-                <p class="story-subtitle">The SEO Game Changer</p>
-                <p class="story-text">Take control of your SEO with real user-driven growth! Seotize ensures that every click, visit, and interaction comes from actual users, not bots—boosting your website's credibility and ranking.</p>
-                <ul class="story-features">
-                    <li>Users search for your target keywords</li>
-                    <li>They visit and interact with your website</li>
-                    <li>Your rankings naturally improve over time</li>
-                    <li>Higher trust from search engines = more traffic!</li>
-                </ul>
-                <a href="connect.html" class="hero-cta">Start Growing Now</a>
-            </div>
-            <div class="story-visual">
-                <img src="https://image-api.seotize.net/image-cdn/5d93bcdd-8834-442f-8e88-390594c781a7" alt="Real User Engagement Dashboard" class="story-image">
-            </div>
-        </div>
-    </section>
-
-    <section class="story-section">
-        <div class="story-container">
-            <div class="story-visual">
-                <img src="https://image-api.seotize.net/image-cdn/97cd3337-ae40-4239-8d26-bf17f34721cc" alt="Lightning Fast CDN Network" class="story-image">
-            </div>
-            <div class="story-content">
-                <h2>🌍 Lightning-Fast Image Hosting & CDN</h2>
-                <p class="story-subtitle">Global Speed Revolution</p>
-                <p class="story-text">Say goodbye to slow-loading images! Seotize provides an almost-free image hosting service that ensures your visuals load instantly, anywhere in the world.</p>
-                <ul class="story-features">
-                    <li>Ultra-Fast CDN – Images stored worldwide</li>
-                    <li>Automatic Optimization – Best format for speed & SEO</li>
-                    <li>On-the-Fly Processing – Resize, compress, rotate</li>
-                    <li>Advanced Analytics – Track views and performance</li>
-                </ul>
-                <a href="connect.html" class="hero-cta">Try CDN Free</a>
-            </div>
-        </div>
-    </section>
-
-    <section class="story-section">
-        <div class="story-container">
-            <div class="story-content">
-                <h2>🆓 Lifetime Free Hosting & Flexible Services</h2>
-                <p class="story-subtitle">Supporting Small Businesses</p>
-                <p class="story-text">At Seotize, we believe in supporting small businesses. Enjoy our lifetime free trial with up to 100 images or articles hosted completely free. No hidden fees, no surprises.</p>
-                <ul class="story-features">
-                    <li>Lifetime Free Tools – SVG placeholders, image hosting</li>
-                    <li>Task-Based Pricing – You choose how much to pay!</li>
-                    <li>Scalable & Cost-Friendly – Grows with your business</li>
-                    <li>No Credit Card Required – Start today</li>
-                    <li>Flexible Payment Options – Cards, PayPal, crypto</li>
-                </ul>
+            <div class="hero-content">
+                <h1>AI-Powered SEO Platform</h1>
+                <p>Boost search rankings with intelligent automation and real user engagement from 150+ countries.</p>
                 <a href="connect.html" class="hero-cta">Start Free Trial</a>
             </div>
-            <div class="story-visual">
-                <img src="https://image-api.seotize.net/image-cdn/a1515beb-2812-47e4-b3a0-07910bf76f04" alt="Free Hosting Services" class="story-image">
-            </div>
         </div>
     </section>
 
-    <section class="story-section">
-        <div class="story-container">
-            <div class="story-visual">
-                <img src="https://image-api.seotize.net/image-cdn/1b8c38a1-4c4d-451c-ac6c-7c8220858621" alt="AI Analytics Dashboard" class="story-image">
-            </div>
-            <div class="story-content">
-                <h2>📊 AI-Driven Analytics & Automated Content</h2>
-                <p class="story-subtitle">Intelligent Automation</p>
-                <p class="story-text">Seotize transforms the way you grow your website with AI-powered analytics, fully automated content generation, and smart scheduling tools.</p>
-                <ul class="story-features">
-                    <li>Real-Time SEO Analytics – Deep insights and recommendations</li>
-                    <li>AI-Generated Content – Fully optimized articles with images</li>
-                    <li>Automated Weekly Scheduler – Hands-free content flow</li>
-                    <li>Set & Forget Optimization – Consistent quality content</li>
-                </ul>
-                <a href="connect.html" class="hero-cta">Try AI Tools</a>
-            </div>
-        </div>
-    </section>
-
-    <section id="pricing">
+    <!-- Features Section -->
+    <section id="features" class="section">
         <div class="container">
-            <h2 class="section-title">Simple, Transparent Pricing</h2>
-            <p class="section-subtitle">Choose the perfect plan for your needs</p>
-
-            <!-- Pricing Tabs -->
-            <div class="pricing-tabs">
-                <button class="pricing-tab active" onclick="switchPricingTab('hosting')">
-                    <i class="ri-server-line"></i> <span>Hosting Plans</span>
-                </button>
-                <button class="pricing-tab" onclick="switchPricingTab('tasks')">
-                    <i class="ri-cursor-line"></i> <span>Task Pricing</span>
-                </button>
-            </div>
-
-            <!-- Hosting Plans -->
-            <div id="hostingPricing" class="pricing-content active">
-                <div class="pricing-duration">
-                    <button class="duration-btn active" onclick="changeDuration('3month')">3 Months</button>
-                    <button class="duration-btn" onclick="changeDuration('6month')">6 Months</button>
-                    <button class="duration-btn" onclick="changeDuration('12month')">12 Months</button>
-                </div>
-
-                <div class="pricing-grid" id="hostingGrid"></div>
-            </div>
-
-            <!-- Task-Based Pricing -->
-            <div id="taskPricing" class="pricing-content">
-                <div class="task-pricing-grid">
-                    <div class="task-card">
-                        <div class="task-icon">🎯</div>
-                        <h3 class="task-name">Basic</h3>
-                        <div class="task-price">$0.10<span>/click</span></div>
-                        <p class="task-description">Standard user engagement with basic interaction</p>
-                        <ul class="task-benefits">
-                            <li><i class="ri-check-line"></i> <span>1 concurrent task limit</span></li>
-                            <li><i class="ri-check-line"></i> <span>Real user traffic</span></li>
-                            <li><i class="ri-check-line"></i> <span>Basic engagement</span></li>
-                            <li><i class="ri-check-line"></i> <span>Standard priority</span></li>
-                        </ul>
-                        <button class="pricing-btn" onclick="window.location.href='connect.html'">Start Now</button>
+            <h2 class="section-title">Powerful SEO Features</h2>
+            <div class="features-carousel">
+                <div class="features-track" id="featuresTrack">
+                    <div class="feature-slide">
+                        <div class="feature-icon">🚀</div>
+                        <h3>Real User Engagement</h3>
+                        <p>Boost SEO with authentic user interactions and natural traffic patterns from real people worldwide.</p>
                     </div>
-
-                    <div class="task-card">
-                        <div class="task-icon">⚡</div>
-                        <h3 class="task-name">Standard</h3>
-                        <div class="task-price">$0.12<span>/click</span></div>
-                        <p class="task-description">Enhanced engagement with better interaction</p>
-                        <ul class="task-benefits">
-                            <li><i class="ri-check-line"></i> <span>3 concurrent tasks</span></li>
-                            <li><i class="ri-check-line"></i> <span>Higher engagement</span></li>
-                            <li><i class="ri-check-line"></i> <span>More interactions</span></li>
-                            <li><i class="ri-check-line"></i> <span>Medium priority</span></li>
-                        </ul>
-                        <button class="pricing-btn" onclick="window.location.href='connect.html'">Start Now</button>
+                    <div class="feature-slide">
+                        <div class="feature-icon">🤖</div>
+                        <h3>AI Content Creation</h3>
+                        <p>Generate high-quality, SEO-optimized content automatically with advanced AI technology.</p>
                     </div>
-
-                    <div class="task-card">
-                        <div class="task-icon">🚀</div>
-                        <h3 class="task-name">Premium</h3>
-                        <div class="task-price">$0.15<span>/click</span></div>
-                        <p class="task-description">Maximum engagement with deep interaction</p>
-                        <ul class="task-benefits">
-                            <li><i class="ri-check-line"></i> <span>5 concurrent tasks</span></li>
-                            <li><i class="ri-check-line"></i> <span>Max engagement time</span></li>
-                            <li><i class="ri-check-line"></i> <span>Deep exploration</span></li>
-                            <li><i class="ri-check-line"></i> <span>Highest priority</span></li>
-                            <li><i class="ri-check-line"></i> <span>Partner interest</span></li>
-                        </ul>
-                        <button class="pricing-btn" onclick="window.location.href='connect.html'">Start Now</button>
+                    <div class="feature-slide">
+                        <div class="feature-icon">📊</div>
+                        <h3>Advanced Analytics</h3>
+                        <p>Track performance with detailed insights, recommendations, and real-time data.</p>
+                    </div>
+                    <div class="feature-slide">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Lightning Fast CDN</h3>
+                        <p>Global content delivery with automatic optimization and instant loading worldwide.</p>
+                    </div>
+                    <div class="feature-slide">
+                        <div class="feature-icon">🔗</div>
+                        <h3>Smart Backlink Building</h3>
+                        <p>Build high-quality backlinks through intelligent networks and partnerships.</p>
+                    </div>
+                    <div class="feature-slide">
+                        <div class="feature-icon">💰</div>
+                        <h3>Cost Effective</h3>
+                        <p>Premium SEO features at affordable prices starting at just $0.10 per task.</p>
                     </div>
                 </div>
-
-                <div class="task-info-box">
-                    <h3><i class="ri-lightbulb-line"></i> How Task Pricing Works</h3>
-                    <p>
-                        Higher priority tasks get more user engagement, longer visit duration, and more clicks. 
-                        Users collect gems from your website, making premium tasks more attractive to partners. 
-                        You only pay for actual clicks, and you can select any amount you want!
-                    </p>
-                </div>
+                <div class="carousel-dots" id="featureDots"></div>
             </div>
         </div>
     </section>
 
-    <section id="blog" class="blog">
+    <!-- Pricing Section -->
+    <section id="pricing" class="section">
         <div class="container">
-            <h2 class="section-title">Latest SEO Insights</h2>
-            <p class="section-subtitle">Stay ahead with the latest SEO trends and insights</p>
+            <h2 class="section-title">Simple Pricing</h2>
+            <div class="pricing-compact">
+                <div class="price-card">
+                    <h3 class="price-name">Free</h3>
+                    <div class="price-amount">$0</div>
+                    <ul class="price-features">
+                        <li>✓ 30 Articles</li>
+                        <li>✓ 100 Images</li>
+                        <li>✓ Global CDN</li>
+                        <li>✓ Community Support</li>
+                    </ul>
+                    <button class="price-btn" onclick="window.location.href='connect.html'">Start Free</button>
+                </div>
 
-            <div class="blog-loading" id="blogLoading">
-                <div class="blog-spinner"></div>
-                <p>Loading latest articles...</p>
-            </div>
+                <div class="price-card featured">
+                    <h3 class="price-name">Professional</h3>
+                    <div class="price-amount">$25<span style="font-size:1rem;color:var(--text-light)">/3mo</span></div>
+                    <ul class="price-features">
+                        <li>✓ 600 Articles</li>
+                        <li>✓ 4,000 Images</li>
+                        <li>✓ Priority Support</li>
+                        <li>✓ Advanced Analytics</li>
+                    </ul>
+                    <button class="price-btn" onclick="window.location.href='connect.html'">Get Started</button>
+                </div>
 
-            <div class="carousel-container" id="carouselContainer" style="display:none;">
-                <div class="carousel" id="carousel"></div>
-                <button class="nav-btn-blog prev-btn" onclick="prevBlog()">‹</button>
-                <button class="nav-btn-blog next-btn" onclick="nextBlog()">›</button>
-            </div>
+                <div class="price-card">
+                    <h3 class="price-name">Basic Task</h3>
+                    <div class="price-amount">$0.10<span style="font-size:1rem;color:var(--text-light)">/click</span></div>
+                    <ul class="price-features">
+                        <li>✓ Real User Traffic</li>
+                        <li>✓ 1 Concurrent Task</li>
+                        <li>✓ Basic Engagement</li>
+                        <li>✓ Standard Priority</li>
+                    </ul>
+                    <button class="price-btn" onclick="window.location.href='connect.html'">Start Now</button>
+                </div>
 
-            <div class="blog-cta">
-                <a href="blogs.html" class="hero-cta">View All Articles</a>
+                <div class="price-card">
+                    <h3 class="price-name">Premium Task</h3>
+                    <div class="price-amount">$0.15<span style="font-size:1rem;color:var(--text-light)">/click</span></div>
+                    <ul class="price-features">
+                        <li>✓ 5 Concurrent Tasks</li>
+                        <li>✓ Max Engagement</li>
+                        <li>✓ Deep Exploration</li>
+                        <li>✓ Highest Priority</li>
+                    </ul>
+                    <button class="price-btn" onclick="window.location.href='connect.html'">Start Now</button>
+                </div>
             </div>
         </div>
     </section>
 
+    <!-- Footer -->
     <footer class="footer">
-        <div class="container">
-            <div class="footer-grid" id="footer-grid"></div>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="blogs.html">Blog</a>
+                <a href="connect.html">Contact</a>
+            </div>
             <div class="footer-bottom">
-                <p style="color: var(--text-light);">© 2025 SEOTIZE. All rights reserved.</p>
+                <p style="color: var(--text-light); font-size: 0.875rem;">© 2025 SEOTIZE. All rights reserved.</p>
                 <div class="social-links">
-                    <a href="#" aria-label="Email"><i class="ri-mail-line"></i></a>
-                    <a href="#" aria-label="Twitter"><i class="ri-twitter-x-line"></i></a>
-                    <a href="#" aria-label="LinkedIn"><i class="ri-linkedin-line"></i></a>
-                    <a href="#" aria-label="Discord"><i class="ri-discord-line"></i></a>
+                    <a href="#"><i class="ri-mail-line"></i></a>
+                    <a href="#"><i class="ri-twitter-x-line"></i></a>
+                    <a href="#"><i class="ri-linkedin-line"></i></a>
+                    <a href="#"><i class="ri-discord-line"></i></a>
                 </div>
             </div>
         </div>
@@ -1712,15 +796,15 @@
 
     <div class="mobile-nav">
         <div class="mobile-items">
-            <a href="#home" class="mobile-item active" data-section="home">
+            <a href="#home" class="mobile-item active" data-section="0">
                 <i class="ri-home-5-line"></i>
                 <span>Home</span>
             </a>
-            <a href="#features" class="mobile-item" data-section="features">
+            <a href="#features" class="mobile-item" data-section="1">
                 <i class="ri-flashlight-line"></i>
                 <span>Features</span>
             </a>
-            <a href="#pricing" class="mobile-item" data-section="pricing">
+            <a href="#pricing" class="mobile-item" data-section="2">
                 <i class="ri-price-tag-3-line"></i>
                 <span>Pricing</span>
             </a>
@@ -1736,304 +820,76 @@
     </div>
 
     <script>
-        gsap.registerPlugin(ScrollTrigger, TextPlugin);
+        gsap.registerPlugin(ScrollTrigger);
 
-        const data = {
-            hero: {
-                slides: [
-                    {
-                        title: "AI-Powered SEO Platform",
-                        description: "Boost search rankings with intelligent automation and real user engagement from 150+ countries.",
-                        cta: { text: "Start Free Trial", link: "connect.html" },
-                        image: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif"
-                    },
-                    {
-                        title: "Real User Engagement",
-                        description: "Get authentic traffic from real users who search and interact with your content naturally.",
-                        cta: { text: "Get Real Traffic", link: "connect.html" },
-                        image: "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif"
-                    },
-                    {
-                        title: "AI Content Generation",
-                        description: "Create unlimited SEO-optimized content with advanced AI technology that ranks higher.",
-                        cta: { text: "Generate Content", link: "connect.html" },
-                        image: "https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif"
-                    }
-                ]
-            },
-            features: [
-                { icon: "🚀", title: "Real User Engagement", description: "Boost SEO with authentic user interactions and natural traffic patterns from real people." },
-                { icon: "🤖", title: "AI Content Creation", description: "Generate high-quality, SEO-optimized content automatically with advanced AI technology." },
-                { icon: "📊", title: "Advanced Analytics", description: "Track performance with detailed insights, recommendations, and real-time data." },
-                { icon: "⚡", title: "Lightning Fast CDN", description: "Global content delivery with automatic optimization and instant loading worldwide." },
-                { icon: "🔗", title: "Smart Backlink Building", description: "Build high-quality backlinks through intelligent networks and partnerships." },
-                { icon: "💰", title: "Cost Effective Solutions", description: "Premium SEO features at affordable prices starting at just $0.10 per task." }
-            ],
-            pricing: {
-                hosting: {
-                    free: { name: "Free", price: { "3month": 0, "6month": 0, "12month": 0 }, articles: 30, images: 100 },
-                    basic: { name: "Basic", price: { "3month": 10, "6month": 18, "12month": 32 }, articles: 200, images: 1000 },
-                    professional: { name: "Professional", price: { "3month": 25, "6month": 45, "12month": 80 }, articles: 600, images: 4000, featured: true },
-                    enterprise: { name: "Enterprise", price: { "3month": 50, "6month": 90, "12month": 160 }, articles: 2000, images: 20000 }
-                }
-            },
-            blog: [],
-            footer: [
-                { title: "Platform", links: [["AI Content Generator", "connect.html"], ["Analytics Dashboard", "connect.html"], ["Global CDN", "connect.html"], ["User Engagement", "connect.html"]] },
-                { title: "Solutions", links: [["For Enterprise", "connect.html"], ["For Startups", "connect.html"], ["For Agencies", "connect.html"], ["For Bloggers", "connect.html"]] },
-                { title: "Resources", links: [["Documentation", "blogs.html"], ["Blog & Insights", "blogs.html"], ["Case Studies", "blogs.html"], ["Support Center", "connect.html"]] },
-                { title: "Company", links: [["About Us", "#about"], ["Contact", "connect.html"], ["Privacy Policy", "connect.html"], ["Terms of Service", "connect.html"]] }
-            ]
-        };
+        let currentFeature = 0;
+        const features = document.querySelectorAll('.feature-slide');
+        const totalFeatures = features.length;
 
-        let currentHero = 0;
-        let currentBlog = 0;
-        let currentDuration = '3month';
+        // Create dots
+        const dotsContainer = document.getElementById('featureDots');
+        for (let i = 0; i < totalFeatures; i++) {
+            const dot = document.createElement('div');
+            dot.className = `dot ${i === 0 ? 'active' : ''}`;
+            dot.onclick = () => goToFeature(i);
+            dotsContainer.appendChild(dot);
+        }
 
-        // Active Navigation Highlighting
+        function goToFeature(index) {
+            currentFeature = index;
+            const track = document.getElementById('featuresTrack');
+            track.style.transform = `translateX(-${index * 100}%)`;
+            
+            document.querySelectorAll('.dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+        }
+
+        // Auto-rotate features
+        setInterval(() => {
+            currentFeature = (currentFeature + 1) % totalFeatures;
+            goToFeature(currentFeature);
+        }, 4000);
+
+        // Active nav highlighting
         function updateActiveNav() {
-            const sections = ['home', 'features', 'pricing'];
+            const sections = document.querySelectorAll('.section');
             const navLinks = document.querySelectorAll('.nav-link');
             const mobileItems = document.querySelectorAll('.mobile-item[data-section]');
             
-            let currentSection = 'home';
+            let currentIndex = 0;
             
-            sections.forEach(section => {
-                const element = document.getElementById(section);
-                if (element) {
-                    const rect = element.getBoundingClientRect();
-                    if (rect.top <= 150 && rect.bottom >= 150) {
-                        currentSection = section;
-                    }
+            sections.forEach((section, index) => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= 150 && rect.bottom >= 150) {
+                    currentIndex = index;
                 }
             });
             
-            navLinks.forEach(link => {
-                const href = link.getAttribute('href');
-                if (href === `#${currentSection}`) {
-                    link.classList.add('active');
-                } else {
-                    link.classList.remove('active');
-                }
+            navLinks.forEach((link, index) => {
+                link.classList.toggle('active', index === currentIndex);
             });
             
-            mobileItems.forEach(item => {
-                const section = item.getAttribute('data-section');
-                if (section === currentSection) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
+            mobileItems.forEach((item, index) => {
+                item.classList.toggle('active', index === currentIndex);
             });
         }
 
         window.addEventListener('scroll', updateActiveNav);
         window.addEventListener('load', updateActiveNav);
 
-        async function fetchBlogData() {
-            try {
-                const response = await fetch('https://api.seotize.net/blogs?page=1&page_size=6');
-                const apiData = await response.json();
-                if (apiData?.code === 200 && apiData?.data?.blogs?.length > 0) {
-                    data.blog = apiData.data.blogs.slice(0, 6).map(blog => ({
-                        _id: blog._id,
-                        title: blog.title,
-                        image_url: blog.image_url,
-                        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                    }));
-                    return true;
-                }
-            } catch (error) {
-                console.warn('API failed, using fallback data');
-                data.blog = [
-                    { _id: 'fallback1', title: "SEO in 2025: What's Really Changed", image_url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", date: "Jan 15, 2025" },
-                    { _id: 'fallback2', title: "AI Content vs Human Writing", image_url: "https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif", date: "Jan 12, 2025" },
-                    { _id: 'fallback3', title: "Real User Signals Impact Rankings", image_url: "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif", date: "Jan 8, 2025" }
-                ];
-            }
-            return false;
-        }
-
-        function createHero() {
-            const hero = document.getElementById('home');
-            data.hero.slides.forEach((slide, i) => {
-                const div = document.createElement('div');
-                div.className = `hero-slide ${i === 0 ? 'active' : ''}`;
-                div.innerHTML = `
-                    <div class="hero-container">
-                        <div>
-                            <h1>${slide.title}</h1>
-                            <p>${slide.description}</p>
-                            <a href="${slide.cta.link}" class="hero-cta">${slide.cta.text}</a>
-                        </div>
-                        <div>
-                            <img src="${slide.image}" alt="${slide.title}" loading="lazy">
-                        </div>
-                    </div>
-                `;
-                hero.appendChild(div);
-            });
-
-            const controls = document.createElement('div');
-            controls.className = 'hero-controls';
-            controls.innerHTML = `
-                <button class="hero-arrow" onclick="prevHero()">‹</button>
-                <div id="hero-dots"></div>
-                <button class="hero-arrow" onclick="nextHero()">›</button>
-            `;
-            hero.appendChild(controls);
-
-            const dots = document.getElementById('hero-dots');
-            data.hero.slides.forEach((_, i) => {
-                const dot = document.createElement('div');
-                dot.className = `hero-dot ${i === 0 ? 'active' : ''}`;
-                dot.onclick = () => { currentHero = i; updateHero(); };
-                dots.appendChild(dot);
-            });
-        }
-
-        function updateHero() {
-            document.querySelectorAll('.hero-slide').forEach((slide, i) => 
-                slide.classList.toggle('active', i === currentHero)
-            );
-            document.querySelectorAll('.hero-dot').forEach((dot, i) => 
-                dot.classList.toggle('active', i === currentHero)
-            );
-        }
-
-        function nextHero() {
-            currentHero = (currentHero + 1) % data.hero.slides.length;
-            updateHero();
-        }
-
-        function prevHero() {
-            currentHero = currentHero === 0 ? data.hero.slides.length - 1 : currentHero - 1;
-            updateHero();
-        }
-
-        function createFeatures() {
-            const grid = document.getElementById('features-grid');
-            data.features.forEach(f => {
-                const div = document.createElement('div');
-                div.className = 'feature-card';
-                div.innerHTML = `
-                    <div class="feature-icon">${f.icon}</div>
-                    <h3>${f.title}</h3>
-                    <p>${f.description}</p>
-                `;
-                grid.appendChild(div);
-            });
-        }
-
-        function createHostingPlans() {
-            const grid = document.getElementById('hostingGrid');
-            grid.innerHTML = '';
-
-            Object.entries(data.pricing.hosting).forEach(([key, plan]) => {
-                const price = plan.price[currentDuration];
-                const isFree = price === 0;
-                const period = currentDuration === '3month' ? '3 months' : 
-                               currentDuration === '6month' ? '6 months' : '12 months';
-
-                const div = document.createElement('div');
-                div.className = `pricing-card ${plan.featured ? 'featured' : ''}`;
-                div.innerHTML = `
-                    ${plan.featured ? '<div class="pricing-badge">Most Popular</div>' : ''}
-                    <div class="pricing-header">
-                        <h3 class="pricing-name">${plan.name}</h3>
-                        <div class="pricing-price">
-                            ${isFree ? 'Free' : `$${price}`}
-                            ${!isFree ? `<span>/${period}</span>` : ''}
-                        </div>
-                        ${isFree ? '<p class="pricing-period">Forever Free</p>' : ''}
-                    </div>
-                    <ul class="pricing-features">
-                        <li><i class="ri-check-line"></i> <span>${plan.articles} Articles</span></li>
-                        <li><i class="ri-check-line"></i> <span>${plan.images.toLocaleString()} Images</span></li>
-                        <li><i class="ri-check-line"></i> <span>Global CDN</span></li>
-                        <li><i class="ri-check-line"></i> <span>Auto Optimization</span></li>
-                        <li><i class="ri-check-line"></i> <span>${isFree ? 'Community' : 'Priority'} Support</span></li>
-                        ${!isFree ? '<li><i class="ri-check-line"></i> <span>Advanced Analytics</span></li>' : ''}
-                    </ul>
-                    <button class="pricing-btn ${isFree ? 'secondary' : ''}" onclick="window.location.href='connect.html'">
-                        ${isFree ? 'Start Free' : 'Get Started'}
-                    </button>
-                `;
-                grid.appendChild(div);
-            });
-        }
-
-        function changeDuration(duration) {
-            currentDuration = duration;
-            document.querySelectorAll('.duration-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            createHostingPlans();
-        }
-
-        function switchPricingTab(tab) {
-            document.querySelectorAll('.pricing-tab').forEach(t => t.classList.remove('active'));
-            event.target.closest('.pricing-tab').classList.add('active');
-
-            document.querySelectorAll('.pricing-content').forEach(c => c.classList.remove('active'));
-            document.getElementById(tab === 'hosting' ? 'hostingPricing' : 'taskPricing').classList.add('active');
-        }
-
-        function createBlogCarousel() {
-            const carousel = document.getElementById('carousel');
-            data.blog.forEach((post) => {
-                const item = document.createElement('div');
-                item.className = 'blog-item';
-                item.innerHTML = `
-                    <img src="${post.image_url}" alt="${post.title}" loading="lazy">
-                    <div class="blog-info">
-                        <div class="blog-title">${post.title}</div>
-                        <div class="blog-date">${post.date}</div>
-                    </div>
-                `;
-                item.onclick = () => window.location.href = `blogs.html`;
-                carousel.appendChild(item);
-            });
-            updateBlogCarousel();
-        }
-
-        function updateBlogCarousel() {
-            const items = document.querySelectorAll('.blog-item');
-            items.forEach((item, i) => {
-                item.className = 'blog-item';
-                if (i === currentBlog) {
-                    item.classList.add('active');
-                } else if (i === (currentBlog - 1 + data.blog.length) % data.blog.length) {
-                    item.classList.add('prev');
-                } else if (i === (currentBlog + 1) % data.blog.length) {
-                    item.classList.add('next');
-                } else {
-                    item.classList.add('hidden');
+        // Smooth scroll for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
                 }
             });
-        }
+        });
 
-        function nextBlog() {
-            currentBlog = (currentBlog + 1) % data.blog.length;
-            updateBlogCarousel();
-        }
-
-        function prevBlog() {
-            currentBlog = currentBlog === 0 ? data.blog.length - 1 : currentBlog - 1;
-            updateBlogCarousel();
-        }
-
-        function createFooter() {
-            const grid = document.getElementById('footer-grid');
-            data.footer.forEach(section => {
-                const div = document.createElement('div');
-                div.innerHTML = `
-                    <h3>${section.title}</h3>
-                    <ul>${section.links.map(link => `<li><a href="${link[1]}">${link[0]}</a></li>`).join('')}</ul>
-                `;
-                grid.appendChild(div);
-            });
-        }
-
+        // Theme toggle
         function toggleTheme() {
             document.body.classList.toggle('dark');
             const isDark = document.body.classList.contains('dark');
@@ -2048,37 +904,23 @@
             }
         }
 
-        async function init() {
-            createHero();
-            createFeatures();
-            createHostingPlans();
-            createFooter();
-
-            document.getElementById('blogLoading').style.display = 'block';
-            await fetchBlogData();
-            document.getElementById('blogLoading').style.display = 'none';
-            document.getElementById('carouselContainer').style.display = 'block';
-            createBlogCarousel();
-
-            setInterval(nextHero, 5000);
-            setInterval(nextBlog, 8000);
-
-            // Smooth scroll for all nav items
-            document.querySelectorAll('a[href^="#"]').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const target = document.querySelector(link.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({ behavior: 'smooth' });
-                    }
-                });
+        // GSAP Animations - works on mobile
+        gsap.utils.toArray('.section').forEach((section, i) => {
+            gsap.from(section.children, {
+                scrollTrigger: {
+                    trigger: section,
+                    start: 'top 80%',
+                    toggleActions: 'play none none reverse'
+                },
+                y: 50,
+                opacity: 0,
+                duration: 0.8,
+                stagger: 0.2,
+                ease: 'power3.out'
             });
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadTheme();
-            init();
         });
+
+        document.addEventListener('DOMContentLoaded', loadTheme);
     </script>
 </body>
 </html>

@@ -1089,26 +1089,27 @@
                 gap: 1.25rem;
             }
 
-            /* Fixed Pagination for Small Screens */
+            /* Fixed Pagination for Small Screens - Page Info on New Line */
             .pagination {
                 gap: 0.3rem;
                 padding: 1.25rem 0.5rem;
                 margin-top: 2.5rem;
+                justify-content: center;
             }
 
             .page-btn {
-                padding: 0.45rem 0.65rem;
+                padding: 0.45rem 0.6rem;
                 min-width: 32px;
-                font-size: 0.8rem;
+                font-size: 0.75rem;
                 border-radius: 6px;
             }
 
             .page-info {
                 flex-basis: 100%;
-                width: 100%;
-                margin: 0.75rem 0 0 0;
+                width: calc(100% - 1rem);
+                margin: 0.65rem 0.5rem 0 0.5rem;
                 font-size: 0.7rem;
-                padding: 0.35rem 0.6rem;
+                padding: 0.4rem 0.6rem;
                 order: 100;
             }
 
@@ -1164,17 +1165,21 @@
             .pagination {
                 gap: 0.25rem;
                 padding: 1rem 0.25rem;
+                justify-content: center;
             }
 
             .page-btn {
-                padding: 0.4rem 0.55rem;
+                padding: 0.4rem 0.5rem;
                 min-width: 28px;
-                font-size: 0.75rem;
+                font-size: 0.7rem;
             }
 
             .page-info {
+                flex-basis: 100%;
+                width: calc(100% - 0.5rem);
+                margin: 0.5rem 0.25rem 0 0.25rem;
                 font-size: 0.65rem;
-                padding: 0.3rem 0.5rem;
+                padding: 0.35rem 0.5rem;
             }
 
             .filter-btn {

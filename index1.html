@@ -184,7 +184,9 @@
             background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%);
             position: relative;
             overflow: hidden;
-            height: 100vh;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
         }
 
         #hero::before {
@@ -272,8 +274,8 @@
 
         /* Hero Controls - EXACT ORIGINAL DESIGN */
         .hero-controls {
-            position: absolute;
-            bottom: 2rem;
+            position: fixed;
+            bottom: 5rem;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -459,25 +461,25 @@
             cursor: not-allowed;
         }
 
-        /* Pricing Section - REDESIGNED AS SLIDER */
+        /* Pricing Section - Complete New Design from index.html */
         #pricing {
             background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%);
+            padding: 6rem 2rem;
         }
 
-        .pricing-slider-wrapper {
-            position: relative;
-            overflow: hidden;
-            padding: 2rem 0;
+        .pricing-container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        .pricing-slider {
-            display: flex;
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 3rem;
         }
 
         .pricing-card {
-            min-width: 280px;
             background: var(--bg-secondary);
             padding: 2.5rem 2rem;
             border-radius: 20px;
@@ -487,18 +489,18 @@
             position: relative;
             display: flex;
             flex-direction: column;
-            flex-shrink: 0;
         }
 
         .pricing-card:hover {
             transform: translateY(-8px);
             border-color: var(--primary);
-            box-shadow: var(--card-shadow);
+            box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15);
         }
 
         .pricing-card.featured {
             border-color: var(--primary);
             box-shadow: 0 8px 32px var(--primary-glow);
+            transform: scale(1.05);
         }
 
         .pricing-badge {
@@ -532,6 +534,12 @@
             line-height: 1;
         }
 
+        .pricing-price sup {
+            font-size: 1.5rem;
+            position: relative;
+            top: -0.5em;
+        }
+
         .pricing-period {
             color: var(--text-muted);
             font-size: 0.875rem;
@@ -550,12 +558,19 @@
             color: var(--text-light);
             font-size: 0.9375rem;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 0.75rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
-        .pricing-features li i {
+        .pricing-features li:last-child {
+            border-bottom: none;
+        }
+
+        .pricing-features li::before {
+            content: '✓';
             color: var(--success);
+            font-weight: 700;
             font-size: 1.125rem;
             flex-shrink: 0;
         }
@@ -572,6 +587,8 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 16px var(--primary-glow);
+            text-decoration: none;
+            display: block;
         }
 
         .pricing-btn:hover {
@@ -609,6 +626,244 @@
             color: white;
             border-color: var(--primary);
             box-shadow: 0 4px 16px var(--primary-glow);
+        }
+
+        /* Blog Section from index.html */
+        #blog {
+            padding: 6rem 0;
+            background: var(--bg-dark);
+            color: #fff;
+            position: relative;
+            transition: background .3s ease;
+            overflow: hidden;
+        }
+
+        #blog::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(5, 150, 105, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        #blog h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 2;
+        }
+
+        .blog-subtitle {
+            text-align: center;
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.7);
+            position: relative;
+            z-index: 2;
+            margin-bottom: 3rem;
+        }
+
+        body:not(.dark) #blog {
+            background: var(--bg-light);
+            color: var(--text);
+        }
+
+        body:not(.dark) #blog h2 {
+            background: linear-gradient(135deg, var(--text), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        body:not(.dark) .blog-subtitle {
+            color: var(--text-light);
+        }
+
+        .carousel-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 400px;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+
+        .carousel {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .blog-item {
+            position: absolute;
+            width: 400px;
+            height: 300px;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all .5s cubic-bezier(.25,.46,.45,.94);
+            box-shadow: 0 20px 40px rgba(0,0,0,.3);
+            background: rgba(255,255,255,.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,.1);
+        }
+
+        body:not(.dark) .blog-item {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, .1);
+        }
+
+        .blog-item img {
+            width: 100%;
+            height: 70%;
+            object-fit: cover;
+        }
+
+        .blog-info {
+            padding: 1rem;
+            background: rgba(0,0,0,.9);
+            height: 30%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        body:not(.dark) .blog-info {
+            background: var(--bg-secondary);
+        }
+
+        .blog-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: .5rem;
+            line-height: 1.3;
+            color: #fff;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        body:not(.dark) .blog-title {
+            color: var(--text);
+        }
+
+        .blog-date {
+            font-size: .9rem;
+            opacity: .7;
+            color: #ccc;
+        }
+
+        body:not(.dark) .blog-date {
+            color: var(--text-light);
+        }
+
+        .blog-cta {
+            text-align: center;
+            margin-top: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255,255,255,.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,.2);
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: all .3s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body:not(.dark) .nav-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,.2);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .prev-btn {
+            left: 2rem;
+        }
+
+        .next-btn {
+            right: 2rem;
+        }
+
+        .blog-item.active {
+            transform: translateX(0) translateZ(0) scale(1);
+            opacity: 1;
+            z-index: 3;
+        }
+
+        .blog-item.prev {
+            transform: translateX(-450px) translateZ(-200px) rotateY(35deg) scale(.8);
+            opacity: .6;
+            z-index: 2;
+        }
+
+        .blog-item.next {
+            transform: translateX(450px) translateZ(-200px) rotateY(-35deg) scale(.8);
+            opacity: .6;
+            z-index: 2;
+        }
+
+        .blog-item.hidden {
+            transform: translateX(0) translateZ(-400px) scale(.5);
+            opacity: 0;
+            z-index: 1;
+        }
+
+        .blog-loading {
+            text-align: center;
+            padding: 3rem 0;
+            color: rgba(255,255,255,0.7);
+            position: relative;
+            z-index: 2;
+        }
+
+        .blog-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Footer */
@@ -709,12 +964,12 @@
                 min-width: 320px;
             }
 
-            .pricing-slider {
-                gap: 1.5rem;
+            .pricing-grid {
+                grid-template-columns: 1fr;
             }
 
-            .pricing-card {
-                min-width: 260px;
+            .pricing-card.featured {
+                transform: scale(1);
             }
         }
 
@@ -752,8 +1007,8 @@
             }
 
             #hero {
-                min-height: calc(100vh - 58px - 68px);
-                padding: 2rem 1.25rem 5rem;
+                min-height: 100vh;
+                padding: 4rem 1.25rem 8rem;
             }
 
             .hero-slide {
@@ -782,13 +1037,14 @@
 
             /* Hero Controls - Mobile Optimized */
             .hero-controls {
-                bottom: 1rem;
+                position: fixed;
+                bottom: 4.5rem;
                 padding: 0.5rem 1rem;
                 gap: 0.75rem;
+                width: auto;
                 max-width: calc(100% - 2rem);
-                left: 1rem;
-                right: 1rem;
-                transform: translateX(0);
+                left: 50%;
+                transform: translateX(-50%);
             }
 
             .hero-arrow {
@@ -849,13 +1105,45 @@
                 font-size: 0.875rem;
             }
 
-            .pricing-slider {
-                gap: 1rem;
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
             }
 
             .pricing-card {
-                min-width: 280px;
                 padding: 2rem 1.5rem;
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+
+            /* Blog section mobile styles */
+            .blog-item {
+                width: 300px;
+                height: 300px;
+            }
+
+            .blog-item.prev {
+                transform: translateX(-350px) translateZ(-200px) rotateY(35deg) scale(.7);
+            }
+
+            .blog-item.next {
+                transform: translateX(350px) translateZ(-200px) rotateY(-35deg) scale(.7);
+            }
+
+            .nav-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+
+            .prev-btn {
+                left: 1rem;
+            }
+
+            .next-btn {
+                right: 1rem;
             }
 
             .pricing-price {
@@ -954,12 +1242,25 @@
             }
 
             .pricing-card {
-                min-width: 260px;
                 padding: 1.75rem 1.25rem;
+            }
+
+            .blog-item {
+                width: 260px;
+                height: 260px;
+            }
+
+            .blog-item.prev,
+            .blog-item.next {
+                display: none;
             }
 
             .pricing-price {
                 font-size: 2.25rem;
+            }
+
+            .pricing-price sup {
+                font-size: 1.25rem;
             }
 
             .footer-grid {
@@ -989,6 +1290,17 @@
             .hero-arrow {
                 width: 24px;
                 height: 24px;
+                font-size: 0.7rem;
+            }
+
+            .carousel-container {
+                height: 350px;
+            }
+
+            .nav-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
             }
         }
     </style>
@@ -1002,7 +1314,7 @@
                 <li><a href="#hero" class="nav-link">Home</a></li>
                 <li><a href="#features" class="nav-link">Features</a></li>
                 <li><a href="#pricing" class="nav-link">Pricing</a></li>
-                <li><a href="blogs.html">Blog</a></li>
+                <li><a href="#blog" class="nav-link">Blog</a></li>
                 <li><a href="connect.html">Connect</a></li>
             </ul>
             <div class="nav-actions">
@@ -1045,31 +1357,44 @@
 
         <!-- Pricing Section -->
         <section id="pricing">
-            <div class="container">
+            <div class="pricing-container">
                 <div class="section-header">
                     <h2 class="section-title">Simple, Transparent Pricing</h2>
                     <p class="section-subtitle">Choose the perfect plan for your needs with flexible billing options</p>
                 </div>
 
                 <div class="pricing-toggle">
-                    <button class="toggle-btn active" onclick="changePricing('3month')" data-period="3month">3 Months</button>
-                    <button class="toggle-btn" onclick="changePricing('6month')" data-period="6month">6 Months</button>
-                    <button class="toggle-btn" onclick="changePricing('12month')" data-period="12month">12 Months</button>
+                    <button class="toggle-btn active" onclick="changePricing('monthly')" data-period="monthly">Monthly</button>
+                    <button class="toggle-btn" onclick="changePricing('yearly')" data-period="yearly">Yearly (Save 20%)</button>
                 </div>
 
-                <div class="pricing-slider-wrapper">
-                    <div class="pricing-slider" id="pricingSlider">
-                        <!-- Pricing cards will be inserted here -->
-                    </div>
+                <div class="pricing-grid" id="pricingGrid">
+                    <!-- Pricing cards will be inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Blog Section -->
+        <section id="blog">
+            <div>
+                <h2>Latest SEO Insights</h2>
+                <p class="blog-subtitle">Stay ahead with the latest SEO trends and insights</p>
+
+                <!-- Loading State -->
+                <div class="blog-loading" id="blogLoading">
+                    <div class="blog-spinner"></div>
+                    <p>Loading latest articles...</p>
                 </div>
 
-                <div class="slider-controls">
-                    <button class="slider-btn" id="prevPricingBtn" onclick="slidePricing('prev')" aria-label="Previous pricing plans">
-                        <i class="ri-arrow-left-s-line"></i>
-                    </button>
-                    <button class="slider-btn" id="nextPricingBtn" onclick="slidePricing('next')" aria-label="Next pricing plans">
-                        <i class="ri-arrow-right-s-line"></i>
-                    </button>
+                <!-- Carousel Container -->
+                <div class="carousel-container" id="carouselContainer" style="display:none;">
+                    <div class="carousel" id="carousel"></div>
+                    <button class="nav-btn prev-btn" onclick="prevBlog()">‹</button>
+                    <button class="nav-btn next-btn" onclick="nextBlog()">›</button>
+                </div>
+
+                <div class="blog-cta">
+                    <a href="blogs.html" class="cta">View All Articles</a>
                 </div>
             </div>
         </section>
@@ -1144,7 +1469,7 @@
                 <i class="ri-price-tag-3-line"></i>
                 <span>Pricing</span>
             </a>
-            <a href="blogs.html" class="mobile-item">
+            <a href="#blog" class="mobile-item" data-section="blog">
                 <i class="ri-article-line"></i>
                 <span>Blog</span>
             </a>
@@ -1170,42 +1495,46 @@
 
         let currentHero = 0;
 
-        // Features Data
+        // Features Data from index.html
         const featuresData = [
-            { icon: "🚀", title: "Real User Engagement", description: "Boost SEO with authentic user interactions from real people across 150+ countries worldwide." },
-            { icon: "🤖", title: "AI Content Creation", description: "Generate SEO-optimized content automatically with advanced AI technology and algorithms." },
-            { icon: "📊", title: "Advanced Analytics", description: "Track performance with detailed insights, real-time data, and comprehensive reporting tools." },
-            { icon: "⚡", title: "Lightning Fast CDN", description: "Global content delivery with instant loading worldwide through our optimized network." },
-            { icon: "🔗", title: "Smart Backlink Building", description: "Build high-quality backlinks through intelligent networks and automated outreach systems." },
-            { icon: "💰", title: "Cost Effective", description: "Premium SEO features at affordable prices starting at just $0.10 per article with no hidden fees." }
+            { icon: "🚀", title: "Real User Engagement", description: "Boost SEO with authentic user interactions and natural traffic patterns from real people." },
+            { icon: "🤖", title: "AI Content Creation", description: "Generate high-quality, SEO-optimized content automatically with advanced AI technology." },
+            { icon: "📊", title: "Advanced Analytics", description: "Track performance with detailed insights, recommendations, and real-time data." },
+            { icon: "⚡", title: "Lightning Fast CDN", description: "Global content delivery with automatic optimization and instant loading worldwide." },
+            { icon: "🔗", title: "Smart Backlink Building", description: "Build high-quality backlinks through intelligent networks and partnerships." },
+            { icon: "💰", title: "Cost Effective Solutions", description: "Premium SEO features at affordable prices starting at just $0.10 per task." }
         ];
 
         let featureSlideIndex = 0;
 
-        // Pricing Data
+        // Pricing Data - same as index.html
         const pricingData = {
-            "3month": [
-                { name: "Free", price: 0, period: "forever", features: ["30 Articles per month", "100 AI Images", "Basic Analytics", "Community Support", "1 Website"] },
-                { name: "Basic", price: 10, period: "per 3 months", features: ["200 Articles per month", "1,000 AI Images", "Advanced Analytics", "Priority Support", "3 Websites", "Custom Domain"] },
-                { name: "Pro", price: 25, period: "per 3 months", featured: true, features: ["600 Articles per month", "4,000 AI Images", "Real-time Analytics", "24/7 Premium Support", "10 Websites", "Custom Domain", "API Access", "White Label"] },
-                { name: "Enterprise", price: 50, period: "per 3 months", features: ["2,000 Articles per month", "20,000 AI Images", "Enterprise Analytics", "Dedicated Support", "Unlimited Websites", "Custom Domain", "API Access", "White Label", "Custom Integration"] }
+            "monthly": [
+                { name: "Starter", price: 0, period: "forever", features: ["Up to 30 articles/month", "Basic analytics", "Community support", "1 website", "Standard CDN"] },
+                { name: "Professional", price: 29, period: "per month", features: ["Up to 500 articles/month", "Advanced analytics", "Priority support", "5 websites", "Premium CDN", "AI content generation", "Keyword research tools"] },
+                { name: "Business", price: 99, period: "per month", featured: true, features: ["Unlimited articles", "Real-time analytics", "24/7 dedicated support", "Unlimited websites", "Enterprise CDN", "Advanced AI tools", "API access", "Custom integrations"] },
+                { name: "Enterprise", price: "Custom", period: "contact us", features: ["Everything in Business", "Custom AI training", "White-label solution", "SLA guarantee", "Dedicated account manager", "Custom reporting", "Priority feature requests", "On-premise deployment"] }
             ],
-            "6month": [
-                { name: "Free", price: 0, period: "forever", features: ["30 Articles per month", "100 AI Images", "Basic Analytics", "Community Support", "1 Website"] },
-                { name: "Basic", price: 18, period: "per 6 months", features: ["200 Articles per month", "1,000 AI Images", "Advanced Analytics", "Priority Support", "3 Websites", "Custom Domain"] },
-                { name: "Pro", price: 45, period: "per 6 months", featured: true, features: ["600 Articles per month", "4,000 AI Images", "Real-time Analytics", "24/7 Premium Support", "10 Websites", "Custom Domain", "API Access", "White Label"] },
-                { name: "Enterprise", price: 90, period: "per 6 months", features: ["2,000 Articles per month", "20,000 AI Images", "Enterprise Analytics", "Dedicated Support", "Unlimited Websites", "Custom Domain", "API Access", "White Label", "Custom Integration"] }
-            ],
-            "12month": [
-                { name: "Free", price: 0, period: "forever", features: ["30 Articles per month", "100 AI Images", "Basic Analytics", "Community Support", "1 Website"] },
-                { name: "Basic", price: 32, period: "per year", features: ["200 Articles per month", "1,000 AI Images", "Advanced Analytics", "Priority Support", "3 Websites", "Custom Domain"] },
-                { name: "Pro", price: 80, period: "per year", featured: true, features: ["600 Articles per month", "4,000 AI Images", "Real-time Analytics", "24/7 Premium Support", "10 Websites", "Custom Domain", "API Access", "White Label"] },
-                { name: "Enterprise", price: 160, period: "per year", features: ["2,000 Articles per month", "20,000 AI Images", "Enterprise Analytics", "Dedicated Support", "Unlimited Websites", "Custom Domain", "API Access", "White Label", "Custom Integration"] }
+            "yearly": [
+                { name: "Starter", price: 0, period: "forever", features: ["Up to 30 articles/month", "Basic analytics", "Community support", "1 website", "Standard CDN"] },
+                { name: "Professional", price: 279, period: "per year", features: ["Up to 500 articles/month", "Advanced analytics", "Priority support", "5 websites", "Premium CDN", "AI content generation", "Keyword research tools", "Save $69/year"] },
+                { name: "Business", price: 948, period: "per year", featured: true, features: ["Unlimited articles", "Real-time analytics", "24/7 dedicated support", "Unlimited websites", "Enterprise CDN", "Advanced AI tools", "API access", "Custom integrations", "Save $240/year"] },
+                { name: "Enterprise", price: "Custom", period: "contact us", features: ["Everything in Business", "Custom AI training", "White-label solution", "SLA guarantee", "Dedicated account manager", "Custom reporting", "Priority feature requests", "On-premise deployment"] }
             ]
         };
 
-        let currentPricing = "3month";
-        let pricingSlideIndex = 0;
+        let currentPricing = "monthly";
+
+        // Blog Data
+        const blogData = [
+            {_id: 'fallback1', title: "SEO in 2024: What's Really Changed", image_url: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif", date: "Dec 15, 2024"},
+            {_id: 'fallback2', title: "AI Content vs Human Writing: The Truth", image_url: "https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif", date: "Dec 12, 2024"},
+            {_id: 'fallback3', title: "Real User Signals Impact Rankings", image_url: "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif", date: "Dec 8, 2024"},
+            {_id: 'fallback4', title: "CDN Performance Optimization Guide", image_url: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", date: "Dec 5, 2024"},
+            {_id: 'fallback5', title: "Modern Backlink Building Strategies", image_url: "https://media.giphy.com/media/3oKIPeS8ih2eBxSbde/giphy.gif", date: "Dec 1, 2024"}
+        ];
+
+        let currentBlog = 0;
 
         // Create Hero
         function createHero() {
@@ -1299,35 +1628,38 @@
             const cards = document.querySelectorAll('.feature-card');
             const maxSlide = cards.length - (window.innerWidth <= 768 ? 1 : window.innerWidth <= 968 ? 2 : 3);
 
-            document.getElementById('prevFeaturesBtn').disabled = featureSlideIndex === 0;
-            document.getElementById('nextFeaturesBtn').disabled = featureSlideIndex >= maxSlide;
+            const prevBtn = document.getElementById('prevFeaturesBtn');
+            const nextBtn = document.getElementById('nextFeaturesBtn');
+            
+            if (prevBtn) prevBtn.disabled = featureSlideIndex === 0;
+            if (nextBtn) nextBtn.disabled = featureSlideIndex >= maxSlide;
         }
 
-        // Pricing Slider
+        // Pricing Functions
         function createPricing() {
-            const slider = document.getElementById('pricingSlider');
-            slider.innerHTML = '';
+            const grid = document.getElementById('pricingGrid');
+            grid.innerHTML = '';
 
             pricingData[currentPricing].forEach(plan => {
                 const card = document.createElement('div');
                 card.className = `pricing-card ${plan.featured ? 'featured' : ''}`;
 
-                const featuresHTML = plan.features.map(f => `<li><i class="ri-check-line"></i> ${f}</li>`).join('');
+                const featuresHTML = plan.features.map(f => `<li>${f}</li>`).join('');
+
+                const priceDisplay = typeof plan.price === 'number' 
+                    ? (plan.price === 0 ? 'Free' : `<sup>$</sup>${plan.price}`)
+                    : plan.price;
 
                 card.innerHTML = `
                     ${plan.featured ? '<div class="pricing-badge">Most Popular</div>' : ''}
                     <h3 class="pricing-name">${plan.name}</h3>
-                    <div class="pricing-price">${plan.price === 0 ? 'Free' : '$' + plan.price}</div>
+                    <div class="pricing-price">${priceDisplay}</div>
                     <div class="pricing-period">${plan.period}</div>
                     <ul class="pricing-features">${featuresHTML}</ul>
-                    <button class="pricing-btn" onclick="window.location.href='connect.html'">${plan.price === 0 ? 'Start Free' : 'Get Started'}</button>
+                    <a href="connect.html" class="pricing-btn">${plan.price === 0 ? 'Start Free' : plan.price === 'Custom' ? 'Contact Sales' : 'Get Started'}</a>
                 `;
-                slider.appendChild(card);
+                grid.appendChild(card);
             });
-
-            pricingSlideIndex = 0;
-            gsap.set(slider, { x: 0 });
-            updatePricingButtons();
 
             gsap.from('.pricing-card', {
                 opacity: 0,
@@ -1347,33 +1679,97 @@
             createPricing();
         }
 
-        function slidePricing(direction) {
-            const slider = document.getElementById('pricingSlider');
-            const cards = slider.querySelectorAll('.pricing-card');
-            const cardWidth = cards[0].offsetWidth + (window.innerWidth <= 768 ? 16 : 32);
-            const maxSlide = cards.length - (window.innerWidth <= 768 ? 1 : window.innerWidth <= 968 ? 2 : 3);
+        // Blog Carousel Functions
+        async function fetchBlogData() {
+            try {
+                const response = await fetch(`https://api.seotize.net/blogs?page=1&page_size=6`);
+                const apiData = await response.json();
 
-            if (direction === 'next' && pricingSlideIndex < maxSlide) {
-                pricingSlideIndex++;
-            } else if (direction === 'prev' && pricingSlideIndex > 0) {
-                pricingSlideIndex--;
+                if (apiData?.code === 200 && apiData?.data?.blogs?.length > 0) {
+                    blogData.length = 0;
+                    apiData.data.blogs.slice(0, 6).forEach(blog => {
+                        blogData.push({
+                            _id: blog._id,
+                            title: blog.title,
+                            image_url: blog.image_url,
+                            date: new Date().toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})
+                        });
+                    });
+                    return true;
+                }
+            } catch (error) {
+                console.warn('API failed, using fallback data');
             }
-
-            gsap.to(slider, {
-                x: -pricingSlideIndex * cardWidth,
-                duration: 0.5,
-                ease: "power2.out"
-            });
-
-            updatePricingButtons();
+            return false;
         }
 
-        function updatePricingButtons() {
-            const cards = document.querySelectorAll('.pricing-card');
-            const maxSlide = cards.length - (window.innerWidth <= 768 ? 1 : window.innerWidth <= 968 ? 2 : 3);
+        function showBlogLoading() {
+            const loading = document.getElementById('blogLoading');
+            const carouselContainer = document.getElementById('carouselContainer');
+            loading.style.display = 'block';
+            carouselContainer.style.display = 'none';
+        }
 
-            document.getElementById('prevPricingBtn').disabled = pricingSlideIndex === 0;
-            document.getElementById('nextPricingBtn').disabled = pricingSlideIndex >= maxSlide;
+        function hideBlogLoading() {
+            const loading = document.getElementById('blogLoading');
+            const carouselContainer = document.getElementById('carouselContainer');
+
+            gsap.to(loading, {
+                opacity: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    loading.style.display = 'none';
+                    carouselContainer.style.display = 'block';
+                    gsap.fromTo(carouselContainer,
+                        {opacity: 0, y: 30},
+                        {opacity: 1, y: 0, duration: 0.8, ease: "power2.out"}
+                    );
+                }
+            });
+        }
+
+        function createBlogCarousel() {
+            const carousel = document.getElementById('carousel');
+            blogData.forEach((post, i) => {
+                const item = document.createElement('div');
+                item.className = 'blog-item';
+                item.innerHTML = `
+                    <img src="${post.image_url}" alt="${post.title}" loading="lazy">
+                    <div class="blog-info">
+                        <div class="blog-title">${post.title}</div>
+                        <div class="blog-date">${post.date}</div>
+                    </div>
+                `;
+                item.onclick = () => window.location.href = 'blogs.html';
+                carousel.appendChild(item);
+            });
+            updateBlogCarousel();
+        }
+
+        function updateBlogCarousel() {
+            const items = document.querySelectorAll('.blog-item');
+            items.forEach((item, i) => {
+                item.className = 'blog-item';
+                if (i === currentBlog) {
+                    item.classList.add('active');
+                } else if (i === (currentBlog - 1 + blogData.length) % blogData.length) {
+                    item.classList.add('prev');
+                } else if (i === (currentBlog + 1) % blogData.length) {
+                    item.classList.add('next');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+
+        function nextBlog() {
+            currentBlog = (currentBlog + 1) % blogData.length;
+            updateBlogCarousel();
+        }
+
+        function prevBlog() {
+            currentBlog = currentBlog === 0 ? blogData.length - 1 : currentBlog - 1;
+            updateBlogCarousel();
         }
 
         // Theme Toggle
@@ -1437,18 +1833,31 @@
         });
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             loadTheme();
             createHero();
             createFeatures();
             createPricing();
             updateActiveNav();
 
+            // Show loading state for blog section
+            showBlogLoading();
+
+            // Fetch API data and then create carousel
+            await fetchBlogData();
+
+            // Hide loading and create carousel
+            hideBlogLoading();
+            createBlogCarousel();
+
             // Auto slide hero
             setInterval(() => {
                 currentHero = (currentHero + 1) % heroData.slides.length;
                 updateHero();
             }, 5000);
+
+            // Auto slide blog carousel
+            setInterval(nextBlog, 8000);
 
             // GSAP Animations
             gsap.from('.hero-slide.active h1', {
@@ -1490,11 +1899,10 @@
 
             window.addEventListener('resize', () => {
                 featureSlideIndex = 0;
-                pricingSlideIndex = 0;
-                document.getElementById('featuresSlider').style.transform = 'translateX(0)';
-                document.getElementById('pricingSlider').style.transform = 'translateX(0)';
-                updateFeaturesButtons();
-                updatePricingButtons();
+                if (document.getElementById('featuresSlider')) {
+                    document.getElementById('featuresSlider').style.transform = 'translateX(0)';
+                    updateFeaturesButtons();
+                }
             });
         });
     </script>

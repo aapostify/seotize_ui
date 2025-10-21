@@ -174,7 +174,7 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            padding: 5rem 2rem;
+            padding: 3rem 2rem;
         }
 
         .container {
@@ -183,7 +183,7 @@
             width: 100%;
         }
 
-        /* Hero Section */
+        /* Hero Section - Keep Original Design from connect.html */
         #hero {
             background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%);
             position: relative;
@@ -193,17 +193,17 @@
         #hero::before {
             content: '';
             position: absolute;
-            width: 600px;
-            height: 600px;
+            width: 500px;
+            height: 500px;
             background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
-            top: -200px;
-            right: -200px;
+            top: -150px;
+            right: -150px;
             animation: float 10s ease-in-out infinite;
         }
 
         @keyframes float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            50% { transform: translate(-30px, 30px) rotate(5deg); }
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-25px, 25px); }
         }
 
         .hero-grid {
@@ -215,11 +215,31 @@
             z-index: 1;
         }
 
-        .hero-content h1 {
-            font-size: clamp(2.5rem, 5vw, 3.75rem);
+        .hero-content {
+            text-align: center;
+        }
+
+        .hero-image {
+            width: 320px;
+            height: 320px;
+            border-radius: 24px;
+            margin: 0 auto 2rem;
+            box-shadow: 0 25px 50px rgba(37, 99, 235, 0.25);
+            object-fit: cover;
+            border: 3px solid var(--border);
+            transition: all 0.5s ease;
+            display: block;
+        }
+
+        .hero-image:hover {
+            transform: scale(1.05);
+        }
+
+        .hero-title {
+            font-size: 3rem;
             font-weight: 800;
-            margin-bottom: 1.5rem;
-            line-height: 1.15;
+            margin-bottom: 1rem;
+            line-height: 1.2;
             background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -227,13 +247,14 @@
         }
 
         .hero-subtitle {
-            font-size: 1.125rem;
+            font-size: 1.25rem;
             color: var(--text-light);
-            margin-bottom: 2rem;
-            line-height: 1.7;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
             min-height: 60px;
             display: flex;
             align-items: center;
+            justify-content: center;
         }
 
         .cursor {
@@ -267,21 +288,6 @@
             box-shadow: 0 12px 32px var(--primary-glow);
         }
 
-        .hero-image-container {
-            position: relative;
-        }
-
-        .hero-image {
-            width: 100%;
-            max-width: 500px;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px rgba(37, 99, 235, 0.25);
-            border: 3px solid var(--border);
-            display: block;
-            margin: 0 auto;
-            transition: all 0.5s ease;
-        }
-
         /* Section Headers */
         .section-header {
             text-align: center;
@@ -305,12 +311,12 @@
             margin: 0 auto;
         }
 
-        /* Features Section */
+        /* Features Section - FIXED AND WORKING */
         #features {
             background: var(--bg);
         }
 
-        .features-slider-container {
+        .features-slider-wrapper {
             position: relative;
             overflow: hidden;
             padding: 2rem 0;
@@ -410,7 +416,7 @@
             font-size: 1.25rem;
         }
 
-        .slider-btn:hover {
+        .slider-btn:hover:not(:disabled) {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
@@ -422,15 +428,22 @@
             cursor: not-allowed;
         }
 
-        .slider-btn:disabled:hover {
-            background: var(--bg-secondary);
-            color: var(--text);
-            transform: scale(1);
-        }
-
-        /* Pricing Section */
+        /* Pricing Section - REDESIGNED AND AMAZING */
         #pricing {
             background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #pricing::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+            bottom: -150px;
+            left: -150px;
+            animation: float 8s ease-in-out infinite;
         }
 
         .pricing-toggle {
@@ -439,6 +452,8 @@
             gap: 0.75rem;
             margin-bottom: 3rem;
             flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
         }
 
         .toggle-btn {
@@ -451,6 +466,22 @@
             transition: all 0.3s ease;
             color: var(--text);
             font-size: 0.95rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toggle-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.5s ease, height 0.5s ease;
+            z-index: -1;
         }
 
         .toggle-btn:hover {
@@ -459,10 +490,14 @@
         }
 
         .toggle-btn.active {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border-color: var(--primary);
             box-shadow: 0 4px 16px var(--primary-glow);
+        }
+
+        .toggle-btn.active::before {
+            width: 200%;
+            height: 200%;
         }
 
         .pricing-grid {
@@ -471,6 +506,8 @@
             gap: 2rem;
             max-width: 1200px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
 
         .pricing-card {
@@ -478,22 +515,51 @@
             padding: 2.5rem 2rem;
             border-radius: 20px;
             border: 2px solid var(--border);
-            transition: all 0.4s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             text-align: center;
             position: relative;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+        }
+
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, var(--primary-glow), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            opacity: 0;
         }
 
         .pricing-card:hover {
-            transform: translateY(-8px);
+            transform: translateY(-12px) scale(1.02);
             border-color: var(--primary);
-            box-shadow: var(--card-shadow);
+            box-shadow: 0 20px 60px rgba(37, 99, 235, 0.3);
+        }
+
+        .pricing-card:hover::before {
+            opacity: 1;
+            animation: shine 1.5s ease-in-out;
+        }
+
+        @keyframes shine {
+            0% { transform: rotate(45deg) translateX(-100%); }
+            100% { transform: rotate(45deg) translateX(100%); }
         }
 
         .pricing-card.featured {
             border-color: var(--primary);
-            box-shadow: 0 8px 32px var(--primary-glow);
+            box-shadow: 0 12px 40px var(--primary-glow);
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured:hover {
+            transform: translateY(-12px) scale(1.07);
         }
 
         .pricing-badge {
@@ -501,7 +567,7 @@
             top: -12px;
             left: 50%;
             transform: translateX(-50%);
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
             color: white;
             padding: 0.375rem 1rem;
             border-radius: 20px;
@@ -509,7 +575,13 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            box-shadow: 0 4px 12px var(--primary-glow);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
         }
 
         .pricing-name {
@@ -517,20 +589,29 @@
             font-weight: 800;
             color: var(--text);
             margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
         }
 
         .pricing-price {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 800;
-            color: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 0.5rem;
             line-height: 1;
+            position: relative;
+            z-index: 1;
         }
 
         .pricing-period {
             color: var(--text-muted);
             font-size: 0.875rem;
             margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
         }
 
         .pricing-features {
@@ -538,6 +619,8 @@
             margin-bottom: 2rem;
             text-align: left;
             flex-grow: 1;
+            position: relative;
+            z-index: 1;
         }
 
         .pricing-features li {
@@ -547,31 +630,73 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card:hover .pricing-features li {
+            transform: translateX(5px);
         }
 
         .pricing-features li i {
             color: var(--success);
             font-size: 1.125rem;
             flex-shrink: 0;
+            background: rgba(16, 185, 129, 0.1);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
         }
 
         .pricing-btn {
             width: 100%;
-            padding: 1rem;
+            padding: 1.125rem 1rem;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
             border-radius: 12px;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 16px var(--primary-glow);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .pricing-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .pricing-btn:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
         .pricing-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 24px var(--primary-glow);
+        }
+
+        .pricing-card.featured .pricing-btn {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            box-shadow: 0 4px 16px rgba(251, 191, 36, 0.4);
+        }
+
+        .pricing-card.featured .pricing-btn:hover {
+            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.6);
         }
 
         /* Footer */
@@ -664,6 +789,19 @@
 
         /* Responsive Design */
         @media (max-width: 968px) {
+            .hero-grid {
+                gap: 3rem;
+            }
+
+            .hero-image {
+                width: 260px;
+                height: 260px;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
             .features-slider {
                 gap: 1.5rem;
             }
@@ -675,6 +813,10 @@
             .pricing-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 1.5rem;
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
             }
         }
 
@@ -723,17 +865,20 @@
 
             .hero-grid {
                 grid-template-columns: 1fr;
-                gap: 2.5rem;
+                gap: 2rem;
             }
 
-            .hero-content h1 {
+            .hero-image {
+                width: 280px;
+                height: 280px;
+            }
+
+            .hero-title {
                 font-size: 2rem;
-                margin-bottom: 1rem;
             }
 
             .hero-subtitle {
-                font-size: 1rem;
-                margin-bottom: 1.5rem;
+                font-size: 1.125rem;
                 min-height: 50px;
             }
 
@@ -742,17 +887,12 @@
                 font-size: 0.95rem;
             }
 
-            .hero-image {
-                max-width: 100%;
-            }
-
             .section-header {
                 margin-bottom: 2.5rem;
             }
 
             .section-title {
                 font-size: 1.875rem;
-                margin-bottom: 0.75rem;
             }
 
             .section-subtitle {
@@ -772,10 +912,6 @@
                 width: 56px;
                 height: 56px;
                 font-size: 1.75rem;
-            }
-
-            .feature-card h3 {
-                font-size: 1.25rem;
             }
 
             .slider-controls {
@@ -808,12 +944,16 @@
                 padding: 2rem 1.5rem;
             }
 
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+
             .pricing-name {
                 font-size: 1.375rem;
             }
 
             .pricing-price {
-                font-size: 2.5rem;
+                font-size: 2.75rem;
             }
 
             .footer-grid {
@@ -867,9 +1007,6 @@
                 font-weight: 500;
                 border-radius: 8px;
                 transition: all 0.3s ease;
-                border: none;
-                background: transparent;
-                cursor: pointer;
             }
 
             .mobile-item:active {
@@ -887,8 +1024,12 @@
         }
 
         @media (max-width: 480px) {
-            .hero-content h1 {
+            .hero-title {
                 font-size: 1.75rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
             }
 
             .section-title {
@@ -905,7 +1046,7 @@
             }
 
             .pricing-price {
-                font-size: 2.25rem;
+                font-size: 2.5rem;
             }
 
             .footer-grid {
@@ -941,6 +1082,11 @@
             .hero-grid {
                 gap: 2rem;
             }
+
+            .hero-image {
+                width: 220px;
+                height: 220px;
+            }
         }
     </style>
 </head>
@@ -966,33 +1112,33 @@
 
     <!-- Main Content -->
     <main>
-        <!-- Hero Section -->
+        <!-- Hero Section - Original Design from connect.html -->
         <section id="hero">
             <div class="container">
                 <div class="hero-grid">
                     <div class="hero-content">
-                        <h1>AI-Powered SEO Platform</h1>
-                        <div class="hero-subtitle" id="heroTypewriter">
-                            Boost search rankings with intelligent automation<span class="cursor"></span>
-                        </div>
-                        <a href="connect.html" class="hero-cta">Start Free Trial →</a>
+                        <img class="hero-image" id="showcaseImage" src="https://image-worker.cranko.cloud/placeholder/320/320?text=SEO%20Magic&color=2563eb" alt="SEOTIZE Platform">
+                        <h1 class="hero-title">SEOTIZE</h1>
+                        <div class="hero-subtitle" id="typeText">Transform your SEO today<span class="cursor"></span></div>
+                        <a href="connect.html" class="hero-cta">Get Started →</a>
                     </div>
-                    <div class="hero-image-container">
-                        <img src="https://image-worker.cranko.cloud/placeholder/500/500?text=SEO%20Platform&color=2563eb" alt="SEO Platform Dashboard" class="hero-image" id="heroImage">
+                    <div class="hero-content">
+                        <img class="hero-image" id="showcaseImage2" src="https://image-worker.cranko.cloud/placeholder/320/320?text=Rankings&color=059669" alt="Boost Rankings" style="display: none;">
+                        <img class="hero-image" id="showcaseImage3" src="https://image-worker.cranko.cloud/placeholder/320/320?text=Analytics&color=7c3aed" alt="Analytics" style="display: none;">
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Features Section -->
+        <!-- Features Section - FIXED AND WORKING -->
         <section id="features">
             <div class="container">
                 <div class="section-header">
                     <h2 class="section-title">Powerful SEO Features</h2>
-                    <p class="section-subtitle">Everything you need to dominate search rankings and drive organic traffic</p>
+                    <p class="section-subtitle">Everything you need to dominate search rankings</p>
                 </div>
 
-                <div class="features-slider-container">
+                <div class="features-slider-wrapper">
                     <div class="features-slider" id="featuresSlider">
                         <div class="feature-card">
                             <div class="feature-icon">🚀</div>
@@ -1027,7 +1173,7 @@
                         <div class="feature-card">
                             <div class="feature-icon">💰</div>
                             <h3>Cost Effective</h3>
-                            <p>Premium SEO features at affordable prices starting at just $0.10 per article with no hidden fees.</p>
+                            <p>Premium SEO features at affordable prices starting at just $0.10 per article.</p>
                         </div>
                     </div>
                 </div>
@@ -1043,12 +1189,12 @@
             </div>
         </section>
 
-        <!-- Pricing Section -->
+        <!-- Pricing Section - REDESIGNED AND AMAZING -->
         <section id="pricing">
             <div class="container">
                 <div class="section-header">
                     <h2 class="section-title">Simple, Transparent Pricing</h2>
-                    <p class="section-subtitle">Choose the perfect plan for your needs with flexible billing options</p>
+                    <p class="section-subtitle">Choose the perfect plan for your business</p>
                 </div>
 
                 <div class="pricing-toggle">
@@ -1057,9 +1203,7 @@
                     <button class="toggle-btn" onclick="changePricing('12month')" data-period="12month">12 Months</button>
                 </div>
 
-                <div class="pricing-grid" id="pricingGrid">
-                    <!-- Pricing cards will be inserted here by JavaScript -->
-                </div>
+                <div class="pricing-grid" id="pricingGrid"></div>
             </div>
         </section>
 
@@ -1108,10 +1252,10 @@
                 <div class="footer-bottom">
                     <p>© 2025 SEOTIZE. All rights reserved.</p>
                     <div class="social-links">
-                        <a href="#" aria-label="Email"><i class="ri-mail-line"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="ri-twitter-x-line"></i></a>
-                        <a href="#" aria-label="LinkedIn"><i class="ri-linkedin-line"></i></a>
-                        <a href="#" aria-label="Discord"><i class="ri-discord-line"></i></a>
+                        <a href="#"><i class="ri-mail-line"></i></a>
+                        <a href="#"><i class="ri-twitter-x-line"></i></a>
+                        <a href="#"><i class="ri-linkedin-line"></i></a>
+                        <a href="#"><i class="ri-discord-line"></i></a>
                     </div>
                 </div>
             </div>
@@ -1148,16 +1292,16 @@
     <script>
         gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
-        // Hero Typewriter Data
-        const heroTexts = [
-            { text: "Boost search rankings with intelligent automation", img: "https://image-worker.cranko.cloud/placeholder/500/500?text=SEO%20Platform&color=2563eb" },
-            { text: "Real user engagement from 150+ countries", img: "https://image-worker.cranko.cloud/placeholder/500/500?text=Global%20Network&color=059669" },
-            { text: "AI-powered content generation at scale", img: "https://image-worker.cranko.cloud/placeholder/500/500?text=AI%20Content&color=7c3aed" },
-            { text: "Lightning-fast CDN for instant loading", img: "https://image-worker.cranko.cloud/placeholder/500/500?text=Fast%20CDN&color=f59e0b" },
-            { text: "Advanced analytics and tracking tools", img: "https://image-worker.cranko.cloud/placeholder/500/500?text=Analytics&color=ef4444" }
+        // Hero Showcase Data
+        const showcaseData = [
+            { text: "🚀 Transform your SEO today", image: "https://image-worker.cranko.cloud/placeholder/320/320?text=SEO%20Magic&color=2563eb" },
+            { text: "🌟 Boost rankings instantly", image: "https://image-worker.cranko.cloud/placeholder/320/320?text=Rankings&color=059669" },
+            { text: "🎯 Target success precisely", image: "https://image-worker.cranko.cloud/placeholder/320/320?text=Precision&color=7c3aed" },
+            { text: "🔥 Ignite massive growth", image: "https://image-worker.cranko.cloud/placeholder/320/320?text=Growth&color=f59e0b" },
+            { text: "⚡ Lightning speed SEO", image: "https://image-worker.cranko.cloud/placeholder/320/320?text=Speed&color=ef4444" }
         ];
 
-        let heroIndex = 0;
+        let currentIndex = 0;
         let featureSlideIndex = 0;
 
         // Pricing Data
@@ -1168,7 +1312,7 @@
                     price: 0,
                     period: "forever",
                     features: [
-                        "30 Articles per month",
+                        "30 Articles/month",
                         "100 AI Images",
                         "Basic Analytics",
                         "Community Support",
@@ -1180,7 +1324,7 @@
                     price: 10,
                     period: "per 3 months",
                     features: [
-                        "200 Articles per month",
+                        "200 Articles/month",
                         "1,000 AI Images",
                         "Advanced Analytics",
                         "Priority Support",
@@ -1194,7 +1338,7 @@
                     period: "per 3 months",
                     featured: true,
                     features: [
-                        "600 Articles per month",
+                        "600 Articles/month",
                         "4,000 AI Images",
                         "Real-time Analytics",
                         "24/7 Premium Support",
@@ -1209,7 +1353,7 @@
                     price: 50,
                     period: "per 3 months",
                     features: [
-                        "2,000 Articles per month",
+                        "2,000 Articles/month",
                         "20,000 AI Images",
                         "Enterprise Analytics",
                         "Dedicated Support",
@@ -1227,7 +1371,7 @@
                     price: 0,
                     period: "forever",
                     features: [
-                        "30 Articles per month",
+                        "30 Articles/month",
                         "100 AI Images",
                         "Basic Analytics",
                         "Community Support",
@@ -1239,7 +1383,7 @@
                     price: 18,
                     period: "per 6 months",
                     features: [
-                        "200 Articles per month",
+                        "200 Articles/month",
                         "1,000 AI Images",
                         "Advanced Analytics",
                         "Priority Support",
@@ -1253,7 +1397,7 @@
                     period: "per 6 months",
                     featured: true,
                     features: [
-                        "600 Articles per month",
+                        "600 Articles/month",
                         "4,000 AI Images",
                         "Real-time Analytics",
                         "24/7 Premium Support",
@@ -1268,7 +1412,7 @@
                     price: 90,
                     period: "per 6 months",
                     features: [
-                        "2,000 Articles per month",
+                        "2,000 Articles/month",
                         "20,000 AI Images",
                         "Enterprise Analytics",
                         "Dedicated Support",
@@ -1286,7 +1430,7 @@
                     price: 0,
                     period: "forever",
                     features: [
-                        "30 Articles per month",
+                        "30 Articles/month",
                         "100 AI Images",
                         "Basic Analytics",
                         "Community Support",
@@ -1298,7 +1442,7 @@
                     price: 32,
                     period: "per year",
                     features: [
-                        "200 Articles per month",
+                        "200 Articles/month",
                         "1,000 AI Images",
                         "Advanced Analytics",
                         "Priority Support",
@@ -1312,7 +1456,7 @@
                     period: "per year",
                     featured: true,
                     features: [
-                        "600 Articles per month",
+                        "600 Articles/month",
                         "4,000 AI Images",
                         "Real-time Analytics",
                         "24/7 Premium Support",
@@ -1327,7 +1471,7 @@
                     price: 160,
                     period: "per year",
                     features: [
-                        "2,000 Articles per month",
+                        "2,000 Articles/month",
                         "20,000 AI Images",
                         "Enterprise Analytics",
                         "Dedicated Support",
@@ -1343,24 +1487,24 @@
 
         let currentPricing = "3month";
 
-        // Hero Typewriter Animation
-        function typeHeroText() {
-            const element = document.getElementById('heroTypewriter');
-            const image = document.getElementById('heroImage');
-            const current = heroTexts[heroIndex];
+        // Hero Typewriter
+        function typeText() {
+            const element = document.getElementById('typeText');
+            const image = document.getElementById('showcaseImage');
+            const current = showcaseData[currentIndex];
 
             if (!element || !image) return;
 
-            // Fade out image
+            // Animate image change
             gsap.to(image, {
+                scale: 0.9,
                 opacity: 0.7,
-                scale: 0.95,
                 duration: 0.3,
-                onComplete: () => {
-                    image.src = current.img;
+                onComplete: function() {
+                    image.src = current.image;
                     gsap.to(image, {
-                        opacity: 1,
                         scale: 1,
+                        opacity: 1,
                         duration: 0.5,
                         ease: "back.out(1.7)"
                     });
@@ -1372,7 +1516,7 @@
             gsap.to(element, {
                 duration: current.text.length * 0.04,
                 text: { value: current.text },
-                onUpdate: () => {
+                onUpdate: function() {
                     if (!element.innerHTML.includes('cursor')) {
                         element.innerHTML += '<span class="cursor"></span>';
                     }
@@ -1383,6 +1527,8 @@
         // Features Slider
         function slideFeatures(direction) {
             const slider = document.getElementById('featuresSlider');
+            if (!slider) return;
+
             const cards = slider.querySelectorAll('.feature-card');
             const cardWidth = cards[0].offsetWidth + (window.innerWidth <= 768 ? 16 : 32);
             const maxSlide = cards.length - (window.innerWidth <= 768 ? 1 : window.innerWidth <= 968 ? 2 : 3);
@@ -1406,54 +1552,57 @@
             const cards = document.querySelectorAll('.feature-card');
             const maxSlide = cards.length - (window.innerWidth <= 768 ? 1 : window.innerWidth <= 968 ? 2 : 3);
             
-            document.getElementById('prevBtn').disabled = featureSlideIndex === 0;
-            document.getElementById('nextBtn').disabled = featureSlideIndex >= maxSlide;
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            if (prevBtn) prevBtn.disabled = featureSlideIndex === 0;
+            if (nextBtn) nextBtn.disabled = featureSlideIndex >= maxSlide;
         }
 
-        // Change Pricing Period
+        // Change Pricing
         function changePricing(period) {
             currentPricing = period;
             
-            document.querySelectorAll('.toggle-btn').forEach(btn => {
+            document.querySelectorAll('.toggle-btn').forEach(function(btn) {
                 btn.classList.remove('active');
             });
-            document.querySelector(`[data-period="${period}"]`).classList.add('active');
+            
+            const activeBtn = document.querySelector('[data-period="' + period + '"]');
+            if (activeBtn) activeBtn.classList.add('active');
             
             renderPricing();
         }
 
-        // Render Pricing Cards
+        // Render Pricing
         function renderPricing() {
             const grid = document.getElementById('pricingGrid');
+            if (!grid) return;
+
             const plans = pricingData[currentPricing];
-            
             grid.innerHTML = '';
             
-            plans.forEach((plan, index) => {
+            plans.forEach(function(plan) {
                 const card = document.createElement('div');
-                card.className = `pricing-card ${plan.featured ? 'featured' : ''}`;
+                card.className = 'pricing-card' + (plan.featured ? ' featured' : '');
                 
-                const featuresHTML = plan.features.map(feature => 
-                    `<li><i class="ri-check-line"></i> ${feature}</li>`
-                ).join('');
+                const featuresHTML = plan.features.map(function(feature) {
+                    return '<li><i class="ri-check-line"></i> ' + feature + '</li>';
+                }).join('');
                 
-                card.innerHTML = `
-                    ${plan.featured ? '<div class="pricing-badge">Most Popular</div>' : ''}
-                    <h3 class="pricing-name">${plan.name}</h3>
-                    <div class="pricing-price">${plan.price === 0 ? 'Free' : '$' + plan.price}</div>
-                    <div class="pricing-period">${plan.period}</div>
-                    <ul class="pricing-features">
-                        ${featuresHTML}
-                    </ul>
-                    <button class="pricing-btn" onclick="window.location.href='connect.html'">
-                        ${plan.price === 0 ? 'Start Free' : 'Get Started'}
-                    </button>
-                `;
+                card.innerHTML = 
+                    (plan.featured ? '<div class="pricing-badge">Best Value</div>' : '') +
+                    '<h3 class="pricing-name">' + plan.name + '</h3>' +
+                    '<div class="pricing-price">' + (plan.price === 0 ? 'Free' : '$' + plan.price) + '</div>' +
+                    '<div class="pricing-period">' + plan.period + '</div>' +
+                    '<ul class="pricing-features">' + featuresHTML + '</ul>' +
+                    '<button class="pricing-btn" onclick="window.location.href=\'connect.html\'">' +
+                    (plan.price === 0 ? 'Start Free' : 'Get Started') +
+                    '</button>';
                 
                 grid.appendChild(card);
             });
 
-            // Animate pricing cards
+            // Animate
             gsap.from('.pricing-card', {
                 opacity: 0,
                 y: 40,
@@ -1471,7 +1620,6 @@
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         }
 
-        // Load Theme
         function loadTheme() {
             if (localStorage.getItem('theme') === 'dark') {
                 document.body.classList.add('dark');
@@ -1479,7 +1627,7 @@
             }
         }
 
-        // Update Active Navigation
+        // Update Active Nav
         function updateActiveNav() {
             const sections = document.querySelectorAll('section[id]');
             const navLinks = document.querySelectorAll('.nav-link');
@@ -1487,22 +1635,21 @@
             
             let current = 'hero';
             
-            sections.forEach(section => {
+            sections.forEach(function(section) {
                 const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
                 if (window.pageYOffset >= sectionTop - 200) {
                     current = section.getAttribute('id');
                 }
             });
             
-            navLinks.forEach(link => {
+            navLinks.forEach(function(link) {
                 link.classList.remove('active');
-                if (link.getAttribute('href') === `#${current}`) {
+                if (link.getAttribute('href') === '#' + current) {
                     link.classList.add('active');
                 }
             });
             
-            mobileItems.forEach(item => {
+            mobileItems.forEach(function(item) {
                 item.classList.remove('active');
                 if (item.getAttribute('data-section') === current) {
                     item.classList.add('active');
@@ -1511,8 +1658,8 @@
         }
 
         // Smooth Scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
+        document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+            anchor.addEventListener('click', function(e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
@@ -1525,48 +1672,47 @@
             });
         });
 
-        // Initialize on DOM Load
-        document.addEventListener('DOMContentLoaded', () => {
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
             loadTheme();
             renderPricing();
             updateActiveNav();
             updateSliderButtons();
 
-            // Start hero typewriter
-            typeHeroText();
-            setInterval(() => {
-                heroIndex = (heroIndex + 1) % heroTexts.length;
-                typeHeroText();
+            // Start hero animation
+            typeText();
+            setInterval(function() {
+                currentIndex = (currentIndex + 1) % showcaseData.length;
+                typeText();
             }, 5000);
 
             // GSAP Animations
             const heroTL = gsap.timeline();
             
-            heroTL.from('.hero-content h1', {
+            heroTL.from('.hero-image', {
                 opacity: 0,
-                y: 50,
+                scale: 0.8,
                 duration: 1,
-                ease: "power3.out"
+                ease: "back.out(1.7)"
             })
-            .from('.hero-cta', {
+            .from('.hero-title', {
                 opacity: 0,
                 y: 30,
                 duration: 0.8,
-                ease: "back.out(1.7)"
+                ease: "power3.out"
             }, "-=0.5")
-            .from('.hero-image', {
+            .from('.hero-cta', {
                 opacity: 0,
-                scale: 0.9,
-                duration: 1,
+                y: 20,
+                duration: 0.6,
                 ease: "back.out(1.7)"
-            }, "-=1");
+            }, "-=0.3");
 
             // Features Animation
             gsap.from('.feature-card', {
                 scrollTrigger: {
                     trigger: '#features',
                     start: 'top 70%',
-                    end: 'bottom center',
                     toggleActions: 'play none none reverse'
                 },
                 opacity: 0,
@@ -1576,8 +1722,8 @@
                 ease: "power3.out"
             });
 
-            // Section Headers Animation
-            gsap.utils.toArray('.section-header').forEach(header => {
+            // Section Headers
+            gsap.utils.toArray('.section-header').forEach(function(header) {
                 gsap.from(header.children, {
                     scrollTrigger: {
                         trigger: header,
@@ -1592,7 +1738,7 @@
                 });
             });
 
-            // Footer Animation
+            // Footer
             gsap.from('.footer-col', {
                 scrollTrigger: {
                     trigger: '#footer',
@@ -1606,14 +1752,13 @@
                 ease: "power3.out"
             });
 
-            // Scroll event listener
+            // Event Listeners
             window.addEventListener('scroll', updateActiveNav);
-
-            // Resize event listener
-            window.addEventListener('resize', () => {
+            window.addEventListener('resize', function() {
                 updateSliderButtons();
                 featureSlideIndex = 0;
-                document.getElementById('featuresSlider').style.transform = 'translateX(0)';
+                const slider = document.getElementById('featuresSlider');
+                if (slider) slider.style.transform = 'translateX(0)';
             });
         });
     </script>

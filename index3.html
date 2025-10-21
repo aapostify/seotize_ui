@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SEOTIZE - AI-Powered SEO Platform | Boost Your Rankings</title>
-    <meta name="description" content="Transform your SEO with AI-powered tools, real user engagement, lightning-fast CDN, and automated content generation.">
+    <meta name="description" content="Transform your SEO with AI-powered tools, real user engagement, lightning-fast CDN, and automated content generation. Earn crypto easily.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
@@ -50,8 +50,8 @@
 
         html {
             scroll-behavior: smooth;
-            scroll-snap-type: y mandatory; /* Enabled for all screen sizes */
-            overflow-y: scroll; /* Ensures scrollbar is always present, preventing layout shifts */
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
         }
 
         body {
@@ -60,6 +60,7 @@
             color: var(--text);
             transition: background 0.3s ease, color 0.3s ease;
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
 
         /* Navigation */
@@ -187,1260 +188,284 @@
             height: 100vh;
             scroll-snap-align: start;
             display: flex;
-            flex-direction: column; /* Changed for easier centering */
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
             overflow: hidden;
-            padding-top: 65px; /* Account for fixed nav */
+            padding-top: 65px;
+            padding-left: 1rem; /* Add base padding */
+            padding-right: 1rem; /* Add base padding */
         }
 
-        /* Hero Section with Slider */
+        /* Hero Section */
         .hero {
             background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%);
-            position: relative;
-            padding-top: 0; /* Hero starts from top */
+            padding-top: 0;
         }
+        .hero::before { content:''; position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); top:-150px; right:-150px; animation: float 10s ease-in-out infinite; z-index: 1; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-25px, 25px); } }
+        .hero-slide { position: absolute; top:0; left:0; width:100%; height:100%; display: flex; align-items: center; justify-content: center; opacity: 0; transform: translateX(50px); transition: all 0.6s ease; z-index: 2; }
+        .hero-slide.active { opacity: 1; transform: translateX(0); }
+        .hero-container { max-width: 1400px; width: 100%; padding: 0 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        .hero h1 { font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 1.5rem; background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; }
+        .hero p { font-size: 1.25rem; color: var(--text-light); margin-bottom: 2rem; line-height: 1.6; }
+        .cta { display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 1rem; box-shadow: 0 10px 25px var(--primary-glow); transition: all 0.3s ease; }
+        .cta:hover { transform: translateY(-2px); box-shadow: 0 15px 35px var(--primary-glow); }
+        .hero img { width: 100%; max-width: 550px; border-radius: 20px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15); }
+        .hero-controls { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 1rem; background: var(--bg-secondary); padding: 0.75rem 1.5rem; border-radius: 50px; box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); border: 1px solid var(--border); z-index: 10; }
+        .hero-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all 0.2s; }
+        .hero-dot.active { background: var(--primary); transform: scale(1.25); }
+        .hero-arrow { width: 32px; height: 32px; border: none; border-radius: 50%; background: var(--bg); cursor: pointer; font-size: 0.875rem; color: var(--text); transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
+        .hero-arrow:hover { background: var(--primary); color: white; }
 
-        .hero::before {
-            content: '';
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
-            top: -150px;
-            right: -150px;
-            animation: float 10s ease-in-out infinite;
-            z-index: 1;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(-25px, 25px); }
-        }
-
-        .hero-slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transform: translateX(50px);
-            transition: all 0.6s ease;
-            z-index: 2;
-        }
-
-        .hero-slide.active {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .hero-container {
-            max-width: 1400px;
-            width: 100%;
-            padding: 0 2rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-        }
-
-        .hero h1 {
-            font-size: clamp(2.5rem, 5vw, 3.5rem);
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1.2;
-        }
-
-        .hero p {
-            font-size: 1.25rem;
-            color: var(--text-light);
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-
-        .cta {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 1rem 2rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1rem;
-            box-shadow: 0 10px 25px var(--primary-glow);
-            transition: all 0.3s ease;
-        }
-
-        .cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 35px var(--primary-glow);
-        }
-
-        .hero img {
-            width: 100%;
-            max-width: 550px;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-        }
-
-        .hero-controls {
-            position: absolute;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            background: var(--bg-secondary);
-            padding: 0.75rem 1.5rem;
-            border-radius: 50px;
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border);
-            z-index: 10;
-        }
-
-        .hero-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--border);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .hero-dot.active {
-            background: var(--primary);
-            transform: scale(1.25);
-        }
-
-        .hero-arrow {
-            width: 32px;
-            height: 32px;
-            border: none;
-            border-radius: 50%;
-            background: var(--bg);
-            cursor: pointer;
-            font-size: 0.875rem;
-            color: var(--text);
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .hero-arrow:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        /* Features Section - NEW INTERACTIVE DESIGN */
-        .features {
-             background: var(--bg);
-        }
+        /* Features Section */
+        .features { background: var(--bg); }
+        .section-title { text-align: center; font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .section-subtitle { text-align: center; font-size: 1.125rem; color: var(--text-light); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto; padding: 0 1rem; }
+        .features-container { max-width: 1400px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; justify-content: flex-start; /* Align content towards top */ height: 100%; padding: 2rem 0; /* Add padding for title/subtitle */ }
         
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .section-subtitle {
-            text-align: center;
-            font-size: 1.125rem;
-            color: var(--text-light);
-            margin-bottom: 3rem;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            padding: 0 1rem;
-        }
-        
-        .features-container {
-            max-width: 1400px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            height: 100%;
-        }
-
         /* Desktop Tab Layout */
-        .features-layout-desktop {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 2rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            height: 60vh;
-            max-height: 550px;
-            overflow: hidden;
-            box-shadow: var(--card-shadow);
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .features-list {
-            overflow-y: auto;
-            padding: 1rem;
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .features-list::-webkit-scrollbar { width: 4px; }
-        .features-list::-webkit-scrollbar-track { background: transparent; }
-        .features-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-        body.dark .features-list::-webkit-scrollbar-thumb { background: var(--border); }
-        
-        .feature-list-item {
-            padding: 1rem 1.25rem;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            border: 1px solid transparent;
-        }
-        
-        .feature-list-item:hover {
-            background: var(--bg);
-        }
-        
-        .feature-list-item.active {
-            background: var(--primary-glow);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-        
-        .feature-list-item .feature-icon {
-            font-size: 1.5rem;
-            width: 32px;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        
-        .feature-list-item.active .feature-icon {
-            transform: scale(1.1);
-        }
-        
-        .feature-list-item span {
-            font-size: 0.95rem;
-            font-weight: 500;
-            color: var(--text-light);
-        }
-        
-        .feature-list-item.active span {
-            font-weight: 600;
-            color: var(--primary);
-        }
-        
-        .features-content {
-            padding: 2.5rem 3rem;
-            overflow-y: auto;
-            position: relative;
-        }
-        
-        .features-content-pane {
-            /* JS will toggle display */
-            display: none; 
-            animation: fadeIn 0.4s forwards;
-        }
-        
-        .features-content-pane.active {
-            display: block;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .features-content-pane .content-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--primary);
-            display: inline-block;
-            background: var(--primary-glow);
-            padding: 0.75rem;
-            border-radius: 12px;
-        }
-        
-        .features-content-pane h3 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: var(--text);
-        }
-        
-        .features-content-pane p {
-            font-size: 1.05rem;
-            color: var(--text-light);
-            line-height: 1.7;
-            max-width: 600px;
-        }
+        .features-layout-desktop { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 20px; height: 60vh; max-height: 550px; overflow: hidden; box-shadow: var(--card-shadow); width: 100%; max-width: 1200px; margin: 0 auto; }
+        .features-list { overflow-y: auto; padding: 1rem; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.5rem; }
+        .features-list::-webkit-scrollbar { width: 4px; } .features-list::-webkit-scrollbar-track { background: transparent; } .features-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; } body.dark .features-list::-webkit-scrollbar-thumb { background: var(--border); }
+        .feature-list-item { padding: 1rem 1.25rem; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 1rem; border: 1px solid transparent; }
+        .feature-list-item:hover { background: var(--bg); }
+        .feature-list-item.active { background: var(--primary-glow); border-color: var(--primary); color: var(--primary); }
+        .feature-list-item .feature-icon { font-size: 1.5rem; width: 32px; text-align: center; transition: transform 0.3s ease; }
+        .feature-list-item.active .feature-icon { transform: scale(1.1); }
+        .feature-list-item span { font-size: 0.95rem; font-weight: 500; color: var(--text-light); }
+        .feature-list-item.active span { font-weight: 600; color: var(--primary); }
+        .features-content { padding: 2.5rem 3rem; overflow-y: auto; position: relative; }
+        .features-content-pane { display: none; animation: fadeIn 0.4s forwards; }
+        .features-content-pane.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .features-content-pane .content-icon { font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--primary); display: inline-block; background: var(--primary-glow); padding: 0.75rem; border-radius: 12px; }
+        .features-content-pane h3 { font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; color: var(--text); }
+        .features-content-pane p { font-size: 1.05rem; color: var(--text-light); line-height: 1.7; max-width: 600px; }
         
         /* Mobile Slider Layout */
-        .features-layout-mobile {
-            display: none; /* Hidden by default */
-            width: 100%;
-            height: 100%;
-            max-width: 500px; /* Constrain width on mobile */
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-        
-        .features-slider-wrap {
-            width: 100%;
-            overflow: hidden;
-            flex: 1;
-            display: flex;
-            align-items: center; /* Center slide vertically */
-        }
-        
-        .features-slider {
-            display: flex;
-            width: 100%;
-            transition: transform 0.4s ease-in-out;
-        }
-        
-        .feature-slide {
-            width: 100%;
-            flex-shrink: 0;
-            padding: 1rem;
-            text-align: center;
-        }
-        
-        .feature-slide .content-icon {
-            font-size: 3.5rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .feature-slide h3 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: var(--text);
-        }
-        
-        .feature-slide p {
-            font-size: 1rem;
-            color: var(--text-light);
-            line-height: 1.6;
-        }
-        
-        .features-dots {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: center;
-            padding: 1rem 0;
-            /* Positioned to avoid mobile nav */
-            padding-bottom: 80px; 
-        }
-        
-        .feature-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--border);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .feature-dot.active {
-            background: var(--primary);
-            transform: scale(1.3);
-        }
+        .features-layout-mobile { display: none; width: 100%; height: 100%; flex-direction: column; justify-content: center; align-items: center; position: relative; padding-bottom: 40px; /* Space for dots */}
+        .features-slider-wrap { width: 100%; overflow: hidden; flex: 1; display: flex; align-items: center; }
+        .features-slider { display: flex; width: 100%; transition: transform 0.4s ease-in-out; }
+        .feature-slide { width: 100%; flex-shrink: 0; padding: 1rem; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;}
+        .feature-slide .content-icon { font-size: 3.5rem; margin-bottom: 1.5rem; }
+        .feature-slide h3 { font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; color: var(--text); }
+        .feature-slide p { font-size: 1rem; color: var(--text-light); line-height: 1.6; }
+        .features-dots { display: flex; gap: 0.75rem; justify-content: center; padding: 1rem 0; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); }
+        .feature-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all 0.3s ease; }
+        .feature-dot.active { background: var(--primary); transform: scale(1.3); }
 
         /* Pricing Section */
-        .pricing {
-            background: var(--bg-secondary);
-        }
+        .pricing { background: var(--bg-secondary); }
+        .pricing-container-wrapper { max-width: 1400px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; height: 100%; justify-content: flex-start; padding-top: 2rem; }
         
-        .pricing-container-wrapper {
-            max-width: 1400px; 
-            width: 100%; 
-            margin: 0 auto; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100%; 
-            justify-content: center;
-        }
-
-        .pricing-type-toggle {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            background: var(--bg);
-            padding: 0.5rem;
-            border-radius: 12px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        .pricing-type-toggle button {
-            padding: 0.75rem 2rem;
-            border: none;
-            background: transparent;
-            color: var(--text-light);
-            font-weight: 600;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-        }
-
-        .pricing-type-toggle button.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px var(--primary-glow);
-        }
-
-        .pricing-toggle {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-bottom: 2.5rem;
-            background: var(--bg);
-            padding: 0.5rem;
-            border-radius: 12px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .pricing-toggle button {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            background: transparent;
-            color: var(--text-light);
-            font-weight: 600;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .pricing-toggle button.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px var(--primary-glow);
-        }
+        /* Redesigned Compact Controls */
+        .pricing-controls { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-bottom: 2rem; background: var(--bg); padding: 0.5rem; border-radius: 12px; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); flex-wrap: wrap; }
+        .pricing-controls > div { display: flex; gap: 0.25rem; background: var(--bg-secondary); padding: 0.25rem; border-radius: 10px; border: 1px solid var(--border); } /* Inner groups */
+        .pricing-controls button { padding: 0.5rem 1rem; border: none; background: transparent; color: var(--text-light); font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-size: 0.85rem; white-space: nowrap; }
+        .pricing-controls button.active { background: var(--primary); color: white; box-shadow: 0 2px 8px var(--primary-glow); }
+        .pricing-controls .save-badge { color: var(--success); font-size: 0.7rem; margin-left: 0.25rem; }
         
-        .pricing-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            overflow: hidden;
-            padding: 0 1rem;
-            flex: 1; /* Allow to grow */
-            display: flex;
-            align-items: center; /* Center grid vertically */
-            justify-content: center; /* Center grid horizontally */
-            position: relative; /* For mobile arrows */
-            width: 100%;
-        }
+        .pricing-container { max-width: 1400px; margin: 0 auto; overflow: hidden; padding: 0; /* Removed padding */ flex: 1; display: flex; align-items: center; justify-content: center; position: relative; width: 100%; }
 
-        /* Desktop Grid Layout */
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.5rem;
-            width: 100%;
-        }
-
-        .pricing-grid.task-pricing {
-            grid-template-columns: repeat(3, 1fr);
-            max-width: 1100px;
-        }
-
-        .pricing-card {
-            background: var(--bg-secondary);
-            border: 2px solid var(--border);
-            border-radius: 20px;
-            padding: 2rem;
-            transition: all 0.3s ease;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            height: 100%; /* Ensure cards are same height in grid */
-        }
-
-        .pricing-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-            border-color: var(--primary);
-        }
-
-        .pricing-card.popular {
-            border-color: var(--primary);
-            box-shadow: 0 20px 40px var(--primary-glow);
-        }
-
-        .popular-badge {
-            position: absolute;
-            top: -12px;
-            right: 20px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .pricing-card h3 {
-            font-size: 1.25rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            color: var(--text);
-        }
-
-        .pricing-card .price {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: var(--primary);
-            margin: 1rem 0;
-        }
-
-        .pricing-card .price span {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .pricing-features {
-            list-style: none;
-            margin: 1.5rem 0;
-            flex: 1; /* Pushes button to bottom */
-        }
-
-        .pricing-features li {
-            padding: 0.5rem 0;
-            color: var(--text-light);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-        }
-
-        .pricing-features li i {
-            color: var(--success);
-            font-size: 1rem;
-        }
+        /* Desktop Grid */
+        .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; width: 100%; padding: 0 1rem; /* Padding for grid */}
+        .pricing-grid.task-pricing { grid-template-columns: repeat(3, 1fr); max-width: 1100px; }
+        .pricing-card { background: var(--bg-secondary); border: 2px solid var(--border); border-radius: 20px; padding: 1.5rem; /* Slightly reduced padding */ transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; height: 100%; }
+        .pricing-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15); border-color: var(--primary); }
+        .pricing-card.popular { border-color: var(--primary); box-shadow: 0 20px 40px var(--primary-glow); }
+        .popular-badge { position: absolute; top: -12px; right: 20px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .pricing-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); }
+        .pricing-card .price { font-size: 2.25rem; font-weight: 800; color: var(--primary); margin: 0.75rem 0; }
+        .pricing-card .price span { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+        .pricing-features { list-style: none; margin: 1rem 0; flex: 1; }
+        .pricing-features li { padding: 0.4rem 0; color: var(--text-light); display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; }
+        .pricing-features li i { color: var(--success); font-size: 1rem; }
+        .pricing-card .cta { width: 100%; text-align: center; justify-content: center; margin-top: auto; padding: 0.75rem 1rem; font-size: 0.9rem;}
         
-        .pricing-card .cta {
-            width: 100%;
-            text-align: center;
-            justify-content: center;
-            margin-top: auto; /* Pushes to bottom */
-        }
-        
-        /* Mobile Pricing Slider */
-        .pricing-slider-wrap {
-            display: none; /* Hidden on desktop */
-            width: 100%;
-            overflow: hidden;
-            max-width: 400px;
-        }
-        
-        .pricing-slider {
-            display: flex;
-            transition: transform 0.4s ease-in-out;
-        }
-        
-        .price-slide {
-            width: 100%;
-            flex-shrink: 0;
-            padding: 0 0.5rem; /* Space between cards */
-        }
-        
-        .price-slide .pricing-card {
-            width: 100%;
-        }
-        
-        .pricing-slider-nav {
-            display: none; /* Hidden on desktop */
-            width: 100%;
-            justify-content: space-between;
-            position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            padding: 0 0.25rem;
-        }
-        
-        .pricing-slider-arrow {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-size: 1.25rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        .pricing-slider-arrow:hover {
-            background: var(--primary);
-            color: white;
-        }
-        .pricing-slider-arrow:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        
-        .pricing-dots {
-            display: none; /* Hidden on desktop */
-            gap: 0.75rem;
-            justify-content: center;
-            position: absolute;
-            bottom: 80px; /* Avoid mobile nav */
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        .pricing-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--border);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .pricing-dot.active {
-            background: var(--primary);
-            transform: scale(1.3);
-        }
+        /* Mobile Slider */
+        .pricing-slider-wrap { display: none; width: 100%; overflow: hidden; padding: 0 2.5rem; /* Space for arrows */ }
+        .pricing-slider { display: flex; transition: transform 0.4s ease-in-out; }
+        .price-slide { width: 100%; flex-shrink: 0; padding: 0 0.5rem; }
+        .price-slide .pricing-card { width: 100%; }
+        .pricing-slider-nav { display: none; width: 100%; justify-content: space-between; position: absolute; top: 50%; left: 0; transform: translateY(-50%); padding: 0 0.5rem; z-index: 5; } /* Adjusted padding */
+        .pricing-slider-arrow { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text); font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; }
+        .pricing-slider-arrow:hover { background: var(--primary); color: white; }
+        .pricing-slider-arrow:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pricing-dots { display: none; gap: 0.75rem; justify-content: center; position: absolute; bottom: 1rem; /* Adjusted position */ left: 50%; transform: translateX(-50%); z-index: 5; }
+        .pricing-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all 0.3s ease; }
+        .pricing-dot.active { background: var(--primary); transform: scale(1.3); }
 
         /* Partner Section */
-        .partner {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-        }
-
-        .partner-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-            height: 100%;
-            padding: 2rem;
-            width: 100%;
-        }
+        .partner { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; }
+        .partner-container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; height: 100%; padding: 2rem; width: 100%; }
+        .partner-content, .partner-stats { z-index: 1; } /* Keep original content for desktop */
         
-        .partner-content {
-            z-index: 1;
-        }
-        .partner-stats {
-            z-index: 1;
-        }
+        /* Redesigned Partner Content */
+        .partner h2 { font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; color: white; }
+        .partner p.intro { font-size: 1.125rem; color: rgba(255, 255, 255, 0.9); margin-bottom: 1.5rem; line-height: 1.6; }
+        .partner h3 { font-size: 1.25rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; color: rgba(255, 255, 255, 0.95); border-bottom: 1px solid rgba(255, 255, 255, 0.3); padding-bottom: 0.5rem; }
+        
+        .how-it-works { list-style: none; padding-left: 0; margin-bottom: 2rem; }
+        .how-it-works li { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; font-size: 1rem; color: rgba(255, 255, 255, 0.9); }
+        .how-it-works .step-number { background: rgba(255, 255, 255, 0.2); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; flex-shrink: 0; }
+        
+        .partner-benefits { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .benefit-item { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; gap: 0.75rem; }
+        .benefit-item i { font-size: 1.75rem; color: white; width: 30px; text-align: center; }
+        .benefit-item span { font-size: 0.9rem; color: rgba(255, 255, 255, 0.95); }
+        
+        .cta-partner { display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; background: white; color: var(--primary); text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 1rem; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); transition: all 0.3s ease; }
+        .cta-partner:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3); }
 
-        .partner-content h2 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            color: white;
-        }
-
-        .partner-content p {
-            font-size: 1.125rem;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-
-        .partner-features {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .partner-feature-item {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 1rem;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .partner-feature-item i {
-            font-size: 1.5rem;
-            color: white;
-        }
-
-        .partner-feature-item span {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.95);
-        }
-
-        .cta-secondary {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 1rem 2rem;
-            background: white;
-            color: var(--primary);
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .cta-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-        }
-
-        .partner-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 2rem;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .stat-number {
-            font-size: 3rem;
-            font-weight: 800;
-            color: white;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1rem;
-        }
+        .partner-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+        .stat-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 2rem; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.2); text-align: center; transition: all 0.3s ease; }
+        .stat-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.15); }
+        .stat-number { font-size: 3rem; font-weight: 800; color: white; margin-bottom: 0.5rem; }
+        .stat-label { color: rgba(255, 255, 255, 0.8); font-size: 1rem; }
         
         /* Mobile Partner Slider */
-        .partner-slider-wrap {
-            display: none; /* Hidden on desktop */
-        }
-        
-        .partner-dots {
-            display: none; /* Hidden on desktop */
-        }
+        .partner-slider-wrap { display: none; }
+        .partner-dots { display: none; }
 
-        /* Footer (from blogs.html) */
-        .footer {
-            padding: 4rem 2rem 2rem;
-            background: var(--bg-dark);
-            color: #f1f5f9;
-            height: auto;
-            min-height: auto;
-            scroll-snap-align: end; /* Snaps to end, but content flows */
-            padding-top: 4rem;
-        }
-
-        body.dark .footer {
-            background: #000000;
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 3rem;
-            margin-bottom: 3rem;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .footer h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #ffffff;
-        }
-
-        .footer ul {
-            list-style: none;
-        }
-
-        .footer li {
-            margin: 0.5rem 0;
-        }
-
-        .footer a {
-            color: #94a3b8;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.3s ease;
-        }
-
-        .footer a:hover {
-            color: #ffffff;
-        }
-
-        .footer-bottom {
-            padding-top: 2rem;
-            border-top: 1px solid #334155;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .footer-bottom p {
-            color: #94a3b8;
-            font-size: 0.9rem;
-        }
-
-        .social-links {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .social-links a {
-            width: 36px;
-            height: 36px;
-            background: #334155;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-size: 1.125rem;
-            color: #f1f5f9;
-        }
-
-        .social-links a:hover {
-            background: var(--primary);
-            transform: translateY(-2px);
-            color: #ffffff;
-        }
+        /* Footer */
+        .footer { padding: 4rem 2rem 2rem; background: var(--bg-dark); color: #f1f5f9; height: auto; min-height: auto; scroll-snap-align: end; padding-top: 4rem; }
+        body.dark .footer { background: #000000; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 3rem; margin-bottom: 3rem; max-width: 1200px; margin-left: auto; margin-right: auto; }
+        .footer h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: #ffffff; }
+        .footer ul { list-style: none; } .footer li { margin: 0.5rem 0; }
+        .footer a { color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: color 0.3s ease; } .footer a:hover { color: #ffffff; }
+        .footer-bottom { padding-top: 2rem; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; gap: 1rem; }
+        .footer-bottom p { color: #94a3b8; font-size: 0.9rem; }
+        .social-links { display: flex; gap: 1rem; }
+        .social-links a { width: 36px; height: 36px; background: #334155; border-radius: 8px; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.3s ease; font-size: 1.125rem; color: #f1f5f9; }
+        .social-links a:hover { background: var(--primary); transform: translateY(-2px); color: #ffffff; }
 
         /* Scroll Indicator */
-        .scroll-indicator {
-            position: fixed;
-            right: 2rem;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            z-index: 50;
-        }
-
-        .scroll-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--border);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .scroll-dot .tooltip {
-            position: absolute;
-            right: 150%;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--text);
-            color: var(--bg);
-            padding: 0.25rem 0.75rem;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .scroll-dot:hover .tooltip {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .scroll-dot.active {
-            background: var(--primary);
-            transform: scale(1.5);
-        }
+        .scroll-indicator { position: fixed; right: 2rem; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 1rem; z-index: 50; }
+        .scroll-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all 0.3s ease; position: relative; }
+        .scroll-dot .tooltip { position: absolute; right: 150%; top: 50%; transform: translateY(-50%); background: var(--text); color: var(--bg); padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.8rem; font-weight: 500; white-space: nowrap; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .scroll-dot:hover .tooltip { opacity: 1; visibility: visible; }
+        .scroll-dot.active { background: var(--primary); transform: scale(1.5); }
 
         /* Mobile Navigation */
-        .mobile-nav {
-            display: none;
-        }
+        .mobile-nav { display: none; }
 
-        /* Responsive */
+        /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
-            nav {
-                height: 58px;
-            }
-
-            .nav-container {
-                padding: 0 1rem;
-            }
-
-            .logo {
-                font-size: 1.25rem;
-            }
-
-            .theme-btn {
-                width: 38px;
-                height: 38px;
-                font-size: 1.1rem;
-            }
-
-            .nav-menu {
-                display: none;
-            }
-
-            .get-started-btn {
-                padding: 0.45rem 1rem;
-                font-size: 0.8rem;
-            }
+            nav { height: 58px; }
+            .nav-container { padding: 0 1rem; } .logo { font-size: 1.25rem; }
+            .theme-btn { width: 38px; height: 38px; font-size: 1.1rem; }
+            .nav-menu { display: none; }
+            .get-started-btn { padding: 0.45rem 1rem; font-size: 0.8rem; }
 
             .section {
-                /* Set section height to 100vh and pad for navs */
-                height: 100vh;
-                min-height: 100vh;
-                padding-top: 58px; /* Top Nav */
-                padding-bottom: 68px; /* Bottom Nav */
-                justify-content: center; /* Center content vertically */
+                height: 100vh; min-height: 100vh;
+                padding-top: 58px; padding-bottom: 68px;
+                padding-left: 0; padding-right: 0; /* Remove base horizontal padding */
+                justify-content: flex-start; /* Align content to top */
             }
+            .hero { padding-top: 0; padding-bottom: 0; justify-content: center; }
+            .hero-container { grid-template-columns: 1fr; gap: 1.5rem; padding: 0 1.5rem; text-align: center; }
+            .hero-container > div:last-child { order: -1; }
+            .hero h1 { font-size: 1.8rem; margin-bottom: 0.75rem;}
+            .hero p { font-size: 0.95rem; margin-bottom: 1.5rem; }
+            .hero img { max-width: 250px; margin: 0 auto; }
+            .hero-controls { bottom: 80px; padding: 0.5rem 1rem; }
             
-            .hero {
-                padding-top: 0; /* Hero is special, no top padding */
-                padding-bottom: 0; /* No bottom padding */
-                justify-content: center;
-            }
+            .section-title { font-size: 1.8rem; margin-bottom: 0.5rem;}
+            .section-subtitle { font-size: 0.95rem; margin-bottom: 1.5rem; }
 
-            .hero-container {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-                padding: 0 1.5rem;
-                text-align: center;
-            }
+            /* Features Mobile */
+            .features-container { padding: 1rem 0 0 0; }
+            .features-layout-desktop { display: none; }
+            .features-layout-mobile { display: flex; max-width: 100%; } /* Enable mobile slider */
+            .features-dots { bottom: 0; } /* Adjust position */
+            .feature-slide h3 { font-size: 1.5rem; }
+            .feature-slide p { font-size: 0.95rem; }
+
+            /* Pricing Mobile */
+            .pricing-container-wrapper { padding: 1rem 0 0 0; } /* Adjust padding */
+            .pricing-controls { gap: 0.5rem; margin-bottom: 1.5rem; padding: 0.3rem; width: 95%; }
+            .pricing-controls > div { gap: 0.1rem; padding: 0.2rem; }
+            .pricing-controls button { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
+            .pricing-grid { display: none; }
+            .pricing-container { padding: 0; } /* Remove padding for full width slider */
+            .pricing-slider-wrap { display: block; padding: 0 2.5rem; /* Space for arrows */ }
+            .pricing-slider-nav { display: flex; }
+            .pricing-dots { display: flex; bottom: 0; } /* Adjust position */
+            .price-slide .pricing-card { padding: 1.25rem; }
+            .price-slide .pricing-card h3 { font-size: 1.1rem; }
+            .price-slide .pricing-card .price { font-size: 1.8rem; }
+            .price-slide .pricing-features li { font-size: 0.75rem; padding: 0.3rem 0;}
+            .price-slide .pricing-card .cta { font-size: 0.85rem; padding: 0.65rem 1rem; }
             
-            .hero-container > div:last-child {
-                order: -1; /* Move image to top */
-            }
+            /* Partner Mobile */
+            .partner-container { grid-template-columns: 1fr; gap: 0; padding: 0; display: block; overflow: hidden; position: relative; height: 100%; }
+            .partner-slider-wrap { display: flex; height: 100%; width: 100%; transition: transform 0.4s ease-in-out; }
+            .partner-slide { width: 100%; flex-shrink: 0; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 1rem 1.5rem 60px 1.5rem; /* Padding + space for dots */ overflow-y: auto; }
+            .partner-slide h2 { font-size: 1.8rem; }
+            .partner-slide p.intro { font-size: 0.95rem; margin-bottom: 1rem; }
+            .partner-slide h3 { font-size: 1.1rem; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+            .partner-slide .how-it-works li { font-size: 0.9rem; }
+            .partner-slide .partner-benefits { grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1.5rem; width: 100%; max-width: 350px;}
+            .partner-slide .benefit-item { padding: 0.75rem; gap: 0.5rem;}
+            .partner-slide .benefit-item i { font-size: 1.5rem; }
+            .partner-slide .benefit-item span { font-size: 0.85rem; }
+            .partner-slide .cta-partner { padding: 0.8rem 1.5rem; font-size: 0.9rem; }
+            .partner-slide .partner-stats { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; width: 100%; }
+            .partner-slide .stat-card { padding: 1rem; }
+            .partner-slide .stat-number { font-size: 1.8rem; }
+            .partner-slide .stat-label { font-size: 0.85rem; }
+            .partner-dots { display: flex; bottom: 0; /* Adjust position relative to slide padding */ }
+            .partner-dot { background: rgba(255,255,255,0.3); } .partner-dot.active { background: white; }
+            .partner-content, .partner-stats { display: none !important; } /* Hide desktop versions forcefully */
 
-            .hero h1 {
-                font-size: 2rem;
-            }
+            .scroll-indicator { display: none; }
 
-            .hero p {
-                font-size: 1rem;
-            }
-            
-            .hero img {
-                max-width: 280px;
-                margin: 0 auto;
-            }
-
-            .hero-controls {
-                bottom: 80px; /* Position above mobile nav */
-                padding: 0.5rem 1rem;
-            }
-            
-            .section-title {
-                font-size: 2rem;
-                margin-bottom: 0.5rem;
-            }
-            .section-subtitle {
-                font-size: 1rem;
-                margin-bottom: 1.5rem;
-            }
-
-            /* Responsive Features: Swap to Mobile Slider */
-            .features-container {
-                padding: 0;
-                justify-content: flex-start; /* Align title to top */
-            }
-            .features-layout-desktop {
-                display: none; /* Hide desktop tabs */
-            }
-            .features-layout-mobile {
-                display: flex; /* Show mobile slider */
-            }
-            
-            /* Responsive Pricing: Swap to Mobile Slider */
-            .pricing-container-wrapper {
-                justify-content: flex-start;
-                padding: 0 1rem;
-            }
-            .pricing .section-subtitle {
-                margin-bottom: 1.5rem;
-            }
-            .pricing-grid {
-                display: none; /* Hide desktop grid */
-            }
-            .pricing-container {
-                padding: 0;
-                align-items: flex-start;
-                margin-top: 1rem;
-            }
-            .pricing-slider-wrap {
-                display: block; /* Show mobile slider */
-            }
-            .pricing-slider-nav {
-                display: flex; /* Show mobile arrows */
-            }
-            .pricing-dots {
-                display: flex; /* Show mobile dots */
-                bottom: 80px;
-            }
-            .pricing-card {
-                padding: 1.5rem;
-            }
-            .pricing-card .price {
-                font-size: 2rem;
-            }
-            .pricing-type-toggle {
-                width: 95%;
-                margin-bottom: 1rem;
-            }
-            .pricing-type-toggle button {
-                width: 100%;
-                padding: 0.65rem 1rem;
-                font-size: 0.9rem;
-                flex: 1;
-            }
-            .pricing-toggle {
-                width: 95%;
-                margin-bottom: 1rem;
-            }
-            .pricing-toggle button {
-                font-size: 0.8rem;
-                padding: 0.6rem 1rem;
-                flex: 1;
-            }
-
-            /* Responsive Partner: Swap to Mobile Slider */
-            .partner-container {
-                grid-template-columns: 1fr;
-                gap: 0;
-                padding: 0;
-                display: block; /* Disable grid */
-                overflow: hidden; /* Enable slider */
-                position: relative;
-                height: 100%;
-            }
-            .partner-slider-wrap {
-                display: flex;
-                height: 100%;
-                width: 100%;
-                transition: transform 0.4s ease-in-out;
-            }
-            .partner-slide {
-                width: 100%;
-                flex-shrink: 0;
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                text-align: center;
-                padding: 0 1.5rem;
-                overflow-y: auto; /* Allow scroll within slide if content is too tall */
-            }
-            .partner-slide .partner-features {
-                grid-template-columns: 1fr;
-                text-align: left;
-            }
-            .partner-slide .partner-stats {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
-                width: 100%;
-            }
-            .partner-slide .stat-card {
-                padding: 1.5rem;
-            }
-            .partner-slide .stat-number {
-                font-size: 2rem;
-            }
-            .partner-dots {
-                display: flex;
-                gap: 0.75rem;
-                justify-content: center;
-                position: absolute;
-                bottom: 80px; /* Avoid mobile nav */
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 5;
-            }
-            .partner-dot {
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background: rgba(255,255,255,0.3);
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-            .partner-dot.active {
-                background: white;
-                transform: scale(1.3);
-            }
-            /* Hide original content/stats, they are now in the slider */
-            .partner-content, .partner-stats {
-                display: none;
-            }
-            
-            /* Hide Desktop Scrollbar */
-            .scroll-indicator {
-                display: none;
-            }
-
-            /* Responsive Footer */
-            .footer {
-                padding: 3rem 1rem 88px; /* Add padding for mobile nav */
-                scroll-snap-align: end; /* Keep this for the last snap */
-                height: auto; /* Footer should be its own height */
-                min-height: 0;
-            }
-            .footer-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 2rem;
-            }
-            .footer-bottom {
-                flex-direction: column;
-                text-align: center;
-            }
+            /* Footer Mobile */
+            .footer { padding: 3rem 1rem 88px; scroll-snap-align: end; height: auto; min-height: 0; }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
+            .footer-bottom { flex-direction: column; text-align: center; }
 
             /* Mobile Nav */
-            .mobile-nav {
-                display: block;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 68px;
-                background: var(--nav-bg);
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                border-top: 1px solid var(--border);
-                z-index: 100;
-                padding: 0.625rem 0.875rem;
-                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
-            }
-
-            .mobile-items {
-                display: grid;
-                grid-template-columns: repeat(5, 1fr);
-                gap: 0.5rem;
-                max-width: 600px;
-                height: 100%;
-                margin: 0 auto;
-            }
-
-            .mobile-item {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 0.25rem;
-                padding: 0.375rem;
-                color: var(--text-light);
-                text-decoration: none;
-                font-size: 0.75rem;
-                font-weight: 500;
-                border-radius: 8px;
-                transition: all 0.3s ease;
-            }
-
-            .mobile-item:active {
-                transform: scale(0.95);
-            }
-
-            .mobile-item.active {
-                color: var(--primary);
-                background: var(--primary-glow);
-            }
-
-            .mobile-item i {
-                font-size: 1.375rem;
-            }
+            .mobile-nav { display: block; position: fixed; bottom: 0; left: 0; right: 0; height: 68px; background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); z-index: 100; padding: 0.625rem 0.875rem; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05); }
+            .mobile-items { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; max-width: 600px; height: 100%; margin: 0 auto; }
+            .mobile-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; padding: 0.375rem; color: var(--text-light); text-decoration: none; font-size: 0.75rem; font-weight: 500; border-radius: 8px; transition: all 0.3s ease; }
+            .mobile-item:active { transform: scale(0.95); }
+            .mobile-item.active { color: var(--primary); background: var(--primary-glow); }
+            .mobile-item i { font-size: 1.375rem; }
         }
 
         @media (max-width: 480px) {
-            .footer-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1.5rem;
-            }
+            .hero img { max-width: 200px; }
+            .hero-controls { bottom: 85px; } /* Slightly higher */
+            .section-title { font-size: 1.6rem; }
+            .section-subtitle { font-size: 0.9rem; }
 
-            .mobile-items {
-                gap: 0.25rem;
-            }
+            .features-dots { bottom: 5px; }
+            .feature-slide h3 { font-size: 1.4rem; }
+            .feature-slide p { font-size: 0.9rem; }
 
-            .mobile-item {
-                font-size: 0.65rem;
-                gap: 0.15rem;
-                padding: 0.25rem;
-            }
+            .pricing-controls { flex-direction: column; width: 90%; gap: 0.5rem;}
+            .pricing-controls > div { width: 100%; justify-content: center; }
+            .pricing-controls button { flex: 1; text-align: center; } /* Make buttons equal width */
+            .pricing-slider-wrap { padding: 0 2rem; } /* Less space needed for smaller arrows */
+            .pricing-slider-arrow { width: 32px; height: 32px; font-size: 1rem;}
+            .pricing-dots { bottom: 5px; }
 
-            .mobile-item i {
-                font-size: 1.2rem;
-            }
+            .partner-slide { padding: 1rem 1rem 50px 1rem; }
+            .partner-slide h2 { font-size: 1.6rem; }
+            .partner-slide .partner-stats { grid-template-columns: 1fr; }
+            .partner-dots { bottom: 5px; }
 
-            .partner-slide .partner-stats {
-                grid-template-columns: 1fr;
-            }
+            .footer-grid { grid-template-columns: 1fr; gap: 1.5rem; } /* Stack footer columns */
+            .footer { padding-bottom: 78px; }
             
-            .pricing-toggle {
-                flex-direction: column;
-                gap: 0.25rem;
-            }
-            .pricing-toggle button {
-                width: 100%;
-            }
-            .pricing-type-toggle {
-                flex-direction: column;
-                gap: 0.25rem;
-            }
+            .mobile-items { gap: 0.25rem; }
+            .mobile-item { font-size: 0.65rem; gap: 0.15rem; padding: 0.25rem; }
+            .mobile-item i { font-size: 1.2rem; }
         }
     </style>
 </head>
@@ -1474,21 +499,15 @@
         <div class="features-container">
             <h2 class="section-title">The All-in-One SEO Powerhouse</h2>
             <p class="section-subtitle">All the tools you need, integrated and powered by AI to dominate search rankings.</p>
-            
             <div class="features-layout-desktop" id="featuresLayoutDesktop">
-                <div class="features-list" id="featuresList">
-                    </div>
-                <div class="features-content" id="featuresContent">
-                    </div>
+                <div class="features-list" id="featuresList"></div>
+                <div class="features-content" id="featuresContent"></div>
             </div>
-            
             <div class="features-layout-mobile" id="featuresLayoutMobile">
                 <div class="features-slider-wrap">
-                    <div class="features-slider" id="featuresSlider">
-                        </div>
+                    <div class="features-slider" id="featuresSlider"></div>
                 </div>
-                <div class="features-dots" id="featuresDots">
-                    </div>
+                <div class="features-dots" id="featuresDots"></div>
             </div>
         </div>
     </section>
@@ -1496,32 +515,30 @@
     <section id="pricing" class="section pricing">
         <div class="pricing-container-wrapper">
             <h2 class="section-title">Simple, Transparent Pricing</h2>
-            <p class="section-subtitle">Choose between subscription plans or pay-per-task. No hidden fees.</p>
+            <p class="section-subtitle">Choose the plan that fits your needs. No hidden fees.</p>
             
-            <div class="pricing-type-toggle">
-                <button class="active" onclick="togglePricingType(event, 'hosting')">Hosting Plans</button>
-                <button onclick="togglePricingType(event, 'task')">Pay-Per-Task</button>
-            </div>
-            
-            <div class="pricing-toggle" id="hostingToggle">
-                <button class="active" onclick="toggleHostingPeriod(event, '3month')">3 Months</button>
-                <button onclick="toggleHostingPeriod(event, '6month')">6 Months <span style="color: var(--success); font-size: 0.75rem; margin-left: 0.25rem;">Save 10%</span></button>
-                <button onclick="toggleHostingPeriod(event, '12month')">12 Months <span style="color: var(--success); font-size: 0.75rem; margin-left: 0.25rem;">Save 20%</span></button>
+            <div class="pricing-controls">
+                 <div id="pricing-type-toggle">
+                    <button class="active" onclick="togglePricingType(event, 'hosting')">Plans</button>
+                    <button onclick="togglePricingType(event, 'task')">Pay-Per-Task</button>
+                </div>
+                 <div id="hostingToggle">
+                    <button class="active" onclick="toggleHostingPeriod(event, '3month')">3 Months</button>
+                    <button onclick="toggleHostingPeriod(event, '6month')">6 Months <span class="save-badge">Save 10%</span></button>
+                    <button onclick="toggleHostingPeriod(event, '12month')">12 Months <span class="save-badge">Save 20%</span></button>
+                </div>
             </div>
             
             <div class="pricing-container" id="pricingContainer">
                 <div class="pricing-grid" id="pricingGridDesktop"></div>
-                
                 <div class="pricing-slider-wrap" id="pricingSliderMobile">
-                    <div class="pricing-slider" id="pricingSlider">
-                        </div>
+                    <div class="pricing-slider" id="pricingSlider"></div>
                 </div>
                 <div class="pricing-slider-nav" id="pricingSliderNav">
                     <button class="pricing-slider-arrow" id="pricePrevBtn" onclick="prevPriceSlide()"><i class="ri-arrow-left-s-line"></i></button>
                     <button class="pricing-slider-arrow" id="priceNextBtn" onclick="nextPriceSlide()"><i class="ri-arrow-right-s-line"></i></button>
                 </div>
-                <div class="pricing-dots" id="pricingDots">
-                    </div>
+                <div class="pricing-dots" id="pricingDots"></div>
             </div>
         </div>
     </section>
@@ -1529,26 +546,35 @@
     <section id="partner" class="section partner">
         <div class="partner-container" id="partnerContainer">
             <div class="partner-content">
-                <h2>Become a SEOTIZE Partner</h2>
-                <p>Join our affiliate program and earn generous recurring commissions. Help businesses grow while building your passive income stream with easy crypto withdrawals.</p>
-                <div class="partner-features">
-                    <div class="partner-feature-item"><i class="ri-percent-line"></i><span>Up to 30% recurring commission</span></div>
-                    <div class="partner-feature-item"><i class="ri-dashboard-line"></i><span>Dedicated partner dashboard</span></div>
-                    <div class="partner-feature-item"><i class="ri-folder-open-line"></i><span>Marketing materials & support</span></div>
-                    <div class="partner-feature-item"><i class="ri-line-chart-line"></i><span>Real-time tracking & analytics</span></div>
-                    <div class="partner-feature-item"><i class="ri-money-dollar-circle-line"></i><span>Monthly payouts via PayPal & Crypto (USDT)</span></div>
-                    <div class="partner-feature-item"><i class="ri-customer-service-2-line"></i><span>24/7 dedicated support</span></div>
-                </div>
-                <a href="connect.html" class="cta-secondary">
-                    <span>Join Partner Program</span>
-                    <i class="ri-arrow-right-line"></i>
-                </a>
+                 <h2>Earn Crypto with SEOTIZE</h2>
+                 <p class="intro">Join our affiliate program, share SEOTIZE, and earn generous recurring commissions paid out easily in USDT.</p>
+                 
+                 <h3>How it Works</h3>
+                 <ul class="how-it-works">
+                    <li><span class="step-number">1</span> Sign up for our free partner program.</li>
+                    <li><span class="step-number">2</span> Share your unique referral link.</li>
+                    <li><span class="step-number">3</span> Earn up to 30% recurring commission for every customer.</li>
+                    <li><span class="step-number">4</span> Withdraw your earnings monthly via PayPal or USDT.</li>
+                 </ul>
+                 
+                 <h3>Partner Benefits</h3>
+                 <div class="partner-benefits">
+                    <div class="benefit-item"><i class="ri-percent-line"></i><span>Up to 30% Recurring Commission</span></div>
+                    <div class="benefit-item"><i class="ri-wallet-3-line"></i><span>Easy USDT Crypto Payouts</span></div>
+                    <div class="benefit-item"><i class="ri-dashboard-line"></i><span>Real-time Tracking Dashboard</span></div>
+                    <div class="benefit-item"><i class="ri-customer-service-2-line"></i><span>Dedicated Partner Support</span></div>
+                 </div>
+                 
+                 <a href="connect.html" class="cta-partner">
+                     <span>Become a Partner Today</span>
+                     <i class="ri-arrow-right-line"></i>
+                 </a>
             </div>
             <div class="partner-stats">
-                <div class="stat-card"><div class="stat-number">30%</div><div class="stat-label">Commission Rate</div></div>
-                <div class="stat-card"><div class="stat-number">500+</div><div class="stat-label">Active Partners</div></div>
-                <div class="stat-card"><div class="stat-number">$50K+</div><div class="stat-label">Paid Monthly</div></div>
-                <div class="stat-card"><div class="stat-number">24/7</div><div class="stat-label">Support Available</div></div>
+                 <div class="stat-card"><div class="stat-number">30%</div><div class="stat-label">Max Commission</div></div>
+                 <div class="stat-card"><div class="stat-number">USDT</div><div class="stat-label">Crypto Payouts</div></div>
+                 <div class="stat-card"><div class="stat-number">$50K+</div><div class="stat-label">Paid Monthly</div></div>
+                 <div class="stat-card"><div class="stat-number">∞</div><div class="stat-label">Earning Potential</div></div>
             </div>
             
             <div class="partner-slider-wrap" id="partnerSliderWrap"></div>
@@ -1558,38 +584,10 @@
 
     <footer class="footer">
         <div class="footer-grid">
-            <div>
-                <h3>Platform</h3>
-                <ul>
-                    <li><a href="connect.html">AI Generator</a></li>
-                    <li><a href="connect.html">Analytics</a></li>
-                    <li><a href="connect.html">SEO Tools</a></li>
-                </ul>
-            </div>
-            <div>
-                <h3>Solutions</h3>
-                <ul>
-                    <li><a href="connect.html">Enterprise</a></li>
-                    <li><a href="connect.html">Startups</a></li>
-                    <li><a href="connect.html">Agencies</a></li>
-                </ul>
-            </div>
-            <div>
-                <h3>Resources</h3>
-                <ul>
-                    <li><a href="blogs.html">Blog</a></li>
-                    <li><a href="connect.html">Documentation</a></li>
-                    <li><a href="connect.html">Support</a></li>
-                </ul>
-            </div>
-            <div>
-                <h3>Company</h3>
-                <ul>
-                    <li><a href="#home">About</a></li>
-                    <li><a href="connect.html">Contact</a></li>
-                    <li><a href="connect.html">Careers</a></li>
-                </ul>
-            </div>
+            <div><h3>Platform</h3><ul><li><a href="connect.html">AI Generator</a></li><li><a href="connect.html">Analytics</a></li><li><a href="connect.html">SEO Tools</a></li></ul></div>
+            <div><h3>Solutions</h3><ul><li><a href="connect.html">Enterprise</a></li><li><a href="connect.html">Startups</a></li><li><a href="connect.html">Agencies</a></li></ul></div>
+            <div><h3>Resources</h3><ul><li><a href="blogs.html">Blog</a></li><li><a href="connect.html">Documentation</a></li><li><a href="connect.html">Support</a></li></ul></div>
+            <div><h3>Company</h3><ul><li><a href="#home">About</a></li><li><a href="connect.html">Contact</a></li><li><a href="connect.html">Careers</a></li></ul></div>
         </div>
         <div class="footer-bottom">
             <p>© 2025 SEOTIZE. All rights reserved.</p>
@@ -1604,26 +602,11 @@
 
     <div class="mobile-nav">
         <div class="mobile-items">
-            <a href="#home" class="mobile-item active">
-                <i class="ri-home-5-line"></i>
-                <span>Home</span>
-            </a>
-            <a href="#features" class="mobile-item">
-                <i class="ri-flashlight-line"></i>
-                <span>Features</span>
-            </a>
-            <a href="#pricing" class="mobile-item">
-                <i class="ri-price-tag-3-line"></i>
-                <span>Pricing</span>
-            </a>
-            <a href="blogs.html" class="mobile-item">
-                <i class="ri-article-line"></i>
-                <span>Blog</span>
-            </a>
-            <a href="connect.html" class="mobile-item">
-                <i class="ri-user-star-line"></i>
-                <span>Connect</span>
-            </a>
+            <a href="#home" class="mobile-item active"><i class="ri-home-5-line"></i><span>Home</span></a>
+            <a href="#features" class="mobile-item"><i class="ri-flashlight-line"></i><span>Features</span></a>
+            <a href="#pricing" class="mobile-item"><i class="ri-price-tag-3-line"></i><span>Pricing</span></a>
+            <a href="blogs.html" class="mobile-item"><i class="ri-article-line"></i><span>Blog</span></a>
+            <a href="connect.html" class="mobile-item"><i class="ri-user-star-line"></i><span>Connect</span></a>
         </div>
     </div>
 
@@ -1641,541 +624,244 @@
         let totalPriceSlides = 0;
         const isMobile = () => window.innerWidth <= 768;
 
-        // --- DATA OBJECTS ---
-
-        // Hero Slides Data
-        const heroSlides = [
-            {
-                title: "AI-Powered SEO Platform",
-                description: "Boost search rankings with intelligent automation and real user engagement from 150+ countries.",
-                cta: "Start Free Trial",
-                image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop&q=80"
-            },
-            {
-                title: "Real User Engagement",
-                description: "Get authentic traffic from real users who search and interact with your content naturally.",
-                cta: "Get Real Traffic",
-                image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop&q=80"
-            },
-            {
-                title: "AI Content Generation",
-                description: "Create unlimited SEO-optimized content with advanced AI technology that ranks higher.",
-                cta: "Generate Content",
-                image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=400&fit=crop&q=80"
-            }
-        ];
-
-        // Features Data
-        const featuresData = [
-            {
-                id: 'engagement',
-                icon: '🚀',
-                title: 'Real User Engagement',
-                description: 'Boost your SEO with authentic user interactions from over 150 countries. Our platform drives real clicks, scroll-time, and engagement.'
-            },
-            {
-                id: 'ai-content',
-                icon: '🤖',
-                title: 'AI Content Creation',
-                description: 'Generate unlimited high-quality, SEO-optimized content. Our advanced AI technology creates articles, blog posts, and product descriptions that rank.'
-            },
-            {
-                id: 'analytics',
-                icon: '📊',
-                title: 'Advanced Analytics',
-                description: 'Track every aspect of your SEO performance. Get detailed insights, keyword rank tracking, competitor analysis, and actionable recommendations.'
-            },
-            {
-                id: 'cdn',
-                icon: '⚡',
-                title: 'Lightning Fast CDN',
-                description: 'Improve your Core Web Vitals and user experience with our global content delivery network, a critical factor for modern SEO success.'
-            },
-            {
-                id: 'backlinks',
-                icon: '🔗',
-                title: 'Smart Backlink Building',
-                description: 'Build a high-quality, relevant backlink profile. Our platform identifies strategic partnership opportunities and facilitates link building.'
-            },
-            {
-                id: 'cost-effective',
-                icon: '💰',
-                title: 'Cost-Effective Solutions',
-                description: 'Access premium, enterprise-grade SEO features at a fraction of the cost, whether you choose a subscription or pay-per-task.'
-            }
-        ];
+        // --- DATA OBJECTS (Keep as before) ---
+        const heroSlides = [ { title: "AI-Powered SEO Platform", description: "Boost search rankings with intelligent automation and real user engagement from 150+ countries.", cta: "Start Free Trial", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop&q=80" }, { title: "Real User Engagement", description: "Get authentic traffic from real users who search and interact with your content naturally.", cta: "Get Real Traffic", image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop&q=80" }, { title: "AI Content Generation", description: "Create unlimited SEO-optimized content with advanced AI technology that ranks higher.", cta: "Generate Content", image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=400&fit=crop&q=80" } ];
+        const featuresData = [ { id: 'engagement', icon: '🚀', title: 'Real User Engagement', description: 'Boost your SEO with authentic user interactions from over 150 countries. Our platform drives real clicks, scroll-time, and engagement.' }, { id: 'ai-content', icon: '🤖', title: 'AI Content Creation', description: 'Generate unlimited high-quality, SEO-optimized content. Our advanced AI technology creates articles, blog posts, and product descriptions that rank.' }, { id: 'analytics', icon: '📊', title: 'Advanced Analytics', description: 'Track every aspect of your SEO performance. Get detailed insights, keyword rank tracking, competitor analysis, and actionable recommendations.' }, { id: 'cdn', icon: '⚡', title: 'Lightning Fast CDN', description: 'Improve your Core Web Vitals and user experience with our global content delivery network, a critical factor for modern SEO success.' }, { id: 'backlinks', icon: '🔗', title: 'Smart Backlink Building', description: 'Build a high-quality, relevant backlink profile. Our platform identifies strategic partnership opportunities and facilitates link building.' }, { id: 'cost-effective', icon: '💰', title: 'Cost-Effective Solutions', description: 'Access premium, enterprise-grade SEO features at a fraction of the cost, whether you choose a subscription or pay-per-task.' } ];
         totalFeatureSlides = featuresData.length;
+        const hostingPlansData = { free: { name: 'Free', price: {'3month': 0, '6month': 0, '12month': 0}, features: ['30 articles hosted', '100 images stored', 'Basic CDN access', 'Community support', 'Basic analytics'] }, basic: { name: 'Basic', price: {'3month': 10, '6month': 18, '12month': 32}, features: ['200 articles hosted', '1,000 images stored', 'Fast CDN delivery', 'Email support', 'Standard analytics', 'Custom domain'] }, professional: { name: 'Professional', price: {'3month': 25, '6month': 45, '12month': 80}, features: ['600 articles hosted', '4,000 images stored', 'Premium CDN delivery', 'Priority support', 'Advanced analytics', 'Custom domain', 'API access'], popular: true }, enterprise: { name: 'Enterprise', price: {'3month': 50, '6month': 90, '12month': 160}, features: ['2,000 articles hosted', '20,000 images stored', 'Ultra-fast CDN worldwide', '24/7 dedicated support', 'Full analytics suite', 'Multiple custom domains', 'Full API access'] } };
+        const taskPricingData = { basic: { name: 'Basic', price: 0.10, features: ['$0.10 per task', '1 concurrent task', 'Standard processing speed', 'Email support'] }, standard: { name: 'Standard', price: 0.12, features: ['$0.12 per task', '3 concurrent tasks', 'Fast processing speed', 'Priority support', 'Task scheduling'], popular: true }, premium: { name: 'Premium', price: 0.15, features: ['$0.15 per task', '5 concurrent tasks', 'Ultra-fast processing', '24/7 dedicated support', 'API access'] } };
 
-        // Hosting Plans Data
-        const hostingPlansData = {
-            free: {
-                name: 'Free',
-                price: {'3month': 0, '6month': 0, '12month': 0},
-                features: ['30 articles hosted', '100 images stored', 'Basic CDN access', 'Community support', 'Basic analytics']
-            },
-            basic: {
-                name: 'Basic',
-                price: {'3month': 10, '6month': 18, '12month': 32},
-                features: ['200 articles hosted', '1,000 images stored', 'Fast CDN delivery', 'Email support', 'Standard analytics', 'Custom domain']
-            },
-            professional: {
-                name: 'Professional',
-                price: {'3month': 25, '6month': 45, '12month': 80},
-                features: ['600 articles hosted', '4,000 images stored', 'Premium CDN delivery', 'Priority support', 'Advanced analytics', 'Custom domain', 'API access'],
-                popular: true
-            },
-            enterprise: {
-                name: 'Enterprise',
-                price: {'3month': 50, '6month': 90, '12month': 160},
-                features: ['2,000 articles hosted', '20,000 images stored', 'Ultra-fast CDN worldwide', '24/7 dedicated support', 'Full analytics suite', 'Multiple custom domains', 'Full API access']
-            }
-        };
-
-        // Task-Based Pricing Data
-        const taskPricingData = {
-            basic: {
-                name: 'Basic',
-                price: 0.10,
-                features: ['$0.10 per task', '1 concurrent task', 'Standard processing speed', 'Email support', 'Basic task analytics']
-            },
-            standard: {
-                name: 'Standard',
-                price: 0.12,
-                features: ['$0.12 per task', '3 concurrent tasks', 'Fast processing speed', 'Priority support', 'Advanced task analytics', 'Task scheduling'],
-                popular: true
-            },
-            premium: {
-                name: 'Premium',
-                price: 0.15,
-                features: ['$0.15 per task', '5 concurrent tasks', 'Ultra-fast processing', '24/7 dedicated support', 'Full task analytics', 'API access']
-            }
-        };
-
-        // --- HERO SECTION ---
-        function createHeroSlider() {
-            const hero = document.getElementById('home');
-            heroSlides.forEach((slide, i) => {
-                const div = document.createElement('div');
-                div.className = `hero-slide ${i === 0 ? 'active' : ''}`;
-                div.innerHTML = `
-                    <div class="hero-container">
-                        <div>
-                            <h1>${slide.title}</h1>
-                            <p>${slide.description}</p>
-                            <a href="connect.html" class="cta">
-                                <span>${slide.cta}</span>
-                                <i class="ri-arrow-right-line"></i>
-                            </a>
-                        </div>
-                        <div>
-                            <img src="${slide.image}" alt="${slide.title}" loading="lazy">
-                        </div>
-                    </div>
-                `;
-                hero.appendChild(div);
-            });
-
-            const controls = document.createElement('div');
-            controls.className = 'hero-controls';
-            controls.innerHTML = `
-                <button class="hero-arrow" onclick="prevHero()" aria-label="Previous slide"><i class="ri-arrow-left-s-line"></i></button>
-                <div id="hero-dots"></div>
-                <button class="hero-arrow" onclick="nextHero()" aria-label="Next slide"><i class="ri-arrow-right-s-line"></i></button>
-            `;
-            hero.appendChild(controls);
-
-            const dots = document.getElementById('hero-dots');
-            heroSlides.forEach((slide, i) => {
-                const dot = document.createElement('div');
-                dot.className = `hero-dot ${i === 0 ? 'active' : ''}`;
-                dot.onclick = () => { currentHero = i; updateHero(); };
-                dots.appendChild(dot);
-            });
-        }
-
-        function updateHero() {
-            document.querySelectorAll('.hero-slide').forEach((slide, i) => {
-                slide.classList.toggle('active', i === currentHero);
-            });
-            document.querySelectorAll('.hero-dot').forEach((dot, i) => {
-                dot.classList.toggle('active', i === currentHero);
-            });
-        }
-
-        function nextHero() {
-            currentHero = (currentHero + 1) % heroSlides.length;
-            updateHero();
-        }
-
-        function prevHero() {
-            currentHero = currentHero === 0 ? heroSlides.length - 1 : currentHero - 1;
-            updateHero();
-        }
+        // --- HERO SECTION (Same as before) ---
+        function createHeroSlider() { /* ... content same as before ... */ const hero = document.getElementById('home'); if (!hero) return; hero.innerHTML = ''; heroSlides.forEach((slide, i) => { const div = document.createElement('div'); div.className = `hero-slide ${i === 0 ? 'active' : ''}`; div.innerHTML = `<div class="hero-container"><div><h1>${slide.title}</h1><p>${slide.description}</p><a href="connect.html" class="cta"><span>${slide.cta}</span><i class="ri-arrow-right-line"></i></a></div><div><img src="${slide.image}" alt="${slide.title}" loading="lazy"></div></div>`; hero.appendChild(div); }); const controls = document.createElement('div'); controls.className = 'hero-controls'; controls.innerHTML = `<button class="hero-arrow" onclick="prevHero()" aria-label="Previous slide"><i class="ri-arrow-left-s-line"></i></button><div id="hero-dots"></div><button class="hero-arrow" onclick="nextHero()" aria-label="Next slide"><i class="ri-arrow-right-s-line"></i></button>`; hero.appendChild(controls); const dots = document.getElementById('hero-dots'); heroSlides.forEach((slide, i) => { const dot = document.createElement('div'); dot.className = `hero-dot ${i === 0 ? 'active' : ''}`; dot.onclick = () => { currentHero = i; updateHero(); }; dots.appendChild(dot); }); }
+        function updateHero() { document.querySelectorAll('.hero-slide').forEach((slide, i) => { slide.classList.toggle('active', i === currentHero); }); document.querySelectorAll('.hero-dot').forEach((dot, i) => { dot.classList.toggle('active', i === currentHero); }); }
+        function nextHero() { currentHero = (currentHero + 1) % heroSlides.length; updateHero(); }
+        function prevHero() { currentHero = currentHero === 0 ? heroSlides.length - 1 : currentHero - 1; updateHero(); }
 
         // --- FEATURES SECTION ---
         function createFeaturesLayout() {
-            if (isMobile()) {
-                createFeaturesMobileSlider();
-            } else {
-                createFeaturesDesktopTabs();
-            }
-        }
+             const desktopLayout = document.getElementById('featuresLayoutDesktop');
+             const mobileLayout = document.getElementById('featuresLayoutMobile');
+             if (!desktopLayout || !mobileLayout) return;
 
-        function createFeaturesDesktopTabs() {
-            const list = document.getElementById('featuresList');
-            const content = document.getElementById('featuresContent');
-            list.innerHTML = '';
-            content.innerHTML = '';
-
-            featuresData.forEach((feature, index) => {
-                const li = document.createElement('div');
-                li.className = `feature-list-item ${index === 0 ? 'active' : ''}`;
-                li.dataset.id = feature.id;
-                li.innerHTML = `
-                    <span class="feature-icon">${feature.icon}</span>
-                    <span>${feature.title}</span>
-                `;
-                li.onclick = () => showFeature(feature.id);
-                list.appendChild(li);
-
-                const pane = document.createElement('div');
-                pane.className = `features-content-pane ${index === 0 ? 'active' : ''}`;
-                pane.id = `feature-${feature.id}`;
-                pane.innerHTML = `
-                    <div class="content-icon">${feature.icon}</div>
-                    <h3>${feature.title}</h3>
-                    <p>${feature.description}</p>
-                `;
-                content.appendChild(pane);
-            });
+             if (isMobile()) {
+                 desktopLayout.style.display = 'none';
+                 mobileLayout.style.display = 'flex';
+                 createFeaturesMobileSlider();
+             } else {
+                 desktopLayout.style.display = 'grid';
+                 mobileLayout.style.display = 'none';
+                 createFeaturesDesktopTabs();
+             }
         }
-        
-        function showFeature(id) {
-            document.querySelectorAll('.feature-list-item').forEach(item => {
-                item.classList.toggle('active', item.dataset.id === id);
-            });
-            document.querySelectorAll('.features-content-pane').forEach(pane => {
-                pane.classList.toggle('active', pane.id === `feature-${id}`);
-            });
-        }
-        
-        function createFeaturesMobileSlider() {
-            const slider = document.getElementById('featuresSlider');
-            const dots = document.getElementById('featuresDots');
-            slider.innerHTML = '';
-            dots.innerHTML = '';
-            
-            featuresData.forEach((feature, index) => {
-                // Create Slide
-                const slide = document.createElement('div');
-                slide.className = 'feature-slide';
-                slide.innerHTML = `
-                    <div class="content-icon">${feature.icon}</div>
-                    <h3>${feature.title}</h3>
-                    <p>${feature.description}</p>
-                `;
-                slider.appendChild(slide);
-                
-                // Create Dot
-                const dot = document.createElement('div');
-                dot.className = `feature-dot ${index === 0 ? 'active' : ''}`;
-                dot.onclick = () => goToFeatureSlide(index);
-                dots.appendChild(dot);
-            });
-        }
-        
-        function goToFeatureSlide(index) {
-            currentFeatureSlide = index;
-            const slider = document.getElementById('featuresSlider');
-            slider.style.transform = `translateX(-${index * 100}%)`;
-            
-            document.querySelectorAll('.feature-dot').forEach((dot, i) => {
-                dot.classList.toggle('active', i === index);
-            });
-        }
+        function createFeaturesDesktopTabs() { /* ... content same as before ... */ const list = document.getElementById('featuresList'); const content = document.getElementById('featuresContent'); if (!list || !content) return; list.innerHTML = ''; content.innerHTML = ''; featuresData.forEach((feature, index) => { const li = document.createElement('div'); li.className = `feature-list-item ${index === 0 ? 'active' : ''}`; li.dataset.id = feature.id; li.innerHTML = `<span class="feature-icon">${feature.icon}</span><span>${feature.title}</span>`; li.onclick = () => showFeature(feature.id); list.appendChild(li); const pane = document.createElement('div'); pane.className = `features-content-pane ${index === 0 ? 'active' : ''}`; pane.id = `feature-${feature.id}`; pane.innerHTML = `<div class="content-icon">${feature.icon}</div><h3>${feature.title}</h3><p>${feature.description}</p>`; content.appendChild(pane); }); }
+        function showFeature(id) { document.querySelectorAll('.feature-list-item').forEach(item => { item.classList.toggle('active', item.dataset.id === id); }); document.querySelectorAll('.features-content-pane').forEach(pane => { pane.classList.toggle('active', pane.id === `feature-${id}`); }); }
+        function createFeaturesMobileSlider() { /* ... content same as before ... */ const slider = document.getElementById('featuresSlider'); const dots = document.getElementById('featuresDots'); if (!slider || !dots) return; slider.innerHTML = ''; dots.innerHTML = ''; currentFeatureSlide = 0; featuresData.forEach((feature, index) => { const slide = document.createElement('div'); slide.className = 'feature-slide'; slide.innerHTML = `<div class="content-icon">${feature.icon}</div><h3>${feature.title}</h3><p>${feature.description}</p>`; slider.appendChild(slide); const dot = document.createElement('div'); dot.className = `feature-dot ${index === 0 ? 'active' : ''}`; dot.onclick = () => goToFeatureSlide(index); dots.appendChild(dot); }); goToFeatureSlide(0); }
+        function goToFeatureSlide(index) { currentFeatureSlide = index; const slider = document.getElementById('featuresSlider'); if(slider) slider.style.transform = `translateX(-${index * 100}%)`; document.querySelectorAll('#featuresDots .feature-dot').forEach((dot, i) => { dot.classList.toggle('active', i === index); }); }
 
         // --- PRICING SECTION ---
         function createPricingLayout() {
-            if (isMobile()) {
-                if (currentPricingType === 'hosting') {
-                    createPricingMobileSlider(hostingPlansData, currentHostingPeriod);
-                } else {
-                    createPricingMobileSlider(taskPricingData);
-                }
-            } else {
-                if (currentPricingType === 'hosting') {
-                    createPricingDesktopGrid(hostingPlansData, currentHostingPeriod);
-                } else {
-                    createPricingDesktopGrid(taskPricingData);
-                }
-            }
-        }
-        
-        function createPricingCardHTML(plan, period) {
-            let price, periodLabel;
-            if (period) { // Hosting plan
-                price = plan.price[period];
-                periodLabel = period === '3month' ? '3 months' : period === '6month' ? '6 months' : '12 months';
-            } else { // Task plan
-                price = plan.price.toFixed(2);
-                periodLabel = '/task';
-            }
-            
-            const featuresHTML = plan.features.map(f => `
-                <li><i class="ri-check-line"></i> <span>${f}</span></li>
-            `).join('');
+            const desktopGrid = document.getElementById('pricingGridDesktop');
+            const mobileSlider = document.getElementById('pricingSliderMobile');
+            const mobileNav = document.getElementById('pricingSliderNav');
+            const mobileDots = document.getElementById('pricingDots');
+            if(!desktopGrid || !mobileSlider || !mobileNav || !mobileDots) return;
 
-            return `
-                <div class="pricing-card ${plan.popular ? 'popular' : ''}">
-                    ${plan.popular ? '<div class="popular-badge">Most Popular</div>' : ''}
-                    <h3>${plan.name}</h3>
-                    <div class="price">$${price}<span>${periodLabel}</span></div>
-                    <ul class="pricing-features">
-                        ${featuresHTML}
-                    </ul>
-                    <a href="connect.html" class="cta">
-                        <span>${price === 0 ? 'Get Started Free' : 'Get Started'}</span>
-                        <i class="ri-arrow-right-line"></i>
-                    </a>
-                </div>
-            `;
+             if (isMobile()) {
+                 desktopGrid.style.display = 'none';
+                 mobileSlider.style.display = 'block';
+                 mobileNav.style.display = 'flex';
+                 mobileDots.style.display = 'flex';
+                 if (currentPricingType === 'hosting') {
+                     createPricingMobileSlider(hostingPlansData, currentHostingPeriod);
+                 } else {
+                     createPricingMobileSlider(taskPricingData);
+                 }
+             } else {
+                 desktopGrid.style.display = 'grid';
+                 mobileSlider.style.display = 'none';
+                 mobileNav.style.display = 'none';
+                 mobileDots.style.display = 'none';
+                 if (currentPricingType === 'hosting') {
+                     createPricingDesktopGrid(hostingPlansData, currentHostingPeriod);
+                 } else {
+                     createPricingDesktopGrid(taskPricingData);
+                 }
+             }
         }
+        function createPricingCardHTML(plan, period) { /* ... content same as before ... */ let price, periodLabel; if (period) { price = plan.price[period]; periodLabel = period === '3month' ? '/3 mo' : period === '6month' ? '/6 mo' : '/12 mo'; } else { price = plan.price.toFixed(2); periodLabel = '/task'; } const featuresHTML = plan.features.map(f => `<li><i class="ri-check-line"></i> <span>${f}</span></li>`).join(''); return `<div class="pricing-card ${plan.popular ? 'popular' : ''}">${plan.popular ? '<div class="popular-badge">Popular</div>' : ''}<h3>${plan.name}</h3><div class="price">$${price}<span>${periodLabel}</span></div><ul class="pricing-features">${featuresHTML}</ul><a href="connect.html" class="cta"><span>${price === 0 ? 'Get Free' : 'Get Started'}</span><i class="ri-arrow-right-line"></i></a></div>`; }
+        function createPricingDesktopGrid(data, period = null) { /* ... content same as before ... */ const grid = document.getElementById('pricingGridDesktop'); if (!grid) return; grid.innerHTML = ''; grid.className = period ? 'pricing-grid' : 'pricing-grid task-pricing'; Object.values(data).forEach(plan => { grid.innerHTML += createPricingCardHTML(plan, period); }); gsap.fromTo('#pricingGridDesktop .pricing-card', {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.6, stagger: 0.1, delay: 0.2}); }
+        function createPricingMobileSlider(data, period = null) { /* ... content same as before ... */ const slider = document.getElementById('pricingSlider'); const dots = document.getElementById('pricingDots'); if (!slider || !dots) return; slider.innerHTML = ''; dots.innerHTML = ''; currentPriceSlide = 0; totalPriceSlides = Object.keys(data).length; Object.values(data).forEach((plan, index) => { const slide = document.createElement('div'); slide.className = 'price-slide'; slide.innerHTML = createPricingCardHTML(plan, period); slider.appendChild(slide); const dot = document.createElement('div'); dot.className = `pricing-dot ${index === 0 ? 'active' : ''}`; dot.onclick = () => goToPriceSlide(index); dots.appendChild(dot); }); updatePriceSlider(); }
+        function updatePriceSlider() { const slider = document.getElementById('pricingSlider'); if (slider) slider.style.transform = `translateX(-${currentPriceSlide * 100}%)`; document.querySelectorAll('#pricingDots .pricing-dot').forEach((dot, i) => { dot.classList.toggle('active', i === currentPriceSlide); }); const prevBtn = document.getElementById('pricePrevBtn'); const nextBtn = document.getElementById('priceNextBtn'); if (prevBtn) prevBtn.disabled = currentPriceSlide === 0; if (nextBtn) nextBtn.disabled = currentPriceSlide >= totalPriceSlides - 1; }
+        function nextPriceSlide() { if (currentPriceSlide < totalPriceSlides - 1) { currentPriceSlide++; updatePriceSlider(); } }
+        function prevPriceSlide() { if (currentPriceSlide > 0) { currentPriceSlide--; updatePriceSlider(); } }
+        function goToPriceSlide(index) { currentPriceSlide = index; updatePriceSlider(); }
+        function togglePricingType(event, type) { if (type === currentPricingType) return; currentPricingType = type; document.querySelectorAll('#pricing-type-toggle button').forEach(btn => btn.classList.remove('active')); event.currentTarget.classList.add('active'); const hostingToggle = document.getElementById('hostingToggle'); if (hostingToggle) hostingToggle.style.display = type === 'hosting' ? 'flex' : 'none'; createPricingLayout(); }
+        function toggleHostingPeriod(event, period) { if (period === currentHostingPeriod) return; currentHostingPeriod = period; document.querySelectorAll('#hostingToggle button').forEach(btn => btn.classList.remove('active')); event.currentTarget.classList.add('active'); createPricingLayout(); }
 
-        function createPricingDesktopGrid(data, period = null) {
-            const grid = document.getElementById('pricingGridDesktop');
-            grid.innerHTML = '';
-            grid.className = period ? 'pricing-grid' : 'pricing-grid task-pricing';
-
-            Object.values(data).forEach(plan => {
-                grid.innerHTML += createPricingCardHTML(plan, period);
-            });
-
-            gsap.fromTo('.pricing-card', 
-                {opacity: 0, y: 30}, 
-                {opacity: 1, y: 0, duration: 0.6, stagger: 0.1, delay: 0.2}
-            );
-        }
-
-        function createPricingMobileSlider(data, period = null) {
-            const slider = document.getElementById('pricingSlider');
-            const dots = document.getElementById('pricingDots');
-            slider.innerHTML = '';
-            dots.innerHTML = '';
-            currentPriceSlide = 0;
-            totalPriceSlides = Object.keys(data).length;
-
-            Object.values(data).forEach((plan, index) => {
-                // Create Slide
-                const slide = document.createElement('div');
-                slide.className = 'price-slide';
-                slide.innerHTML = createPricingCardHTML(plan, period);
-                slider.appendChild(slide);
-                
-                // Create Dot
-                const dot = document.createElement('div');
-                dot.className = `pricing-dot ${index === 0 ? 'active' : ''}`;
-                dot.onclick = () => goToPriceSlide(index);
-                dots.appendChild(dot);
-            });
-            updatePriceSlider();
-        }
-        
-        function updatePriceSlider() {
-            const slider = document.getElementById('pricingSlider');
-            slider.style.transform = `translateX(-${currentPriceSlide * 100}%)`;
-            
-            document.querySelectorAll('.pricing-dot').forEach((dot, i) => {
-                dot.classList.toggle('active', i === currentPriceSlide);
-            });
-            
-            document.getElementById('pricePrevBtn').disabled = currentPriceSlide === 0;
-            document.getElementById('priceNextBtn').disabled = currentPriceSlide === totalPriceSlides - 1;
-        }
-
-        function nextPriceSlide() {
-            if (currentPriceSlide < totalPriceSlides - 1) {
-                currentPriceSlide++;
-                updatePriceSlider();
-            }
-        }
-        
-        function prevPriceSlide() {
-            if (currentPriceSlide > 0) {
-                currentPriceSlide--;
-                updatePriceSlider();
-            }
-        }
-        
-        function goToPriceSlide(index) {
-            currentPriceSlide = index;
-            updatePriceSlider();
-        }
-
-        function togglePricingType(event, type) {
-            currentPricingType = type;
-            document.querySelectorAll('.pricing-type-toggle button').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            
-            document.getElementById('hostingToggle').style.display = type === 'hosting' ? 'flex' : 'none';
-            createPricingLayout();
-        }
-
-        function toggleHostingPeriod(event, period) {
-            currentHostingPeriod = period;
-            document.querySelectorAll('.pricing-toggle button').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            createPricingLayout();
-        }
-        
         // --- PARTNER SECTION ---
         function createPartnerSlider() {
-            if (!isMobile()) return; // Only run on mobile
-            
             const container = document.getElementById('partnerContainer');
-            const content = container.querySelector('.partner-content');
-            const stats = container.querySelector('.partner-stats');
+            const desktopContent = container.querySelector('.partner-content');
+            const desktopStats = container.querySelector('.partner-stats');
             const sliderWrap = document.getElementById('partnerSliderWrap');
             const dots = document.getElementById('partnerDots');
             
-            if (!content || !stats || !sliderWrap || !dots) return;
+            // Clear previous mobile content if any
+            sliderWrap.innerHTML = '';
+            dots.innerHTML = '';
+            currentPartnerSlide = 0;
 
-            // Create Slide 1 (Content)
-            const slide1 = document.createElement('div');
-            slide1.className = 'partner-slide';
-            slide1.innerHTML = content.innerHTML;
-            sliderWrap.appendChild(slide1);
+            if (isMobile()) {
+                // Hide desktop content if it exists
+                if(desktopContent) desktopContent.style.display = 'none';
+                if(desktopStats) desktopStats.style.display = 'none';
+                
+                // --- Create Slide 1 (Content) ---
+                const slide1 = document.createElement('div');
+                slide1.className = 'partner-slide';
+                slide1.innerHTML = `
+                     <h2>Earn Crypto with SEOTIZE</h2>
+                     <p class="intro">Join our affiliate program, share SEOTIZE, and earn generous recurring commissions paid out easily in USDT.</p>
+                     <h3>How it Works</h3>
+                     <ul class="how-it-works">
+                        <li><span class="step-number">1</span> Sign up free</li>
+                        <li><span class="step-number">2</span> Share your link</li>
+                        <li><span class="step-number">3</span> Earn up to 30%</li>
+                        <li><span class="step-number">4</span> Get paid (USDT!)</li>
+                     </ul>
+                     <h3>Partner Benefits</h3>
+                     <div class="partner-benefits">
+                        <div class="benefit-item"><i class="ri-percent-line"></i><span>Up to 30% Recurring</span></div>
+                        <div class="benefit-item"><i class="ri-wallet-3-line"></i><span>Easy USDT Payouts</span></div>
+                        <div class="benefit-item"><i class="ri-dashboard-line"></i><span>Tracking Dashboard</span></div>
+                        <div class="benefit-item"><i class="ri-customer-service-2-line"></i><span>Dedicated Support</span></div>
+                     </div>
+                     <a href="connect.html" class="cta-partner">
+                         <span>Become a Partner</span> <i class="ri-arrow-right-line"></i>
+                     </a>
+                `;
+                sliderWrap.appendChild(slide1);
 
-            // Create Slide 2 (Stats)
-            const slide2 = document.createElement('div');
-            slide2.className = 'partner-slide';
-            slide2.innerHTML = `
-                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem; color: white;">Partner Stats</h2>
-                <div class="partner-stats">${stats.innerHTML}</div>
-            `;
-            sliderWrap.appendChild(slide2);
+                // --- Create Slide 2 (Stats) ---
+                const slide2 = document.createElement('div');
+                slide2.className = 'partner-slide';
+                slide2.innerHTML = `
+                    <h2 style="margin-bottom: 2rem;">Partner Success</h2>
+                    <div class="partner-stats">
+                        <div class="stat-card"><div class="stat-number">30%</div><div class="stat-label">Max Commission</div></div>
+                        <div class="stat-card"><div class="stat-number">USDT</div><div class="stat-label">Crypto Payouts</div></div>
+                        <div class="stat-card"><div class="stat-number">$50K+</div><div class="stat-label">Paid Monthly</div></div>
+                        <div class="stat-card"><div class="stat-number">∞</div><div class="stat-label">Earning Potential</div></div>
+                    </div>
+                `;
+                sliderWrap.appendChild(slide2);
 
-            // Create Dots
-            for (let i = 0; i < 2; i++) {
-                const dot = document.createElement('div');
-                dot.className = `partner-dot ${i === 0 ? 'active' : ''}`;
-                dot.onclick = () => goToPartnerSlide(i);
-                dots.appendChild(dot);
+                // --- Create Dots ---
+                for (let i = 0; i < 2; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = `partner-dot ${i === 0 ? 'active' : ''}`;
+                    dot.onclick = () => goToPartnerSlide(i);
+                    dots.appendChild(dot);
+                }
+                
+                sliderWrap.style.display = 'flex'; // Ensure slider wrap is visible
+                dots.style.display = 'flex'; // Ensure dots are visible
+
+            } else {
+                 // Show desktop content if it exists
+                if(desktopContent) desktopContent.style.display = 'block'; // Or 'grid'/'flex' if needed
+                if(desktopStats) desktopStats.style.display = 'grid';
+                sliderWrap.style.display = 'none'; // Hide slider wrap
+                dots.style.display = 'none'; // Hide dots
             }
         }
         
         function goToPartnerSlide(index) {
             currentPartnerSlide = index;
             const slider = document.getElementById('partnerSliderWrap');
-            slider.style.transform = `translateX(-${index * 100}%)`;
+            if(slider) slider.style.transform = `translateX(-${index * 100}%)`;
             
-            document.querySelectorAll('.partner-dot').forEach((dot, i) => {
+            document.querySelectorAll('#partnerDots .partner-dot').forEach((dot, i) => {
                 dot.classList.toggle('active', i === index);
             });
         }
 
-        // --- GLOBAL ---
-        function createScrollIndicator() {
-            const indicator = document.getElementById('scrollIndicator');
-            const sections = [
-                { id: 'home', name: 'Home' },
-                { id: 'features', name: 'Features' },
-                { id: 'pricing', name: 'Pricing' },
-                { id: 'partner', name: 'Partners' }
-            ];
-
-            sections.forEach((section, index) => {
-                const dot = document.createElement('div');
-                dot.className = `scroll-dot ${index === 0 ? 'active' : ''}`;
-                dot.dataset.id = section.id;
-                dot.innerHTML = `<span class="tooltip">${section.name}</span>`;
-                dot.onclick = () => {
-                    document.getElementById(section.id).scrollIntoView({behavior: 'smooth'});
-                };
-                indicator.appendChild(dot);
-            });
-        }
-
-        // Theme Toggle
-        function toggleTheme() {
-            document.body.classList.toggle('dark');
-            const isDark = document.body.classList.contains('dark');
-            document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        }
-
-        function loadTheme() {
-            if (localStorage.getItem('theme') === 'dark') {
-                document.body.classList.add('dark');
-                document.getElementById('themeIcon').textContent = '☀️';
-            }
-        }
+        // --- GLOBAL & INITIALIZATION ---
+        function createScrollIndicator() { /* ... content same as before ... */ const indicator = document.getElementById('scrollIndicator'); indicator.innerHTML = ''; const sections = [ { id: 'home', name: 'Home' }, { id: 'features', name: 'Features' }, { id: 'pricing', name: 'Pricing' }, { id: 'partner', name: 'Partners' } ]; sections.forEach((section, index) => { const dot = document.createElement('div'); dot.className = `scroll-dot ${index === 0 ? 'active' : ''}`; dot.dataset.id = section.id; dot.innerHTML = `<span class="tooltip">${section.name}</span>`; dot.onclick = () => { document.getElementById(section.id)?.scrollIntoView({behavior: 'smooth'}); }; indicator.appendChild(dot); }); }
+        function toggleTheme() { /* ... content same as before ... */ document.body.classList.toggle('dark'); const isDark = document.body.classList.contains('dark'); document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙'; localStorage.setItem('theme', isDark ? 'dark' : 'light'); }
+        function loadTheme() { /* ... content same as before ... */ if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); document.getElementById('themeIcon').textContent = '☀️'; } }
         
-        // Handle window resize
         function handleResize() {
-            // Re-initialize layouts on resize
-            createFeaturesLayout();
-            createPricingLayout();
-            // We don't need to re-init partner slider, CSS handles its visibility
+             createFeaturesLayout();
+             createPricingLayout();
+             createPartnerSlider(); // This will show/hide based on isMobile()
         }
 
-        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadTheme();
             createHeroSlider();
-            createFeaturesLayout(); // Creates desktop or mobile layout
-            createPricingLayout(); // Creates desktop or mobile layout
-            createPartnerSlider(); // Creates mobile-only slider
+            createFeaturesLayout();
+            createPricingLayout();
+            createPartnerSlider();
             createScrollIndicator();
 
             setInterval(nextHero, 5000);
 
-            // Use Intersection Observer for better performance
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         const id = entry.target.id;
                         document.querySelectorAll('.scroll-dot').forEach(dot => dot.classList.toggle('active', dot.dataset.id === id));
-                        document.querySelectorAll('.mobile-item').forEach(item => item.classList.toggle('active', item.hash === `#${id}`));
-                        document.querySelectorAll('.nav-menu a').forEach(item => item.classList.toggle('active', item.hash === `#${id}`));
+                        document.querySelectorAll('.mobile-item').forEach(item => item.classList.toggle('active', item.getAttribute('href') === `#${id}`));
+                        document.querySelectorAll('.nav-menu a').forEach(item => item.classList.toggle('active', item.getAttribute('href') === `#${id}`));
                     }
                 });
-            }, { threshold: 0.5 }); // 50% of the section must be visible
+            }, { threshold: 0.5 }); 
 
             document.querySelectorAll('.section').forEach(section => observer.observe(section));
             
-            // Listen for resize events to swap layouts
             let resizeTimer;
             window.addEventListener('resize', () => {
                 clearTimeout(resizeTimer);
                 resizeTimer = setTimeout(handleResize, 250);
             });
+
+             // Set initial active state for nav items based on hash or default to home
+            const currentHash = window.location.hash || '#home';
+            document.querySelectorAll('.mobile-item').forEach(item => item.classList.toggle('active', item.getAttribute('href') === currentHash));
+            document.querySelectorAll('.nav-menu a').forEach(item => item.classList.toggle('active', item.getAttribute('href') === currentHash));
+
         });
 
-        // Mobile nav active state (for click)
+        // Mobile nav click handler
         document.querySelectorAll('.mobile-item').forEach(item => {
             item.addEventListener('click', function(e) {
-                if(item.hash.startsWith("#")) {
+                const targetHref = item.getAttribute('href');
+                if(targetHref && targetHref.startsWith("#")) {
                     e.preventDefault();
-                    document.querySelector(item.hash).scrollIntoView({ behavior: 'smooth' });
-                    
-                    document.querySelectorAll('.mobile-item').forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
+                    document.querySelector(targetHref)?.scrollIntoView({ behavior: 'smooth' });
+                    // No need to manually set active class here, observer will handle it.
+                } else if (targetHref && !targetHref.startsWith("#")) {
+                    // Allow navigation to external pages like blogs.html
+                    window.location.href = targetHref;
                 }
             });
         });
         
-        // Desktop nav active state (for click)
+        // Desktop nav click handler
         document.querySelectorAll('.nav-menu a').forEach(item => {
             item.addEventListener('click', function(e) {
-                if(item.hash.startsWith("#")) {
+                 const targetHref = item.getAttribute('href');
+                 if(targetHref && targetHref.startsWith("#")) {
                     e.preventDefault();
-                    document.querySelector(item.hash).scrollIntoView({ behavior: 'smooth' });
-                    
-                    document.querySelectorAll('.nav-menu a').forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
+                    document.querySelector(targetHref)?.scrollIntoView({ behavior: 'smooth' });
+                     // No need to manually set active class here, observer will handle it.
+                } else if (targetHref && !targetHref.startsWith("#")) {
+                    window.location.href = targetHref;
                 }
             });
         });
+
     </script>
 </body>
 </html>

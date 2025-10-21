@@ -1339,7 +1339,7 @@
             titles.forEach(t => words.push(...t.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/).filter(w => w.length > 3 && !/\d/.test(w) && !['guide', 'best', 'strategies', 'optimization', 'complete', 'advanced', 'ultimate', 'modern'].includes(w))));
             const counts = {};
             words.forEach(w => counts[w] = (counts[w] || 0) + 1);
-            return Object.entries(counts).filter(([, c]) => c >= 1).sort((a, b) => b[1] - a[1]).slice(0, 6);
+            return Object.entries(counts).filter(([, c]) => c >= 1).sort((a, b) => b[1] - a[1]).slice(0, 8);
         }
 
         async function loadBlogs() {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEOTIZE - AI-Powered SEO Platform | Boost Your Rankings</title>
+    <title>SEOTIZE - AI-Powered SEO Platform | Earn Crypto</title>
     <meta name="description" content="Transform your SEO with AI-powered tools, real user engagement, lightning-fast CDN, and automated content generation. Earn crypto easily.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css" rel="stylesheet">
@@ -30,7 +30,7 @@
             --success: #10b981;
             --nav-bg: rgba(255, 255, 255, 0.85);
             --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-            --bg-dark: #0a0e1a;
+            --bg-dark: #0a0e1a; /* Footer background */
         }
 
         body.dark {
@@ -45,7 +45,7 @@
             --primary-glow: rgba(59, 130, 246, 0.25);
             --nav-bg: rgba(26, 31, 46, 0.85);
             --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-            --bg-dark: #000000;
+            --bg-dark: #000000; /* Footer background dark */
         }
 
         html {
@@ -60,152 +60,41 @@
             color: var(--text);
             transition: background 0.3s ease, color 0.3s ease;
             -webkit-font-smoothing: antialiased;
-            overflow-x: hidden; /* Prevent horizontal scroll */
+            overflow-x: hidden;
         }
 
         /* Navigation */
         nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 65px;
-            background: var(--nav-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-            z-index: 100;
-            display: flex;
-            align-items: center;
+            position: fixed; top: 0; left: 0; right: 0; height: 65px; background: var(--nav-bg);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+            z-index: 100; display: flex; align-items: center;
         }
-
-        .nav-container {
-            max-width: 1400px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 0 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: var(--primary);
-            text-decoration: none;
-            letter-spacing: -0.5px;
-        }
-
-        .nav-menu {
-            display: flex;
-            align-items: center;
-            gap: 1.75rem;
-            list-style: none;
-        }
-
-        .nav-menu a {
-            color: var(--text-light);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-            position: relative;
-        }
-
-        .nav-menu a::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--primary);
-            transition: width 0.3s ease;
-        }
-
-        .nav-menu a:hover,
-        .nav-menu a.active {
-            color: var(--primary);
-        }
-        
-        .nav-menu a:hover::after,
-        .nav-menu a.active::after {
-            width: 100%;
-        }
-
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.875rem;
-        }
-
-        .get-started-btn {
-            padding: 0.5rem 1.125rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .get-started-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px var(--primary-glow);
-        }
-
-        .theme-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1.2rem;
-            color: var(--text);
-        }
-
-        .theme-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--card-shadow);
-            border-color: var(--primary);
-        }
+        .nav-container { max-width: 1400px; width: 100%; margin: 0 auto; padding: 0 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.4rem; font-weight: 800; color: var(--primary); text-decoration: none; letter-spacing: -0.5px; }
+        .nav-menu { display: flex; align-items: center; gap: 1.75rem; list-style: none; }
+        .nav-menu a { color: var(--text-light); text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: all 0.2s ease; position: relative; }
+        .nav-menu a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--primary); transition: width 0.3s ease; }
+        .nav-menu a:hover, .nav-menu a.active { color: var(--primary); }
+        .nav-menu a:hover::after, .nav-menu a.active::after { width: 100%; }
+        .nav-actions { display: flex; align-items: center; gap: 0.875rem; }
+        .get-started-btn { padding: 0.5rem 1.125rem; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border: none; border-radius: 10px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; }
+        .get-started-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--primary-glow); }
+        .theme-btn { width: 40px; height: 40px; border-radius: 10px; background: var(--bg-secondary); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; font-size: 1.2rem; color: var(--text); }
+        .theme-btn:hover { transform: translateY(-2px); box-shadow: var(--card-shadow); border-color: var(--primary); }
 
         /* Sections */
         .section {
-            min-height: 100vh;
-            height: 100vh;
-            scroll-snap-align: start;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            padding-top: 65px;
-            padding-left: 1rem; /* Add base padding */
-            padding-right: 1rem; /* Add base padding */
+            min-height: 100vh; height: 100vh; scroll-snap-align: start;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+            padding-top: 65px; padding-left: 1rem; padding-right: 1rem;
         }
 
         /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%);
-            padding-top: 0;
-        }
+        .hero { background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%); padding-top: 0; justify-content: center; /* Ensure vertical centering */ }
         .hero::before { content:''; position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); top:-150px; right:-150px; animation: float 10s ease-in-out infinite; z-index: 1; }
         @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-25px, 25px); } }
-        .hero-slide { position: absolute; top:0; left:0; width:100%; height:100%; display: flex; align-items: center; justify-content: center; opacity: 0; transform: translateX(50px); transition: all 0.6s ease; z-index: 2; }
+        .hero-slide { position: absolute; top:0; left:0; width:100%; height:100%; display: flex; align-items: center; justify-content: center; opacity: 0; transform: translateX(50px); transition: all 0.6s ease; z-index: 2; padding-top: 65px; /* Adjust for nav */}
         .hero-slide.active { opacity: 1; transform: translateX(0); }
         .hero-container { max-width: 1400px; width: 100%; padding: 0 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
         .hero h1 { font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 1.5rem; background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; }
@@ -220,10 +109,10 @@
         .hero-arrow:hover { background: var(--primary); color: white; }
 
         /* Features Section */
-        .features { background: var(--bg); }
+        .features { background: var(--bg); justify-content: flex-start; /* Align content to top */ padding-top: calc(65px + 2rem); /* Nav height + desired top padding */}
         .section-title { text-align: center; font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .section-subtitle { text-align: center; font-size: 1.125rem; color: var(--text-light); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto; padding: 0 1rem; }
-        .features-container { max-width: 1400px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; justify-content: flex-start; /* Align content towards top */ height: 100%; padding: 2rem 0; /* Add padding for title/subtitle */ }
+        .features-container { max-width: 1400px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; flex: 1; /* Allow container to fill remaining space */ justify-content: center; /* Center the layout vertically */}
         
         /* Desktop Tab Layout */
         .features-layout-desktop { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 20px; height: 60vh; max-height: 550px; overflow: hidden; box-shadow: var(--card-shadow); width: 100%; max-width: 1200px; margin: 0 auto; }
@@ -244,90 +133,105 @@
         .features-content-pane h3 { font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; color: var(--text); }
         .features-content-pane p { font-size: 1.05rem; color: var(--text-light); line-height: 1.7; max-width: 600px; }
         
-        /* Mobile Slider Layout */
-        .features-layout-mobile { display: none; width: 100%; height: 100%; flex-direction: column; justify-content: center; align-items: center; position: relative; padding-bottom: 40px; /* Space for dots */}
+        /* Mobile Feature Slider Layout */
+        .features-layout-mobile { display: none; width: 100%; height: 100%; flex-direction: column; justify-content: center; align-items: center; position: relative; padding-bottom: 50px; /* Space for dots above nav */}
         .features-slider-wrap { width: 100%; overflow: hidden; flex: 1; display: flex; align-items: center; }
         .features-slider { display: flex; width: 100%; transition: transform 0.4s ease-in-out; }
-        .feature-slide { width: 100%; flex-shrink: 0; padding: 1rem; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;}
-        .feature-slide .content-icon { font-size: 3.5rem; margin-bottom: 1.5rem; }
-        .feature-slide h3 { font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; color: var(--text); }
-        .feature-slide p { font-size: 1rem; color: var(--text-light); line-height: 1.6; }
-        .features-dots { display: flex; gap: 0.75rem; justify-content: center; padding: 1rem 0; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); }
+        .feature-slide { width: 100%; flex-shrink: 0; padding: 1.5rem; /* More padding */ text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; position: relative; /* For pseudo-elements */ }
+        /* Optional: Subtle background per slide */
+        .feature-slide::before { content: attr(data-icon); position: absolute; top: 10%; right: 10%; font-size: 6rem; color: var(--primary); opacity: 0.05; transform: rotate(-15deg); z-index: -1; }
+        .feature-slide .content-icon { font-size: 4rem; margin-bottom: 1.5rem; color: var(--primary); } /* Larger icon */
+        .feature-slide h3 { font-size: 1.6rem; font-weight: 700; margin-bottom: 1rem; color: var(--text); }
+        .feature-slide p { font-size: 1rem; color: var(--text-light); line-height: 1.6; max-width: 90%; } /* Slightly wider text */
+        .features-dots { display: flex; gap: 0.75rem; justify-content: center; position: absolute; bottom: 10px; /* Position above mobile nav padding */ left: 50%; transform: translateX(-50%); z-index: 5; }
         .feature-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all 0.3s ease; }
         .feature-dot.active { background: var(--primary); transform: scale(1.3); }
 
         /* Pricing Section */
-        .pricing { background: var(--bg-secondary); }
-        .pricing-container-wrapper { max-width: 1400px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; height: 100%; justify-content: flex-start; padding-top: 2rem; }
-        
-        /* Redesigned Compact Controls */
-        .pricing-controls { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-bottom: 2rem; background: var(--bg); padding: 0.5rem; border-radius: 12px; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); flex-wrap: wrap; }
-        .pricing-controls > div { display: flex; gap: 0.25rem; background: var(--bg-secondary); padding: 0.25rem; border-radius: 10px; border: 1px solid var(--border); } /* Inner groups */
+        .pricing { background: var(--bg-secondary); justify-content: flex-start; padding-top: calc(65px + 2rem); }
+        .pricing-container-wrapper { max-width: 1400px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; flex: 1; justify-content: center; } /* Fills space and centers content */
+        .pricing-controls { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-bottom: 1.5rem; /* Reduced margin */ background: var(--bg); padding: 0.5rem; border-radius: 12px; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); flex-wrap: wrap; }
+        .pricing-controls > div { display: flex; gap: 0.25rem; background: var(--bg-secondary); padding: 0.25rem; border-radius: 10px; border: 1px solid var(--border); }
         .pricing-controls button { padding: 0.5rem 1rem; border: none; background: transparent; color: var(--text-light); font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-size: 0.85rem; white-space: nowrap; }
         .pricing-controls button.active { background: var(--primary); color: white; box-shadow: 0 2px 8px var(--primary-glow); }
         .pricing-controls .save-badge { color: var(--success); font-size: 0.7rem; margin-left: 0.25rem; }
-        
-        .pricing-container { max-width: 1400px; margin: 0 auto; overflow: hidden; padding: 0; /* Removed padding */ flex: 1; display: flex; align-items: center; justify-content: center; position: relative; width: 100%; }
-
-        /* Desktop Grid */
-        .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; width: 100%; padding: 0 1rem; /* Padding for grid */}
+        .pricing-container { max-width: 1400px; margin: 0 auto; overflow: hidden; padding: 0; flex: 1; display: flex; align-items: center; justify-content: center; position: relative; width: 100%; max-height: 65vh; /* Limit height to prevent overflow */}
+        .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; width: 100%; padding: 0 1rem; align-items: stretch; /* Make cards same height */}
         .pricing-grid.task-pricing { grid-template-columns: repeat(3, 1fr); max-width: 1100px; }
-        .pricing-card { background: var(--bg-secondary); border: 2px solid var(--border); border-radius: 20px; padding: 1.5rem; /* Slightly reduced padding */ transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; height: 100%; }
+        .pricing-card { background: var(--bg-secondary); border: 2px solid var(--border); border-radius: 20px; padding: 1.5rem; transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; height: 100%; }
         .pricing-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15); border-color: var(--primary); }
         .pricing-card.popular { border-color: var(--primary); box-shadow: 0 20px 40px var(--primary-glow); }
         .popular-badge { position: absolute; top: -12px; right: 20px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
         .pricing-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); }
         .pricing-card .price { font-size: 2.25rem; font-weight: 800; color: var(--primary); margin: 0.75rem 0; }
         .pricing-card .price span { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
-        .pricing-features { list-style: none; margin: 1rem 0; flex: 1; }
-        .pricing-features li { padding: 0.4rem 0; color: var(--text-light); display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; }
-        .pricing-features li i { color: var(--success); font-size: 1rem; }
+        .pricing-features { list-style: none; margin: 1rem 0; flex: 1; overflow-y: auto; max-height: 150px; /* Limit feature list height if needed */ padding-right: 5px;}
+         .pricing-features::-webkit-scrollbar { width: 4px; } .pricing-features::-webkit-scrollbar-track { background: transparent; } .pricing-features::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        .pricing-features li { padding: 0.4rem 0; color: var(--text-light); display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.8rem; }
+        .pricing-features li i { color: var(--success); font-size: 1rem; flex-shrink: 0; margin-top: 2px;}
         .pricing-card .cta { width: 100%; text-align: center; justify-content: center; margin-top: auto; padding: 0.75rem 1rem; font-size: 0.9rem;}
-        
-        /* Mobile Slider */
-        .pricing-slider-wrap { display: none; width: 100%; overflow: hidden; padding: 0 2.5rem; /* Space for arrows */ }
+        .pricing-slider-wrap { display: none; width: 100%; overflow: hidden; padding: 0 2.5rem; }
         .pricing-slider { display: flex; transition: transform 0.4s ease-in-out; }
         .price-slide { width: 100%; flex-shrink: 0; padding: 0 0.5rem; }
         .price-slide .pricing-card { width: 100%; }
-        .pricing-slider-nav { display: none; width: 100%; justify-content: space-between; position: absolute; top: 50%; left: 0; transform: translateY(-50%); padding: 0 0.5rem; z-index: 5; } /* Adjusted padding */
+        .pricing-slider-nav { display: none; width: 100%; justify-content: space-between; position: absolute; top: 50%; left: 0; transform: translateY(-50%); padding: 0 0.5rem; z-index: 5; }
         .pricing-slider-arrow { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text); font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; }
         .pricing-slider-arrow:hover { background: var(--primary); color: white; }
         .pricing-slider-arrow:disabled { opacity: 0.4; cursor: not-allowed; }
-        .pricing-dots { display: none; gap: 0.75rem; justify-content: center; position: absolute; bottom: 1rem; /* Adjusted position */ left: 50%; transform: translateX(-50%); z-index: 5; }
+        .pricing-dots { display: none; gap: 0.75rem; justify-content: center; position: absolute; bottom: 10px; /* Positioned relative to container */ left: 50%; transform: translateX(-50%); z-index: 5; }
         .pricing-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all 0.3s ease; }
         .pricing-dot.active { background: var(--primary); transform: scale(1.3); }
 
-        /* Partner Section */
-        .partner { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; }
-        .partner-container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; height: 100%; padding: 2rem; width: 100%; }
-        .partner-content, .partner-stats { z-index: 1; } /* Keep original content for desktop */
-        
-        /* Redesigned Partner Content */
-        .partner h2 { font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; color: white; }
-        .partner p.intro { font-size: 1.125rem; color: rgba(255, 255, 255, 0.9); margin-bottom: 1.5rem; line-height: 1.6; }
-        .partner h3 { font-size: 1.25rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; color: rgba(255, 255, 255, 0.95); border-bottom: 1px solid rgba(255, 255, 255, 0.3); padding-bottom: 0.5rem; }
-        
-        .how-it-works { list-style: none; padding-left: 0; margin-bottom: 2rem; }
-        .how-it-works li { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; font-size: 1rem; color: rgba(255, 255, 255, 0.9); }
-        .how-it-works .step-number { background: rgba(255, 255, 255, 0.2); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; flex-shrink: 0; }
-        
-        .partner-benefits { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
-        .benefit-item { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; gap: 0.75rem; }
-        .benefit-item i { font-size: 1.75rem; color: white; width: 30px; text-align: center; }
-        .benefit-item span { font-size: 0.9rem; color: rgba(255, 255, 255, 0.95); }
-        
-        .cta-partner { display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; background: white; color: var(--primary); text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 1rem; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); transition: all 0.3s ease; }
-        .cta-partner:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3); }
+        /* Partner Section Redesign */
+        .partner {
+            background: var(--bg); /* Light background */
+            color: var(--text); /* Default text color */
+             justify-content: flex-start; padding-top: calc(65px + 2rem);
+        }
+        .partner-container {
+            max-width: 1200px; /* Slightly smaller max-width */
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 columns */
+            gap: 3rem; /* Gap between columns */
+            align-items: center;
+            width: 100%;
+            padding: 2rem 1rem; /* Padding inside container */
+            flex: 1; /* Allow filling space */
+        }
+        .partner-info {
+            /* Styles for the left column (info, steps, cta) */
+        }
+        .partner-info h2 {
+            font-size: 2.25rem; font-weight: 800; margin-bottom: 1rem; color: var(--text);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .partner-info p.intro { font-size: 1.1rem; color: var(--text-light); margin-bottom: 2rem; line-height: 1.6; }
+        .partner-info h3 { font-size: 1.2rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 1rem; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        .partner-info .how-it-works { list-style: none; padding-left: 0; margin-bottom: 2rem; }
+        .partner-info .how-it-works li { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--text-light); }
+        .partner-info .how-it-works .step-number { background: var(--primary-glow); color: var(--primary); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; flex-shrink: 0; }
+        .cta-partner { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.9rem 1.8rem; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 1rem; box-shadow: 0 10px 25px var(--primary-glow); transition: all 0.3s ease; margin-top: 1rem; }
+        .cta-partner:hover { transform: translateY(-2px); box-shadow: 0 15px 35px var(--primary-glow); }
 
-        .partner-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-        .stat-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 2rem; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.2); text-align: center; transition: all 0.3s ease; }
-        .stat-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.15); }
-        .stat-number { font-size: 3rem; font-weight: 800; color: white; margin-bottom: 0.5rem; }
-        .stat-label { color: rgba(255, 255, 255, 0.8); font-size: 1rem; }
+        .partner-benefits-visual {
+            /* Styles for the right column (benefit cards) */
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2x2 grid for benefits */
+            gap: 1.5rem;
+        }
+        .benefit-card {
+            background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem;
+            text-align: center; box-shadow: var(--card-shadow); transition: all 0.3s ease;
+        }
+        .benefit-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); border-color: var(--primary);}
+        .benefit-card i { font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem; display: inline-block; background: var(--primary-glow); padding: 0.75rem; border-radius: 12px;}
+        .benefit-card h4 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
+        .benefit-card p { font-size: 0.9rem; color: var(--text-light); line-height: 1.5; }
         
-        /* Mobile Partner Slider */
-        .partner-slider-wrap { display: none; }
-        .partner-dots { display: none; }
+        /* Hide mobile-specific partner slider elements */
+        .partner-slider-wrap, .partner-dots { display: none; }
 
         /* Footer */
         .footer { padding: 4rem 2rem 2rem; background: var(--bg-dark); color: #f1f5f9; height: auto; min-height: auto; scroll-snap-align: end; padding-top: 4rem; }
@@ -363,14 +267,15 @@
             .section {
                 height: 100vh; min-height: 100vh;
                 padding-top: 58px; padding-bottom: 68px;
-                padding-left: 0; padding-right: 0; /* Remove base horizontal padding */
-                justify-content: flex-start; /* Align content to top */
+                padding-left: 0; padding-right: 0;
+                justify-content: flex-start;
             }
             .hero { padding-top: 0; padding-bottom: 0; justify-content: center; }
+            .hero-slide { padding-top: 58px; padding-bottom: 68px; /* Ensure content area respects navs */ align-items: center; /* Re-center vertically */}
             .hero-container { grid-template-columns: 1fr; gap: 1.5rem; padding: 0 1.5rem; text-align: center; }
             .hero-container > div:last-child { order: -1; }
             .hero h1 { font-size: 1.8rem; margin-bottom: 0.75rem;}
-            .hero p { font-size: 0.95rem; margin-bottom: 1.5rem; }
+            .hero p { font-size: 1rem; margin-bottom: 1.5rem; } /* Slightly larger */
             .hero img { max-width: 250px; margin: 0 auto; }
             .hero-controls { bottom: 80px; padding: 0.5rem 1rem; }
             
@@ -378,55 +283,43 @@
             .section-subtitle { font-size: 0.95rem; margin-bottom: 1.5rem; }
 
             /* Features Mobile */
-            .features-container { padding: 1rem 0 0 0; }
+            .features { justify-content: flex-start; padding-top: calc(58px + 1rem);} /* Adjust top padding */
+            .features-container { padding: 0; justify-content: space-between; /* Push content and dots apart */ }
             .features-layout-desktop { display: none; }
-            .features-layout-mobile { display: flex; max-width: 100%; } /* Enable mobile slider */
-            .features-dots { bottom: 0; } /* Adjust position */
-            .feature-slide h3 { font-size: 1.5rem; }
-            .feature-slide p { font-size: 0.95rem; }
+            .features-layout-mobile { display: flex; max-width: 100%; height: auto; flex: 1; } /* Allow slider to fill space */
+            .features-dots { position: relative; bottom: 10px; padding: 0; margin-top: auto; /* Push dots to bottom */}
 
             /* Pricing Mobile */
-            .pricing-container-wrapper { padding: 1rem 0 0 0; } /* Adjust padding */
-            .pricing-controls { gap: 0.5rem; margin-bottom: 1.5rem; padding: 0.3rem; width: 95%; }
-            .pricing-controls > div { gap: 0.1rem; padding: 0.2rem; }
-            .pricing-controls button { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
+            .pricing { justify-content: flex-start; padding-top: calc(58px + 1rem); }
+            .pricing-container-wrapper { padding: 0 1rem; justify-content: flex-start; }
+            .pricing-controls { gap: 0.5rem; margin-bottom: 1rem; width: 100%; }
+            .pricing-controls > div { flex: 1; justify-content: center; } /* Make groups take equal space */
             .pricing-grid { display: none; }
-            .pricing-container { padding: 0; } /* Remove padding for full width slider */
-            .pricing-slider-wrap { display: block; padding: 0 2.5rem; /* Space for arrows */ }
-            .pricing-slider-nav { display: flex; }
-            .pricing-dots { display: flex; bottom: 0; } /* Adjust position */
-            .price-slide .pricing-card { padding: 1.25rem; }
-            .price-slide .pricing-card h3 { font-size: 1.1rem; }
-            .price-slide .pricing-card .price { font-size: 1.8rem; }
-            .price-slide .pricing-features li { font-size: 0.75rem; padding: 0.3rem 0;}
-            .price-slide .pricing-card .cta { font-size: 0.85rem; padding: 0.65rem 1rem; }
-            
-            /* Partner Mobile */
-            .partner-container { grid-template-columns: 1fr; gap: 0; padding: 0; display: block; overflow: hidden; position: relative; height: 100%; }
-            .partner-slider-wrap { display: flex; height: 100%; width: 100%; transition: transform 0.4s ease-in-out; }
-            .partner-slide { width: 100%; flex-shrink: 0; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 1rem 1.5rem 60px 1.5rem; /* Padding + space for dots */ overflow-y: auto; }
-            .partner-slide h2 { font-size: 1.8rem; }
-            .partner-slide p.intro { font-size: 0.95rem; margin-bottom: 1rem; }
-            .partner-slide h3 { font-size: 1.1rem; margin-top: 1.5rem; margin-bottom: 0.75rem; }
-            .partner-slide .how-it-works li { font-size: 0.9rem; }
-            .partner-slide .partner-benefits { grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1.5rem; width: 100%; max-width: 350px;}
-            .partner-slide .benefit-item { padding: 0.75rem; gap: 0.5rem;}
-            .partner-slide .benefit-item i { font-size: 1.5rem; }
-            .partner-slide .benefit-item span { font-size: 0.85rem; }
-            .partner-slide .cta-partner { padding: 0.8rem 1.5rem; font-size: 0.9rem; }
-            .partner-slide .partner-stats { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; width: 100%; }
-            .partner-slide .stat-card { padding: 1rem; }
-            .partner-slide .stat-number { font-size: 1.8rem; }
-            .partner-slide .stat-label { font-size: 0.85rem; }
-            .partner-dots { display: flex; bottom: 0; /* Adjust position relative to slide padding */ }
-            .partner-dot { background: rgba(255,255,255,0.3); } .partner-dot.active { background: white; }
-            .partner-content, .partner-stats { display: none !important; } /* Hide desktop versions forcefully */
+            .pricing-container { padding: 0; flex: 1; max-height: none; /* Remove height limit */ align-items: stretch; /* Stretch slider wrap */ }
+            .pricing-slider-wrap { display: block; padding: 0; flex: 1; display: flex; align-items: center; }
+            .price-slide { height: 100%; display: flex; align-items: center; justify-content: center; }
+            .price-slide .pricing-card { max-width: 300px; margin: 0 auto; } /* Limit card width */
+            .pricing-slider-nav { display: flex; top: 50%; transform: translateY(-50%); } /* Center arrows vertically */
+            .pricing-dots { display: flex; position: relative; /* Change from absolute */ bottom: auto; left: auto; transform: none; margin-top: 1rem; padding-bottom: 5px; /* Space above mobile nav */}
+
+            /* Partner Mobile Redesign */
+             .partner { justify-content: flex-start; padding-top: calc(58px + 1rem);}
+             .partner-container { grid-template-columns: 1fr; gap: 1.5rem; padding: 1rem; align-items: flex-start; /* Align top */ overflow-y: auto; /* Allow scrolling if content overflows */ height: auto; /* Allow content height */ flex: 1; }
+             .partner-info h2 { font-size: 1.8rem; }
+             .partner-info p.intro { font-size: 1rem; margin-bottom: 1.5rem;}
+             .partner-info h3 { font-size: 1.1rem; }
+             .partner-info .how-it-works li { font-size: 0.9rem;}
+             .cta-partner { width: 100%; justify-content: center; }
+             .partner-benefits-visual { grid-template-columns: 1fr; gap: 1rem; } /* Stack benefit cards */
+             .benefit-card i { font-size: 2rem; }
+             .benefit-card h4 { font-size: 1rem; }
+             .benefit-card p { font-size: 0.85rem; }
 
             .scroll-indicator { display: none; }
 
             /* Footer Mobile */
             .footer { padding: 3rem 1rem 88px; scroll-snap-align: end; height: auto; min-height: 0; }
-            .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 2rem; } /* Explicitly set 2 columns */
             .footer-bottom { flex-direction: column; text-align: center; }
 
             /* Mobile Nav */
@@ -440,7 +333,7 @@
 
         @media (max-width: 480px) {
             .hero img { max-width: 200px; }
-            .hero-controls { bottom: 85px; } /* Slightly higher */
+            .hero-controls { bottom: 85px; }
             .section-title { font-size: 1.6rem; }
             .section-subtitle { font-size: 0.9rem; }
 
@@ -450,15 +343,15 @@
 
             .pricing-controls { flex-direction: column; width: 90%; gap: 0.5rem;}
             .pricing-controls > div { width: 100%; justify-content: center; }
-            .pricing-controls button { flex: 1; text-align: center; } /* Make buttons equal width */
-            .pricing-slider-wrap { padding: 0 2rem; } /* Less space needed for smaller arrows */
+            .pricing-controls button { flex: 1; }
+            .pricing-slider-wrap { padding: 0 1rem; } /* Less space needed for smaller arrows */
             .pricing-slider-arrow { width: 32px; height: 32px; font-size: 1rem;}
             .pricing-dots { bottom: 5px; }
+            .price-slide .pricing-card { max-width: 280px; } /* Adjust card max width */
 
-            .partner-slide { padding: 1rem 1rem 50px 1rem; }
-            .partner-slide h2 { font-size: 1.6rem; }
-            .partner-slide .partner-stats { grid-template-columns: 1fr; }
-            .partner-dots { bottom: 5px; }
+            .partner-container { gap: 1rem; padding: 1rem 0.5rem; }
+            .partner-benefits-visual { gap: 0.75rem; }
+            .benefit-card { padding: 1rem; }
 
             .footer-grid { grid-template-columns: 1fr; gap: 1.5rem; } /* Stack footer columns */
             .footer { padding-bottom: 78px; }
@@ -480,13 +373,8 @@
                 <li><a href="blogs.html">Blog</a></li>
             </ul>
             <div class="nav-actions">
-                <a href="connect.html" class="get-started-btn">
-                    <span>Get Started</span>
-                    <i class="ri-arrow-right-line"></i>
-                </a>
-                <button class="theme-btn" onclick="toggleTheme()">
-                    <span id="themeIcon">🌙</span>
-                </button>
+                <a href="connect.html" class="get-started-btn"><span>Get Started</span><i class="ri-arrow-right-line"></i></a>
+                <button class="theme-btn" onclick="toggleTheme()"><span id="themeIcon">🌙</span></button>
             </div>
         </div>
     </nav>
@@ -498,7 +386,7 @@
     <section id="features" class="section features">
         <div class="features-container">
             <h2 class="section-title">The All-in-One SEO Powerhouse</h2>
-            <p class="section-subtitle">All the tools you need, integrated and powered by AI to dominate search rankings.</p>
+            <p class="section-subtitle">Integrated tools powered by AI to dominate search rankings.</p>
             <div class="features-layout-desktop" id="featuresLayoutDesktop">
                 <div class="features-list" id="featuresList"></div>
                 <div class="features-content" id="featuresContent"></div>
@@ -516,19 +404,17 @@
         <div class="pricing-container-wrapper">
             <h2 class="section-title">Simple, Transparent Pricing</h2>
             <p class="section-subtitle">Choose the plan that fits your needs. No hidden fees.</p>
-            
             <div class="pricing-controls">
                  <div id="pricing-type-toggle">
                     <button class="active" onclick="togglePricingType(event, 'hosting')">Plans</button>
                     <button onclick="togglePricingType(event, 'task')">Pay-Per-Task</button>
                 </div>
-                 <div id="hostingToggle">
+                <div id="hostingToggle">
                     <button class="active" onclick="toggleHostingPeriod(event, '3month')">3 Months</button>
                     <button onclick="toggleHostingPeriod(event, '6month')">6 Months <span class="save-badge">Save 10%</span></button>
                     <button onclick="toggleHostingPeriod(event, '12month')">12 Months <span class="save-badge">Save 20%</span></button>
                 </div>
             </div>
-            
             <div class="pricing-container" id="pricingContainer">
                 <div class="pricing-grid" id="pricingGridDesktop"></div>
                 <div class="pricing-slider-wrap" id="pricingSliderMobile">
@@ -544,41 +430,41 @@
     </section>
 
     <section id="partner" class="section partner">
+         <h2 class="section-title">Earn Crypto Passively</h2>
+         <p class="section-subtitle">Become an SEOTIZE partner and earn recurring USDT commissions.</p>
         <div class="partner-container" id="partnerContainer">
-            <div class="partner-content">
-                 <h2>Earn Crypto with SEOTIZE</h2>
-                 <p class="intro">Join our affiliate program, share SEOTIZE, and earn generous recurring commissions paid out easily in USDT.</p>
-                 
-                 <h3>How it Works</h3>
+            <div class="partner-info">
+                 <h3>How it Works in 4 Simple Steps</h3>
                  <ul class="how-it-works">
                     <li><span class="step-number">1</span> Sign up for our free partner program.</li>
-                    <li><span class="step-number">2</span> Share your unique referral link.</li>
-                    <li><span class="step-number">3</span> Earn up to 30% recurring commission for every customer.</li>
-                    <li><span class="step-number">4</span> Withdraw your earnings monthly via PayPal or USDT.</li>
+                    <li><span class="step-number">2</span> Get your unique referral link instantly.</li>
+                    <li><span class="step-number">3</span> Share the link & earn up to 30% recurring commission.</li>
+                    <li><span class="step-number">4</span> Withdraw earnings monthly via PayPal or USDT.</li>
                  </ul>
-                 
-                 <h3>Partner Benefits</h3>
-                 <div class="partner-benefits">
-                    <div class="benefit-item"><i class="ri-percent-line"></i><span>Up to 30% Recurring Commission</span></div>
-                    <div class="benefit-item"><i class="ri-wallet-3-line"></i><span>Easy USDT Crypto Payouts</span></div>
-                    <div class="benefit-item"><i class="ri-dashboard-line"></i><span>Real-time Tracking Dashboard</span></div>
-                    <div class="benefit-item"><i class="ri-customer-service-2-line"></i><span>Dedicated Partner Support</span></div>
-                 </div>
-                 
                  <a href="connect.html" class="cta-partner">
-                     <span>Become a Partner Today</span>
+                     <span>Start Earning Crypto Now</span>
                      <i class="ri-arrow-right-line"></i>
                  </a>
             </div>
-            <div class="partner-stats">
-                 <div class="stat-card"><div class="stat-number">30%</div><div class="stat-label">Max Commission</div></div>
-                 <div class="stat-card"><div class="stat-number">USDT</div><div class="stat-label">Crypto Payouts</div></div>
-                 <div class="stat-card"><div class="stat-number">$50K+</div><div class="stat-label">Paid Monthly</div></div>
-                 <div class="stat-card"><div class="stat-number">∞</div><div class="stat-label">Earning Potential</div></div>
+            <div class="partner-benefits-visual">
+                <div class="benefit-card">
+                    <i class="ri-percent-line"></i>
+                    <h4>Up to 30% Recurring</h4>
+                    <p>Earn commissions for the lifetime of the customer.</p>
+                </div>
+                 <div class="benefit-card">
+                    <i class="ri-copper-coin-line"></i> <h4>Easy USDT Payouts</h4>
+                    <p>Get your earnings quickly and easily in crypto.</p>
+                </div>
+                 <div class="benefit-card">
+                    <i class="ri-dashboard-3-line"></i> <h4>Real-time Dashboard</h4>
+                    <p>Track your clicks, referrals, and commissions live.</p>
+                </div>
+                 <div class="benefit-card">
+                    <i class="ri-rocket-line"></i> <h4>Marketing Resources</h4>
+                    <p>Access banners and materials to help you promote.</p>
+                </div>
             </div>
-            
-            <div class="partner-slider-wrap" id="partnerSliderWrap"></div>
-            <div class="partner-dots" id="partnerDots"></div>
         </div>
     </section>
 
@@ -619,7 +505,7 @@
         let currentHostingPeriod = '3month';
         let currentFeatureSlide = 0;
         let currentPriceSlide = 0;
-        let currentPartnerSlide = 0;
+        // let currentPartnerSlide = 0; // No longer needed for partner section slider
         let totalFeatureSlides = 0;
         let totalPriceSlides = 0;
         const isMobile = () => window.innerWidth <= 768;
@@ -628,16 +514,16 @@
         const heroSlides = [ { title: "AI-Powered SEO Platform", description: "Boost search rankings with intelligent automation and real user engagement from 150+ countries.", cta: "Start Free Trial", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop&q=80" }, { title: "Real User Engagement", description: "Get authentic traffic from real users who search and interact with your content naturally.", cta: "Get Real Traffic", image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop&q=80" }, { title: "AI Content Generation", description: "Create unlimited SEO-optimized content with advanced AI technology that ranks higher.", cta: "Generate Content", image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=400&fit=crop&q=80" } ];
         const featuresData = [ { id: 'engagement', icon: '🚀', title: 'Real User Engagement', description: 'Boost your SEO with authentic user interactions from over 150 countries. Our platform drives real clicks, scroll-time, and engagement.' }, { id: 'ai-content', icon: '🤖', title: 'AI Content Creation', description: 'Generate unlimited high-quality, SEO-optimized content. Our advanced AI technology creates articles, blog posts, and product descriptions that rank.' }, { id: 'analytics', icon: '📊', title: 'Advanced Analytics', description: 'Track every aspect of your SEO performance. Get detailed insights, keyword rank tracking, competitor analysis, and actionable recommendations.' }, { id: 'cdn', icon: '⚡', title: 'Lightning Fast CDN', description: 'Improve your Core Web Vitals and user experience with our global content delivery network, a critical factor for modern SEO success.' }, { id: 'backlinks', icon: '🔗', title: 'Smart Backlink Building', description: 'Build a high-quality, relevant backlink profile. Our platform identifies strategic partnership opportunities and facilitates link building.' }, { id: 'cost-effective', icon: '💰', title: 'Cost-Effective Solutions', description: 'Access premium, enterprise-grade SEO features at a fraction of the cost, whether you choose a subscription or pay-per-task.' } ];
         totalFeatureSlides = featuresData.length;
-        const hostingPlansData = { free: { name: 'Free', price: {'3month': 0, '6month': 0, '12month': 0}, features: ['30 articles hosted', '100 images stored', 'Basic CDN access', 'Community support', 'Basic analytics'] }, basic: { name: 'Basic', price: {'3month': 10, '6month': 18, '12month': 32}, features: ['200 articles hosted', '1,000 images stored', 'Fast CDN delivery', 'Email support', 'Standard analytics', 'Custom domain'] }, professional: { name: 'Professional', price: {'3month': 25, '6month': 45, '12month': 80}, features: ['600 articles hosted', '4,000 images stored', 'Premium CDN delivery', 'Priority support', 'Advanced analytics', 'Custom domain', 'API access'], popular: true }, enterprise: { name: 'Enterprise', price: {'3month': 50, '6month': 90, '12month': 160}, features: ['2,000 articles hosted', '20,000 images stored', 'Ultra-fast CDN worldwide', '24/7 dedicated support', 'Full analytics suite', 'Multiple custom domains', 'Full API access'] } };
+        const hostingPlansData = { free: { name: 'Free', price: {'3month': 0, '6month': 0, '12month': 0}, features: ['30 articles hosted', '100 images stored', 'Basic CDN access', 'Community support'] }, basic: { name: 'Basic', price: {'3month': 10, '6month': 18, '12month': 32}, features: ['200 articles hosted', '1,000 images stored', 'Fast CDN delivery', 'Email support', 'Standard analytics'] }, professional: { name: 'Professional', price: {'3month': 25, '6month': 45, '12month': 80}, features: ['600 articles hosted', '4,000 images stored', 'Premium CDN delivery', 'Priority support', 'Advanced analytics', 'API access'], popular: true }, enterprise: { name: 'Enterprise', price: {'3month': 50, '6month': 90, '12month': 160}, features: ['2,000 articles hosted', '20,000 images stored', 'Ultra-fast CDN worldwide', '24/7 dedicated support', 'Full analytics suite'] } };
         const taskPricingData = { basic: { name: 'Basic', price: 0.10, features: ['$0.10 per task', '1 concurrent task', 'Standard processing speed', 'Email support'] }, standard: { name: 'Standard', price: 0.12, features: ['$0.12 per task', '3 concurrent tasks', 'Fast processing speed', 'Priority support', 'Task scheduling'], popular: true }, premium: { name: 'Premium', price: 0.15, features: ['$0.15 per task', '5 concurrent tasks', 'Ultra-fast processing', '24/7 dedicated support', 'API access'] } };
 
-        // --- HERO SECTION (Same as before) ---
-        function createHeroSlider() { /* ... content same as before ... */ const hero = document.getElementById('home'); if (!hero) return; hero.innerHTML = ''; heroSlides.forEach((slide, i) => { const div = document.createElement('div'); div.className = `hero-slide ${i === 0 ? 'active' : ''}`; div.innerHTML = `<div class="hero-container"><div><h1>${slide.title}</h1><p>${slide.description}</p><a href="connect.html" class="cta"><span>${slide.cta}</span><i class="ri-arrow-right-line"></i></a></div><div><img src="${slide.image}" alt="${slide.title}" loading="lazy"></div></div>`; hero.appendChild(div); }); const controls = document.createElement('div'); controls.className = 'hero-controls'; controls.innerHTML = `<button class="hero-arrow" onclick="prevHero()" aria-label="Previous slide"><i class="ri-arrow-left-s-line"></i></button><div id="hero-dots"></div><button class="hero-arrow" onclick="nextHero()" aria-label="Next slide"><i class="ri-arrow-right-s-line"></i></button>`; hero.appendChild(controls); const dots = document.getElementById('hero-dots'); heroSlides.forEach((slide, i) => { const dot = document.createElement('div'); dot.className = `hero-dot ${i === 0 ? 'active' : ''}`; dot.onclick = () => { currentHero = i; updateHero(); }; dots.appendChild(dot); }); }
+        // --- HERO SECTION (No change in JS) ---
+        function createHeroSlider() { const hero = document.getElementById('home'); if (!hero) return; hero.innerHTML = ''; heroSlides.forEach((slide, i) => { const div = document.createElement('div'); div.className = `hero-slide ${i === 0 ? 'active' : ''}`; div.innerHTML = `<div class="hero-container"><div><h1>${slide.title}</h1><p>${slide.description}</p><a href="connect.html" class="cta"><span>${slide.cta}</span><i class="ri-arrow-right-line"></i></a></div><div><img src="${slide.image}" alt="${slide.title}" loading="lazy"></div></div>`; hero.appendChild(div); }); const controls = document.createElement('div'); controls.className = 'hero-controls'; controls.innerHTML = `<button class="hero-arrow" onclick="prevHero()" aria-label="Previous slide"><i class="ri-arrow-left-s-line"></i></button><div id="hero-dots"></div><button class="hero-arrow" onclick="nextHero()" aria-label="Next slide"><i class="ri-arrow-right-s-line"></i></button>`; hero.appendChild(controls); const dots = document.getElementById('hero-dots'); heroSlides.forEach((slide, i) => { const dot = document.createElement('div'); dot.className = `hero-dot ${i === 0 ? 'active' : ''}`; dot.onclick = () => { currentHero = i; updateHero(); }; dots.appendChild(dot); }); }
         function updateHero() { document.querySelectorAll('.hero-slide').forEach((slide, i) => { slide.classList.toggle('active', i === currentHero); }); document.querySelectorAll('.hero-dot').forEach((dot, i) => { dot.classList.toggle('active', i === currentHero); }); }
         function nextHero() { currentHero = (currentHero + 1) % heroSlides.length; updateHero(); }
         function prevHero() { currentHero = currentHero === 0 ? heroSlides.length - 1 : currentHero - 1; updateHero(); }
 
-        // --- FEATURES SECTION ---
+        // --- FEATURES SECTION (Updated Mobile Layout) ---
         function createFeaturesLayout() {
              const desktopLayout = document.getElementById('featuresLayoutDesktop');
              const mobileLayout = document.getElementById('featuresLayoutMobile');
@@ -653,22 +539,22 @@
                  createFeaturesDesktopTabs();
              }
         }
-        function createFeaturesDesktopTabs() { /* ... content same as before ... */ const list = document.getElementById('featuresList'); const content = document.getElementById('featuresContent'); if (!list || !content) return; list.innerHTML = ''; content.innerHTML = ''; featuresData.forEach((feature, index) => { const li = document.createElement('div'); li.className = `feature-list-item ${index === 0 ? 'active' : ''}`; li.dataset.id = feature.id; li.innerHTML = `<span class="feature-icon">${feature.icon}</span><span>${feature.title}</span>`; li.onclick = () => showFeature(feature.id); list.appendChild(li); const pane = document.createElement('div'); pane.className = `features-content-pane ${index === 0 ? 'active' : ''}`; pane.id = `feature-${feature.id}`; pane.innerHTML = `<div class="content-icon">${feature.icon}</div><h3>${feature.title}</h3><p>${feature.description}</p>`; content.appendChild(pane); }); }
+        function createFeaturesDesktopTabs() { const list = document.getElementById('featuresList'); const content = document.getElementById('featuresContent'); if (!list || !content) return; list.innerHTML = ''; content.innerHTML = ''; featuresData.forEach((feature, index) => { const li = document.createElement('div'); li.className = `feature-list-item ${index === 0 ? 'active' : ''}`; li.dataset.id = feature.id; li.innerHTML = `<span class="feature-icon">${feature.icon}</span><span>${feature.title}</span>`; li.onclick = () => showFeature(feature.id); list.appendChild(li); const pane = document.createElement('div'); pane.className = `features-content-pane ${index === 0 ? 'active' : ''}`; pane.id = `feature-${feature.id}`; pane.innerHTML = `<div class="content-icon">${feature.icon}</div><h3>${feature.title}</h3><p>${feature.description}</p>`; content.appendChild(pane); }); }
         function showFeature(id) { document.querySelectorAll('.feature-list-item').forEach(item => { item.classList.toggle('active', item.dataset.id === id); }); document.querySelectorAll('.features-content-pane').forEach(pane => { pane.classList.toggle('active', pane.id === `feature-${id}`); }); }
-        function createFeaturesMobileSlider() { /* ... content same as before ... */ const slider = document.getElementById('featuresSlider'); const dots = document.getElementById('featuresDots'); if (!slider || !dots) return; slider.innerHTML = ''; dots.innerHTML = ''; currentFeatureSlide = 0; featuresData.forEach((feature, index) => { const slide = document.createElement('div'); slide.className = 'feature-slide'; slide.innerHTML = `<div class="content-icon">${feature.icon}</div><h3>${feature.title}</h3><p>${feature.description}</p>`; slider.appendChild(slide); const dot = document.createElement('div'); dot.className = `feature-dot ${index === 0 ? 'active' : ''}`; dot.onclick = () => goToFeatureSlide(index); dots.appendChild(dot); }); goToFeatureSlide(0); }
+        function createFeaturesMobileSlider() { const slider = document.getElementById('featuresSlider'); const dots = document.getElementById('featuresDots'); if (!slider || !dots) return; slider.innerHTML = ''; dots.innerHTML = ''; currentFeatureSlide = 0; featuresData.forEach((feature, index) => { const slide = document.createElement('div'); slide.className = 'feature-slide'; slide.setAttribute('data-icon', feature.icon); /* For pseudo-element */ slide.innerHTML = `<div class="content-icon">${feature.icon}</div><h3>${feature.title}</h3><p>${feature.description}</p>`; slider.appendChild(slide); const dot = document.createElement('div'); dot.className = `feature-dot ${index === 0 ? 'active' : ''}`; dot.onclick = () => goToFeatureSlide(index); dots.appendChild(dot); }); goToFeatureSlide(0); } // Reset slider on creation
         function goToFeatureSlide(index) { currentFeatureSlide = index; const slider = document.getElementById('featuresSlider'); if(slider) slider.style.transform = `translateX(-${index * 100}%)`; document.querySelectorAll('#featuresDots .feature-dot').forEach((dot, i) => { dot.classList.toggle('active', i === index); }); }
 
-        // --- PRICING SECTION ---
+        // --- PRICING SECTION (Adjusted Layout Logic) ---
         function createPricingLayout() {
             const desktopGrid = document.getElementById('pricingGridDesktop');
-            const mobileSlider = document.getElementById('pricingSliderMobile');
+            const mobileSliderWrap = document.getElementById('pricingSliderMobile');
             const mobileNav = document.getElementById('pricingSliderNav');
             const mobileDots = document.getElementById('pricingDots');
-            if(!desktopGrid || !mobileSlider || !mobileNav || !mobileDots) return;
+            if(!desktopGrid || !mobileSliderWrap || !mobileNav || !mobileDots) return;
 
              if (isMobile()) {
                  desktopGrid.style.display = 'none';
-                 mobileSlider.style.display = 'block';
+                 mobileSliderWrap.style.display = 'block';
                  mobileNav.style.display = 'flex';
                  mobileDots.style.display = 'flex';
                  if (currentPricingType === 'hosting') {
@@ -678,7 +564,7 @@
                  }
              } else {
                  desktopGrid.style.display = 'grid';
-                 mobileSlider.style.display = 'none';
+                 mobileSliderWrap.style.display = 'none';
                  mobileNav.style.display = 'none';
                  mobileDots.style.display = 'none';
                  if (currentPricingType === 'hosting') {
@@ -688,9 +574,9 @@
                  }
              }
         }
-        function createPricingCardHTML(plan, period) { /* ... content same as before ... */ let price, periodLabel; if (period) { price = plan.price[period]; periodLabel = period === '3month' ? '/3 mo' : period === '6month' ? '/6 mo' : '/12 mo'; } else { price = plan.price.toFixed(2); periodLabel = '/task'; } const featuresHTML = plan.features.map(f => `<li><i class="ri-check-line"></i> <span>${f}</span></li>`).join(''); return `<div class="pricing-card ${plan.popular ? 'popular' : ''}">${plan.popular ? '<div class="popular-badge">Popular</div>' : ''}<h3>${plan.name}</h3><div class="price">$${price}<span>${periodLabel}</span></div><ul class="pricing-features">${featuresHTML}</ul><a href="connect.html" class="cta"><span>${price === 0 ? 'Get Free' : 'Get Started'}</span><i class="ri-arrow-right-line"></i></a></div>`; }
-        function createPricingDesktopGrid(data, period = null) { /* ... content same as before ... */ const grid = document.getElementById('pricingGridDesktop'); if (!grid) return; grid.innerHTML = ''; grid.className = period ? 'pricing-grid' : 'pricing-grid task-pricing'; Object.values(data).forEach(plan => { grid.innerHTML += createPricingCardHTML(plan, period); }); gsap.fromTo('#pricingGridDesktop .pricing-card', {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.6, stagger: 0.1, delay: 0.2}); }
-        function createPricingMobileSlider(data, period = null) { /* ... content same as before ... */ const slider = document.getElementById('pricingSlider'); const dots = document.getElementById('pricingDots'); if (!slider || !dots) return; slider.innerHTML = ''; dots.innerHTML = ''; currentPriceSlide = 0; totalPriceSlides = Object.keys(data).length; Object.values(data).forEach((plan, index) => { const slide = document.createElement('div'); slide.className = 'price-slide'; slide.innerHTML = createPricingCardHTML(plan, period); slider.appendChild(slide); const dot = document.createElement('div'); dot.className = `pricing-dot ${index === 0 ? 'active' : ''}`; dot.onclick = () => goToPriceSlide(index); dots.appendChild(dot); }); updatePriceSlider(); }
+        function createPricingCardHTML(plan, period) { let price, periodLabel; if (period) { price = plan.price[period]; periodLabel = period === '3month' ? '/3 mo' : period === '6month' ? '/6 mo' : '/12 mo'; } else { price = plan.price.toFixed(2); periodLabel = '/task'; } const featuresHTML = plan.features.map(f => `<li><i class="ri-check-line"></i> <span>${f}</span></li>`).join(''); return `<div class="pricing-card ${plan.popular ? 'popular' : ''}">${plan.popular ? '<div class="popular-badge">Popular</div>' : ''}<h3>${plan.name}</h3><div class="price">$${price}<span>${periodLabel}</span></div><ul class="pricing-features">${featuresHTML}</ul><a href="connect.html" class="cta"><span>${price === 0 ? 'Get Free' : 'Get Started'}</span><i class="ri-arrow-right-line"></i></a></div>`; }
+        function createPricingDesktopGrid(data, period = null) { const grid = document.getElementById('pricingGridDesktop'); if (!grid) return; grid.innerHTML = ''; grid.className = period ? 'pricing-grid' : 'pricing-grid task-pricing'; Object.values(data).forEach(plan => { grid.innerHTML += createPricingCardHTML(plan, period); }); gsap.fromTo('#pricingGridDesktop .pricing-card', {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.6, stagger: 0.1, delay: 0.2}); }
+        function createPricingMobileSlider(data, period = null) { const slider = document.getElementById('pricingSlider'); const dots = document.getElementById('pricingDots'); if (!slider || !dots) return; slider.innerHTML = ''; dots.innerHTML = ''; currentPriceSlide = 0; totalPriceSlides = Object.keys(data).length; Object.values(data).forEach((plan, index) => { const slide = document.createElement('div'); slide.className = 'price-slide'; slide.innerHTML = createPricingCardHTML(plan, period); slider.appendChild(slide); const dot = document.createElement('div'); dot.className = `pricing-dot ${index === 0 ? 'active' : ''}`; dot.onclick = () => goToPriceSlide(index); dots.appendChild(dot); }); updatePriceSlider(); }
         function updatePriceSlider() { const slider = document.getElementById('pricingSlider'); if (slider) slider.style.transform = `translateX(-${currentPriceSlide * 100}%)`; document.querySelectorAll('#pricingDots .pricing-dot').forEach((dot, i) => { dot.classList.toggle('active', i === currentPriceSlide); }); const prevBtn = document.getElementById('pricePrevBtn'); const nextBtn = document.getElementById('priceNextBtn'); if (prevBtn) prevBtn.disabled = currentPriceSlide === 0; if (nextBtn) nextBtn.disabled = currentPriceSlide >= totalPriceSlides - 1; }
         function nextPriceSlide() { if (currentPriceSlide < totalPriceSlides - 1) { currentPriceSlide++; updatePriceSlider(); } }
         function prevPriceSlide() { if (currentPriceSlide > 0) { currentPriceSlide--; updatePriceSlider(); } }
@@ -698,112 +584,26 @@
         function togglePricingType(event, type) { if (type === currentPricingType) return; currentPricingType = type; document.querySelectorAll('#pricing-type-toggle button').forEach(btn => btn.classList.remove('active')); event.currentTarget.classList.add('active'); const hostingToggle = document.getElementById('hostingToggle'); if (hostingToggle) hostingToggle.style.display = type === 'hosting' ? 'flex' : 'none'; createPricingLayout(); }
         function toggleHostingPeriod(event, period) { if (period === currentHostingPeriod) return; currentHostingPeriod = period; document.querySelectorAll('#hostingToggle button').forEach(btn => btn.classList.remove('active')); event.currentTarget.classList.add('active'); createPricingLayout(); }
 
-        // --- PARTNER SECTION ---
-        function createPartnerSlider() {
-            const container = document.getElementById('partnerContainer');
-            const desktopContent = container.querySelector('.partner-content');
-            const desktopStats = container.querySelector('.partner-stats');
-            const sliderWrap = document.getElementById('partnerSliderWrap');
-            const dots = document.getElementById('partnerDots');
-            
-            // Clear previous mobile content if any
-            sliderWrap.innerHTML = '';
-            dots.innerHTML = '';
-            currentPartnerSlide = 0;
-
-            if (isMobile()) {
-                // Hide desktop content if it exists
-                if(desktopContent) desktopContent.style.display = 'none';
-                if(desktopStats) desktopStats.style.display = 'none';
-                
-                // --- Create Slide 1 (Content) ---
-                const slide1 = document.createElement('div');
-                slide1.className = 'partner-slide';
-                slide1.innerHTML = `
-                     <h2>Earn Crypto with SEOTIZE</h2>
-                     <p class="intro">Join our affiliate program, share SEOTIZE, and earn generous recurring commissions paid out easily in USDT.</p>
-                     <h3>How it Works</h3>
-                     <ul class="how-it-works">
-                        <li><span class="step-number">1</span> Sign up free</li>
-                        <li><span class="step-number">2</span> Share your link</li>
-                        <li><span class="step-number">3</span> Earn up to 30%</li>
-                        <li><span class="step-number">4</span> Get paid (USDT!)</li>
-                     </ul>
-                     <h3>Partner Benefits</h3>
-                     <div class="partner-benefits">
-                        <div class="benefit-item"><i class="ri-percent-line"></i><span>Up to 30% Recurring</span></div>
-                        <div class="benefit-item"><i class="ri-wallet-3-line"></i><span>Easy USDT Payouts</span></div>
-                        <div class="benefit-item"><i class="ri-dashboard-line"></i><span>Tracking Dashboard</span></div>
-                        <div class="benefit-item"><i class="ri-customer-service-2-line"></i><span>Dedicated Support</span></div>
-                     </div>
-                     <a href="connect.html" class="cta-partner">
-                         <span>Become a Partner</span> <i class="ri-arrow-right-line"></i>
-                     </a>
-                `;
-                sliderWrap.appendChild(slide1);
-
-                // --- Create Slide 2 (Stats) ---
-                const slide2 = document.createElement('div');
-                slide2.className = 'partner-slide';
-                slide2.innerHTML = `
-                    <h2 style="margin-bottom: 2rem;">Partner Success</h2>
-                    <div class="partner-stats">
-                        <div class="stat-card"><div class="stat-number">30%</div><div class="stat-label">Max Commission</div></div>
-                        <div class="stat-card"><div class="stat-number">USDT</div><div class="stat-label">Crypto Payouts</div></div>
-                        <div class="stat-card"><div class="stat-number">$50K+</div><div class="stat-label">Paid Monthly</div></div>
-                        <div class="stat-card"><div class="stat-number">∞</div><div class="stat-label">Earning Potential</div></div>
-                    </div>
-                `;
-                sliderWrap.appendChild(slide2);
-
-                // --- Create Dots ---
-                for (let i = 0; i < 2; i++) {
-                    const dot = document.createElement('div');
-                    dot.className = `partner-dot ${i === 0 ? 'active' : ''}`;
-                    dot.onclick = () => goToPartnerSlide(i);
-                    dots.appendChild(dot);
-                }
-                
-                sliderWrap.style.display = 'flex'; // Ensure slider wrap is visible
-                dots.style.display = 'flex'; // Ensure dots are visible
-
-            } else {
-                 // Show desktop content if it exists
-                if(desktopContent) desktopContent.style.display = 'block'; // Or 'grid'/'flex' if needed
-                if(desktopStats) desktopStats.style.display = 'grid';
-                sliderWrap.style.display = 'none'; // Hide slider wrap
-                dots.style.display = 'none'; // Hide dots
-            }
-        }
-        
-        function goToPartnerSlide(index) {
-            currentPartnerSlide = index;
-            const slider = document.getElementById('partnerSliderWrap');
-            if(slider) slider.style.transform = `translateX(-${index * 100}%)`;
-            
-            document.querySelectorAll('#partnerDots .partner-dot').forEach((dot, i) => {
-                dot.classList.toggle('active', i === index);
-            });
-        }
+        // --- PARTNER SECTION (No JS needed for layout change) ---
+        // JS only needed if mobile slider functionality was kept
 
         // --- GLOBAL & INITIALIZATION ---
-        function createScrollIndicator() { /* ... content same as before ... */ const indicator = document.getElementById('scrollIndicator'); indicator.innerHTML = ''; const sections = [ { id: 'home', name: 'Home' }, { id: 'features', name: 'Features' }, { id: 'pricing', name: 'Pricing' }, { id: 'partner', name: 'Partners' } ]; sections.forEach((section, index) => { const dot = document.createElement('div'); dot.className = `scroll-dot ${index === 0 ? 'active' : ''}`; dot.dataset.id = section.id; dot.innerHTML = `<span class="tooltip">${section.name}</span>`; dot.onclick = () => { document.getElementById(section.id)?.scrollIntoView({behavior: 'smooth'}); }; indicator.appendChild(dot); }); }
-        function toggleTheme() { /* ... content same as before ... */ document.body.classList.toggle('dark'); const isDark = document.body.classList.contains('dark'); document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙'; localStorage.setItem('theme', isDark ? 'dark' : 'light'); }
-        function loadTheme() { /* ... content same as before ... */ if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); document.getElementById('themeIcon').textContent = '☀️'; } }
+        function createScrollIndicator() { const indicator = document.getElementById('scrollIndicator'); indicator.innerHTML = ''; const sections = [ { id: 'home', name: 'Home' }, { id: 'features', name: 'Features' }, { id: 'pricing', name: 'Pricing' }, { id: 'partner', name: 'Partners' } ]; sections.forEach((section, index) => { const dot = document.createElement('div'); dot.className = `scroll-dot ${index === 0 ? 'active' : ''}`; dot.dataset.id = section.id; dot.innerHTML = `<span class="tooltip">${section.name}</span>`; dot.onclick = () => { document.getElementById(section.id)?.scrollIntoView({behavior: 'smooth'}); }; indicator.appendChild(dot); }); }
+        function toggleTheme() { document.body.classList.toggle('dark'); const isDark = document.body.classList.contains('dark'); document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙'; localStorage.setItem('theme', isDark ? 'dark' : 'light'); }
+        function loadTheme() { if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); document.getElementById('themeIcon').textContent = '☀️'; } }
         
-        function handleResize() {
-             createFeaturesLayout();
-             createPricingLayout();
-             createPartnerSlider(); // This will show/hide based on isMobile()
+        // Function to update layouts based on screen size
+        function updateLayouts() {
+            createFeaturesLayout();
+            createPricingLayout();
+             // Partner section now uses CSS media queries for layout
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             loadTheme();
             createHeroSlider();
-            createFeaturesLayout();
-            createPricingLayout();
-            createPartnerSlider();
             createScrollIndicator();
+            updateLayouts(); // Initial layout setup
 
             setInterval(nextHero, 5000);
 
@@ -818,45 +618,34 @@
                 });
             }, { threshold: 0.5 }); 
 
-            document.querySelectorAll('.section').forEach(section => observer.observe(section));
+            document.querySelectorAll('.section, .footer').forEach(el => observer.observe(el)); // Observe footer too
             
             let resizeTimer;
             window.addEventListener('resize', () => {
                 clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(handleResize, 250);
+                resizeTimer = setTimeout(updateLayouts, 250); // Debounced resize handler
             });
 
-             // Set initial active state for nav items based on hash or default to home
+             // Set initial active state for nav items
             const currentHash = window.location.hash || '#home';
-            document.querySelectorAll('.mobile-item').forEach(item => item.classList.toggle('active', item.getAttribute('href') === currentHash));
-            document.querySelectorAll('.nav-menu a').forEach(item => item.classList.toggle('active', item.getAttribute('href') === currentHash));
-
+            document.querySelectorAll('.mobile-item, .nav-menu a').forEach(item => {
+                 item.classList.toggle('active', item.getAttribute('href') === currentHash);
+             });
         });
 
-        // Mobile nav click handler
-        document.querySelectorAll('.mobile-item').forEach(item => {
+        // Navigation click handlers (unchanged)
+        document.querySelectorAll('.mobile-item, .nav-menu a').forEach(item => {
             item.addEventListener('click', function(e) {
                 const targetHref = item.getAttribute('href');
                 if(targetHref && targetHref.startsWith("#")) {
                     e.preventDefault();
-                    document.querySelector(targetHref)?.scrollIntoView({ behavior: 'smooth' });
-                    // No need to manually set active class here, observer will handle it.
+                    const targetElement = document.querySelector(targetHref);
+                    if (targetElement) {
+                         targetElement.scrollIntoView({ behavior: 'smooth' });
+                         // Observer will handle active class update on scroll end
+                    }
                 } else if (targetHref && !targetHref.startsWith("#")) {
-                    // Allow navigation to external pages like blogs.html
-                    window.location.href = targetHref;
-                }
-            });
-        });
-        
-        // Desktop nav click handler
-        document.querySelectorAll('.nav-menu a').forEach(item => {
-            item.addEventListener('click', function(e) {
-                 const targetHref = item.getAttribute('href');
-                 if(targetHref && targetHref.startsWith("#")) {
-                    e.preventDefault();
-                    document.querySelector(targetHref)?.scrollIntoView({ behavior: 'smooth' });
-                     // No need to manually set active class here, observer will handle it.
-                } else if (targetHref && !targetHref.startsWith("#")) {
+                    // Allow navigation to external pages
                     window.location.href = targetHref;
                 }
             });

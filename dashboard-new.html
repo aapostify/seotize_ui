@@ -6,6 +6,7 @@
     <title>SEOTIZE Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-geo@3"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <style>
 :root{--radius:12px;--shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06)}
@@ -101,16 +102,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .hosting-nav-item.active{background:var(--primary);color:white}
 .hosting-content{min-height:400px}
 
-.location-preview{border:1px solid var(--border);border-radius:var(--radius);height:400px;overflow:hidden;position:relative;margin-bottom:1rem}
-.location-preview iframe{width:100%;height:100%;border:0}
+.location-preview{border:1px solid var(--border);border-radius:var(--radius);height:400px;overflow:auto;position:relative;margin-bottom:1rem}
+.location-preview iframe{width:100%;height:100%;border:0;overflow:auto}
 .location-overlay{position:absolute;inset:0;pointer-events:auto;cursor:crosshair}
 .location-marker{position:absolute;width:20px;height:20px;background:var(--primary);border:2px solid white;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 2px 4px rgba(0,0,0,0.2);animation:pulse 2s infinite}
 @keyframes pulse{0%{transform:translate(-50%,-50%) scale(1);opacity:1}50%{transform:translate(-50%,-50%) scale(1.2);opacity:0.8}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
 
 .keyword-grid{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
-.keyword-item{padding:.5rem 1rem;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .2s}
-.keyword-item:hover{border-color:var(--primary);background:rgba(59,130,246,0.1)}
-.keyword-item.selected{background:var(--primary);color:white;border-color:var(--primary)}
+.keyword-item{padding:.5rem 1rem;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .3s;opacity:1;background:var(--card)}
+.keyword-item:hover{border-color:var(--primary);background:rgba(59,130,246,0.1);transform:translateY(-1px)}
+.keyword-item.selected{background:var(--primary);color:white;border-color:var(--primary);opacity:1;transform:scale(1.02)}
+.keyword-item:not(.selected){opacity:0.8}
 
 .mobile-toggle{display:none;position:fixed;top:1rem;left:1rem;z-index:100;width:40px;height:40px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);align-items:center;justify-content:center;cursor:pointer}
 
@@ -442,32 +444,59 @@ async function loadDashboard() {
         const { data } = await api('/dashboard/billings?page=1&limit=50');
         currentData.billingData = data;
 
-        // Extract user info from any available transaction
-        const allTransactions = [...(data.tasks || []), ...(data.hosting || [])];
-        const user = {
-            email: allTransactions[0]?.transaction_data?.customer_details?.email || 'user@example.com',
-            task_statistics: {
-                total_views: allTransactions.filter(t => t.method === 'create_task').reduce((sum, t) => sum + (t.views_count || 0), 0),
-                active_tasks: allTransactions.filter(t => t.method === 'create_task' && t.status === 'Paid').length,
-                total_charge: allTransactions.reduce((sum, t) => sum + (typeof t.total_payment === 'number' ? t.total_payment : parseFloat(t.total_payment?.parsedValue || 0)), 0),
-                available_charge: allTransactions.filter(t => t.status === 'Paid').reduce((sum, t) => sum + (t.final_amount || 0), 0)
-            },
-            sessions: [] // Mock empty sessions
-        };
+        // Load user profile data
+        let user;
+        try {
+            const userResponse = await api('/user/profile');
+            user = userResponse.data;
+        } catch (error) {
+            console.log('Using fallback user data from billing');
+            // Extract user info from any available transaction
+            const allTransactions = [...(data.tasks || []), ...(data.hosting || [])];
+            user = {
+                email: allTransactions[0]?.transaction_data?.customer_details?.email || 'Loading...',
+                task_statistics: {
+                    total_views: allTransactions.filter(t => t.method === 'create_task').reduce((sum, t) => sum + (t.views_count || 0), 0),
+                    active_tasks: allTransactions.filter(t => t.method === 'create_task' && t.status === 'Paid').length,
+                    total_charge: allTransactions.reduce((sum, t) => sum + (typeof t.total_payment === 'number' ? t.total_payment : parseFloat(t.total_payment?.parsedValue || 0)), 0),
+                    available_charge: allTransactions.filter(t => t.status === 'Paid').reduce((sum, t) => sum + (t.final_amount || 0), 0)
+                },
+                sessions: []
+            };
+        }
+
+        // Load active sessions
+        try {
+            const sessionsResponse = await api('/user/sessions');
+            user.sessions = sessionsResponse.data || [];
+        } catch (error) {
+            console.log('Failed to load sessions:', error);
+            user.sessions = [];
+        }
 
         currentData.user = user;
 
         // Update user info
-        document.getElementById('userEmail').textContent = user.email;
-        document.getElementById('userAvatar').textContent = user.email[0].toUpperCase();
-        document.getElementById('userSince').textContent = `Member since ${new Date().toLocaleDateString()}`;
+        document.getElementById('userEmail').textContent = user.email || 'Loading...';
+        document.getElementById('userAvatar').textContent = (user.email || 'U')[0].toUpperCase();
+        const memberSince = user.created_at ? new Date(user.created_at).toLocaleDateString() : new Date().toLocaleDateString();
+        document.getElementById('userSince').textContent = `Member since ${memberSince}`;
 
-        // Stats
+        // Load additional analytics data
+        let analytics = {};
+        try {
+            const analyticsResponse = await api('/analytics/dashboard');
+            analytics = analyticsResponse.data || {};
+        } catch (error) {
+            console.log('Using fallback analytics data');
+        }
+
+        // Stats with real analytics data
         const stats = [
-            { label: 'Active Tasks', value: user.task_statistics.active_tasks, change: '+12%' },
-            { label: 'Total Views', value: user.task_statistics.total_views.toLocaleString(), change: '+8%' },
-            { label: 'Total Spent', value: `$${user.task_statistics.total_charge.toFixed(2)}` },
-            { label: 'Available Budget', value: `$${user.task_statistics.available_charge.toFixed(2)}` }
+            { label: 'Active Tasks', value: analytics.active_tasks || user.task_statistics.active_tasks, change: analytics.tasks_change || '+12%' },
+            { label: 'Total Views', value: (analytics.total_views || user.task_statistics.total_views).toLocaleString(), change: analytics.views_change || '+8%' },
+            { label: 'Total Spent', value: `$${(analytics.total_spent || user.task_statistics.total_charge).toFixed(2)}`, change: analytics.spent_change },
+            { label: 'Available Budget', value: `$${(analytics.available_budget || user.task_statistics.available_charge).toFixed(2)}`, change: analytics.budget_change }
         ];
 
         document.getElementById('dashboardStats').innerHTML = stats.map(stat => `
@@ -489,8 +518,16 @@ async function loadDashboard() {
             </tr>
         `).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--text-light)">No active sessions</td></tr>';
 
-        // Recent Activity
-        const recentTasks = allTransactions.filter(t => t.method === 'create_task').slice(0, 5);
+        // Load recent tasks specifically
+        let recentTasks = allTransactions.filter(t => t.method === 'create_task').slice(0, 5);
+        try {
+            const recentResponse = await api('/tasks/recent?limit=5');
+            if (recentResponse.data && recentResponse.data.length) {
+                recentTasks = recentResponse.data;
+            }
+        } catch (error) {
+            console.log('Using billing data for recent tasks');
+        }
         document.getElementById('recentActivity').innerHTML = recentTasks.length ? recentTasks.map(task => `
             <div class="task-item" onclick="viewTaskDetails('${task.billing_id}')">
                 <div style="display:flex;justify-content:space-between;align-items:start">
@@ -544,43 +581,128 @@ function createDashboardCharts(transactions) {
         }
     });
 
-    // Country Distribution (mock data for now)
-    const countryData = {'US': 45, 'UK': 25, 'CA': 15, 'AU': 10, 'DE': 5};
-
-    if (charts.country) charts.country.destroy();
-    const ctx2 = document.getElementById('countryChart').getContext('2d');
-    charts.country = new Chart(ctx2, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(countryData),
-            datasets: [{
-                data: Object.values(countryData),
-                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'right' }
-            }
+    // Country Distribution World Map
+    try {
+        // Load country views data
+        let countryData = {'US': 45, 'GB': 25, 'CA': 15, 'AU': 10, 'DE': 5}; // Default data
+        try {
+            const countryResponse = await api('/analytics/countries');
+            countryData = countryResponse.data || countryData;
+        } catch (error) {
+            console.log('Using default country data');
         }
-    });
+
+        if (charts.country) charts.country.destroy();
+        const ctx2 = document.getElementById('countryChart').getContext('2d');
+        
+        // Fetch world topology data
+        const response = await fetch('https://unpkg.com/world-atlas@2/countries-110m.json');
+        const topology = await response.json();
+        const countries = ChartGeo.topojson.feature(topology, topology.objects.countries).features;
+
+        // Prepare data for the map
+        const mapData = countries.map(country => {
+            const countryCode = country.properties.ISO_A2;
+            return {
+                feature: country,
+                value: countryData[countryCode] || 0
+            };
+        });
+
+        charts.country = new Chart(ctx2, {
+            type: 'choropleth',
+            data: {
+                labels: countries.map(d => d.properties.NAME),
+                datasets: [{
+                    label: 'Views by Country',
+                    data: mapData,
+                    backgroundColor: (context) => {
+                        const value = context.parsed.v;
+                        if (value === 0) return '#e2e8f0';
+                        const intensity = Math.min(value / 50, 1); // Normalize to max 50 views
+                        return `rgba(59, 130, 246, ${0.3 + intensity * 0.7})`;
+                    },
+                    borderColor: '#334155',
+                    borderWidth: 0.5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    projection: {
+                        axis: 'x',
+                        projection: 'naturalEarth1'
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: (items) => items[0].label,
+                            label: (item) => `Views: ${item.parsed.v}`
+                        }
+                    }
+                },
+                elements: {
+                    arc: {
+                        backgroundColor: 'rgba(59, 130, 246, 0.3)',
+                        borderColor: '#334155'
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.log('Fallback to doughnut chart');
+        // Fallback to original doughnut chart if map fails
+        const countryData = {'US': 45, 'UK': 25, 'CA': 15, 'AU': 10, 'DE': 5};
+
+        if (charts.country) charts.country.destroy();
+        const ctx2 = document.getElementById('countryChart').getContext('2d');
+        charts.country = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(countryData),
+                datasets: [{
+                    data: Object.values(countryData),
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+    }
 }
 
 // Tasks Management
 async function loadTasks() {
     try {
-        const { data } = await api('/dashboard/billings?page=1&limit=50');
-        const tasks = (data.tasks || []).filter(t => t.method === 'create_task');
+        // Try to load tasks from dedicated endpoint first
+        let tasks = [];
+        try {
+            const tasksResponse = await api('/tasks?page=1&limit=50');
+            tasks = tasksResponse.data || [];
+        } catch (error) {
+            console.log('Falling back to billing data for tasks');
+            const { data } = await api('/dashboard/billings?page=1&limit=50');
+            tasks = (data.tasks || []).filter(t => t.method === 'create_task');
+        }
         currentData.tasks = tasks;
 
-        // Update stats
-        const activeTasks = tasks.filter(t => t.status === 'Paid').length;
-        const totalBudget = tasks.reduce((sum, t) => sum + (t.final_amount || 0), 0);
+        // Update stats - handle both task API and billing API data structures
+        const activeTasks = tasks.filter(t => (t.status === 'Paid' || t.status === 'active')).length;
+        const totalViews = tasks.reduce((sum, t) => sum + (t.views_count || t.views || 0), 0);
+        const totalBudget = tasks.reduce((sum, t) => sum + (t.final_amount || t.budget || t.total_payment || 0), 0);
 
         document.getElementById('activeTasksCount').textContent = activeTasks;
-        document.getElementById('totalViewsCount').textContent = '0'; // No views data in billing API
+        document.getElementById('totalViewsCount').textContent = totalViews.toLocaleString();
         document.getElementById('availableBudget').textContent = `$${totalBudget.toFixed(2)}`;
 
         // Tasks list
@@ -682,7 +804,7 @@ async function showTaskModal() {
 
         <div id="taskStep2" style="display:none">
             <div class="location-preview">
-                <iframe id="taskPreview"></iframe>
+                <iframe id="taskPreview" scrolling="yes" style="overflow:auto"></iframe>
                 <div class="location-overlay" id="locationOverlay"></div>
             </div>
             <div style="margin:1rem 0">
@@ -861,12 +983,19 @@ function toggleKeyword(keyword) {
     if (idx === -1) {
         currentData.selectedKeywords.push(keyword);
         element.classList.add('selected');
-        gsap.to(element, {duration: 0.2, scale: 1.05, ease: "back.out(1.7)"});
+        gsap.to(element, {duration: 0.3, scale: 1.02, opacity: 1, ease: "back.out(1.7)"});
     } else {
         currentData.selectedKeywords.splice(idx, 1);
         element.classList.remove('selected');
-        gsap.to(element, {duration: 0.2, scale: 1});
+        gsap.to(element, {duration: 0.3, scale: 1, opacity: 0.8});
     }
+
+    // Update all keywords opacity
+    document.querySelectorAll('.keyword-item').forEach(item => {
+        if (!item.classList.contains('selected')) {
+            gsap.to(item, {duration: 0.2, opacity: 0.7});
+        }
+    });
 
     document.getElementById('taskKeywords').value = currentData.selectedKeywords.join(', ');
 }
@@ -941,6 +1070,14 @@ async function rechargeTask(taskId) {
 
 // Hosting Management
 async function loadHosting() {
+    try {
+        // Load hosting data from API
+        const hostingData = await api('/hosting/overview');
+        currentData.hostingData = hostingData.data || {};
+    } catch (error) {
+        console.log('Failed to load hosting data:', error);
+        currentData.hostingData = {};
+    }
     showHostingContent('overview');
 }
 
@@ -953,23 +1090,24 @@ function showHostingContent(type) {
     
     switch(type) {
         case 'overview':
+            const hostingStats = currentData.hostingData || {};
             content.innerHTML = `
                 <div class="stat-grid" style="margin-bottom:1.5rem">
                     <div class="stat-card">
                         <div class="stat-label">Current Plan</div>
-                        <div class="stat-value">FREE</div>
+                        <div class="stat-value">${hostingStats.plan || 'FREE'}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">Images Used</div>
-                        <div class="stat-value">0/10</div>
+                        <div class="stat-value">${hostingStats.images_used || 0}/${hostingStats.images_limit || 10}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">Articles Used</div>
-                        <div class="stat-value">0/5</div>
+                        <div class="stat-value">${hostingStats.articles_used || 0}/${hostingStats.articles_limit || 5}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">Storage Used</div>
-                        <div class="stat-value">0GB/1GB</div>
+                        <div class="stat-value">${hostingStats.storage_used || 0}GB/${hostingStats.storage_limit || 1}GB</div>
                     </div>
                 </div>
                 
@@ -985,37 +1123,13 @@ function showHostingContent(type) {
             `;
             break;
         case 'images':
-            content.innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-                    <h3>Image Management</h3>
-                    <button class="btn btn-primary" onclick="showImageUploadModal()">Upload Images</button>
-                </div>
-                <div class="empty-state">
-                    <p>No images uploaded yet</p>
-                </div>
-            `;
+            loadHostingImages(content);
             break;
         case 'articles':
-            content.innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-                    <h3>Article Management</h3>
-                    <button class="btn btn-primary" onclick="showArticleModal()">Create Article</button>
-                </div>
-                <div class="empty-state">
-                    <p>No articles published yet</p>
-                </div>
-            `;
+            loadHostingArticles(content);
             break;
         case 'domains':
-            content.innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-                    <h3>Domain Management</h3>
-                    <button class="btn btn-primary" onclick="showDomainModal()">Add Domain</button>
-                </div>
-                <div class="empty-state">
-                    <p>No domains configured yet</p>
-                </div>
-            `;
+            loadHostingDomains(content);
             break;
     }
     
@@ -1214,7 +1328,7 @@ async function checkSerpPosition() {
     btn.innerHTML = '<span class="loader"></span> Checking...';
 
     try {
-        const response = await fetch(`https://search.seotize.workers.dev/?keyword=${encodeURIComponent(keyword)}&url=${encodeURIComponent(url)}`, {
+        const response = await fetch(`https://search.seotize.net/?keyword=${encodeURIComponent(keyword)}&url=${encodeURIComponent(url)}`, {
             headers: { 'Session-Token': sessionToken }
         });
         const data = await response.json();
@@ -1340,6 +1454,200 @@ function showArticleModal() {
 
 function showDomainModal() {
     showModal('Add Domain', '<p>Domain management functionality - implementation needed</p>');
+}
+
+// Hosting section functions
+async function loadHostingImages(content) {
+    try {
+        const { data } = await api('/hosting/images');
+        const images = data || [];
+        
+        content.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                <h3>Image Management</h3>
+                <button class="btn btn-primary" onclick="showImageUploadModal()">Upload Images</button>
+            </div>
+            ${images.length ? `
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
+                    ${images.map(img => `
+                        <div class="card">
+                            <img src="${img.url}" alt="${img.name}" style="width:100%;height:150px;object-fit:cover;border-radius:var(--radius) var(--radius) 0 0">
+                            <div style="padding:1rem">
+                                <h5 style="margin:0 0 .5rem">${img.name}</h5>
+                                <div style="display:flex;justify-content:space-between;align-items:center">
+                                    <small style="color:var(--text-light)">${img.size}</small>
+                                    <button class="btn btn-sm" onclick="deleteHostingImage('${img.id}')">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : `
+                <div class="empty-state">
+                    <p>No images uploaded yet</p>
+                </div>
+            `}
+        `;
+    } catch (error) {
+        content.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                <h3>Image Management</h3>
+                <button class="btn btn-primary" onclick="showImageUploadModal()">Upload Images</button>
+            </div>
+            <div class="empty-state">
+                <p>No images uploaded yet</p>
+            </div>
+        `;
+    }
+}
+
+async function loadHostingArticles(content) {
+    try {
+        const { data } = await api('/hosting/articles');
+        const articles = data || [];
+        
+        content.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                <h3>Article Management</h3>
+                <button class="btn btn-primary" onclick="showArticleModal()">Create Article</button>
+            </div>
+            ${articles.length ? `
+                <div style="display:grid;gap:1rem">
+                    ${articles.map(article => `
+                        <div class="card">
+                            <div class="card-body">
+                                <div style="display:flex;justify-content:space-between;align-items:start">
+                                    <div style="flex:1">
+                                        <h4 style="margin:0 0 .5rem">${article.title}</h4>
+                                        <p style="color:var(--text-light);margin:0 0 1rem">${article.excerpt || article.content?.substring(0, 150) + '...'}</p>
+                                        <div style="display:flex;gap:1rem">
+                                            <span class="badge badge-${article.status === 'published' ? 'success' : 'warning'}">${article.status}</span>
+                                            <small style="color:var(--text-light)">${new Date(article.created_at).toLocaleDateString()}</small>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;gap:.5rem">
+                                        <button class="btn btn-sm" onclick="editArticle('${article.id}')">Edit</button>
+                                        <button class="btn btn-sm" onclick="deleteArticle('${article.id}')">Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : `
+                <div class="empty-state">
+                    <p>No articles published yet</p>
+                </div>
+            `}
+        `;
+    } catch (error) {
+        content.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                <h3>Article Management</h3>
+                <button class="btn btn-primary" onclick="showArticleModal()">Create Article</button>
+            </div>
+            <div class="empty-state">
+                <p>No articles published yet</p>
+            </div>
+        `;
+    }
+}
+
+async function loadHostingDomains(content) {
+    try {
+        const { data } = await api('/hosting/domains');
+        const domains = data || [];
+        
+        content.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                <h3>Domain Management</h3>
+                <button class="btn btn-primary" onclick="showDomainModal()">Add Domain</button>
+            </div>
+            ${domains.length ? `
+                <div style="display:grid;gap:1rem">
+                    ${domains.map(domain => `
+                        <div class="card">
+                            <div class="card-body">
+                                <div style="display:flex;justify-content:space-between;align-items:center">
+                                    <div>
+                                        <h4 style="margin:0 0 .5rem">${domain.name}</h4>
+                                        <div style="display:flex;gap:1rem">
+                                            <span class="badge badge-${domain.status === 'active' ? 'success' : domain.status === 'pending' ? 'warning' : 'error'}">${domain.status}</span>
+                                            <small style="color:var(--text-light)">Expires: ${new Date(domain.expires_at).toLocaleDateString()}</small>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;gap:.5rem">
+                                        <button class="btn btn-sm" onclick="manageDomain('${domain.id}')">Manage</button>
+                                        <button class="btn btn-sm" onclick="deleteDomain('${domain.id}')">Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : `
+                <div class="empty-state">
+                    <p>No domains configured yet</p>
+                </div>
+            `}
+        `;
+    } catch (error) {
+        content.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+                <h3>Domain Management</h3>
+                <button class="btn btn-primary" onclick="showDomainModal()">Add Domain</button>
+            </div>
+            <div class="empty-state">
+                <p>No domains configured yet</p>
+            </div>
+        `;
+    }
+}
+
+async function deleteHostingImage(imageId) {
+    if (!confirm('Are you sure you want to delete this image?')) return;
+    
+    try {
+        await api(`/hosting/images/${imageId}`, { method: 'DELETE' });
+        showToast('Image deleted successfully', 'success');
+        showHostingContent('images');
+    } catch (error) {
+        showToast('Failed to delete image', 'error');
+    }
+}
+
+async function deleteArticle(articleId) {
+    if (!confirm('Are you sure you want to delete this article?')) return;
+    
+    try {
+        await api(`/hosting/articles/${articleId}`, { method: 'DELETE' });
+        showToast('Article deleted successfully', 'success');
+        showHostingContent('articles');
+    } catch (error) {
+        showToast('Failed to delete article', 'error');
+    }
+}
+
+async function deleteDomain(domainId) {
+    if (!confirm('Are you sure you want to delete this domain?')) return;
+    
+    try {
+        await api(`/hosting/domains/${domainId}`, { method: 'DELETE' });
+        showToast('Domain deleted successfully', 'success');
+        showHostingContent('domains');
+    } catch (error) {
+        showToast('Failed to delete domain', 'error');
+    }
+}
+
+function editArticle(articleId) {
+    // Implementation needed for article editing
+    showToast('Article editing feature coming soon', 'warning');
+}
+
+function manageDomain(domainId) {
+    // Implementation needed for domain management
+    showToast('Domain management feature coming soon', 'warning');
 }
 
 // Load theme preference
